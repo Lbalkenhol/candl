@@ -1,0 +1,222 @@
+# BASE INFORMATION
+name: "SPT-3G 2018 TT/TE/EE (Balkenhol et al. 2023)"# Balkenhol, Dutcher, Spurio Mancini, Doussot, Benabed, Galli et al. 2023, https://arxiv.org/abs/2212.05642
+like_installation_path : "/Users/lennart/Research/SPT3G_JAX_Likelihood/"
+data_set_path: "/Users/lennart/Research/SPT3G_JAX_Likelihood/real_data/SPT3G_2018_TTTEEE/"
+likelihood_form: "gaussian_beam_detcov"
+
+# FEEDBACK
+feedback: True
+
+# KEY FILES
+band_power_file: "spt3g_2018_ttteee_bdp.txt"
+covariance_file: "spt3g_2018_ttteee_cov.txt"
+beam_correlation_file: "spt3g_2018_ttteee_beam_corr.txt"
+window_functions_folder: "windows/"
+effective_frequencies: "effective_frequencies.yaml"
+
+data_selection: "TE only"
+
+# DATA INFORMATION
+spectra_info:
+ - TT 90x90: 35
+ - TE 90x90: 44
+ - EE 90x90: 44
+ - TT 90x150: 35
+ - TE 90x150: 44
+ - EE 90x150: 44
+ - TT 90x220: 35
+ - TE 90x220: 44
+ - EE 90x220: 44
+ - TT 150x150: 35
+ - TE 150x150: 44
+ - EE 150x150: 44
+ - TT 150x220: 30
+ - TE 150x220: 44
+ - EE 150x220: 44
+ - TT 220x220: 30
+ - TE 220x220: 44
+ - EE 220x220: 44
+
+# DATA MODEL
+data_model:
+  - Module: "common.SuperSampleLensing"
+    kappa_param: "Kappa"
+  - Module: "common.AberrationCorrection"
+    aberration_coefficient: -0.0004826
+    descriptor: "Aberration"
+  - Module: "common.PoissonPower"
+    spec_param_dict:
+      TT 90x90: "TT_Poisson_90x90"
+      TT 90x150: "TT_Poisson_90x150"
+      TT 90x220: "TT_Poisson_90x220"
+      TT 150x150: "TT_Poisson_150x150"
+      TT 150x220: "TT_Poisson_150x220"
+      TT 220x220: "TT_Poisson_220x220"
+      EE 90x90: "EE_Poisson_90x90"
+      EE 90x150: "EE_Poisson_90x150"
+      EE 90x220: "EE_Poisson_90x220"
+      EE 150x150: "EE_Poisson_150x150"
+      EE 150x220: "EE_Poisson_150x220"
+      EE 220x220: "EE_Poisson_220x220"
+    ell_ref: 3000
+  - Module: "common.CIBClustering"
+    amp_param: "TT_CIBClustering_Amp"
+    alpha_param: "TT_CIBClustering_Alpha"
+    beta_param: "TT_CIBClustering_Beta"
+    effective_frequencies: "CIB"
+    affected_specs: ["TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220"]
+    ell_ref: 3000
+    nu_ref: 150
+    T_CIB: 25
+  - Module: "common.tSZTemplateForeground"
+    template_file: "foreground_templates/dl_shaw_tsz_s10_153ghz_norm1_fake25000.txt"
+    amp_param: "TT_tSZ_Amp"
+    effective_frequencies: "tSZ"
+    affected_specs: ["TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220"]
+    ell_ref: 3000
+    nu_ref: 143
+  - Module: "common.kSZTemplateForeground"
+    template_file: "foreground_templates/dl_ksz_CSFplusPATCHY_13sep2011_norm1_fake25000.txt"
+    amp_param: "TT_kSZ_Amp"
+    affected_specs: [ "TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220" ]
+    ell_ref: 3000
+  - Module: "common.GalacticDust"
+    descriptor: "Cirrus"
+    amp_param: "TT_GalCirrus_Amp"
+    alpha_param: "TT_GalCirrus_Alpha"
+    beta_param: "TT_GalCirrus_Beta"
+    effective_frequencies: "cirrus"
+    affected_specs: ["TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220"]
+    ell_ref: 80
+    nu_ref: 150
+    T_GALDUST: 19.6
+  - Module: "common.GalacticDust"
+    descriptor: "TE Polarised Galactic Dust"
+    amp_param: "TE_PolGalDust_Amp"
+    alpha_param: "TE_PolGalDust_Alpha"
+    beta_param: "TE_PolGalDust_Beta"
+    effective_frequencies: "polarised_galactic_dust"
+    affected_specs: ["TE 90x90", "TE 90x150", "TE 90x220", "TE 150x150", "TE 150x220", "TE 220x220"]
+    ell_ref: 80
+    nu_ref: 150
+    T_GALDUST: 19.6
+  - Module: "common.GalacticDust"
+    descriptor: "EE Polarised Galactic Dust"
+    amp_param: "EE_PolGalDust_Amp"
+    alpha_param: "EE_PolGalDust_Alpha"
+    beta_param: "EE_PolGalDust_Beta"
+    effective_frequencies: "polarised_galactic_dust"
+    affected_specs: ["EE 90x90", "EE 90x150", "EE 90x220", "EE 150x150", "EE 150x220", "EE 220x220"]
+    ell_ref: 80
+    nu_ref: 150
+    T_GALDUST: 19.6
+  - Module: "common.CalibrationCross"
+    spec_param_dict:
+      TT 90x90: ["Tcal90", "Tcal90", "Tcal90", "Tcal90"]
+      TE 90x90: ["Tcal90", "Ecal90", "Tcal90", "Ecal90"]
+      EE 90x90: ["Ecal90", "Ecal90", "Ecal90", "Ecal90"]
+      TT 90x150: [ "Tcal90", "Tcal150", "Tcal90", "Tcal150" ]
+      TE 90x150: [ "Tcal90", "Ecal150", "Tcal150", "Ecal90" ]
+      EE 90x150: [ "Ecal90", "Ecal150", "Ecal90", "Ecal150" ]
+      TT 90x220: [ "Tcal90", "Tcal220", "Tcal90", "Tcal220" ]
+      TE 90x220: [ "Tcal90", "Ecal220", "Tcal220", "Ecal90" ]
+      EE 90x220: [ "Ecal90", "Ecal220", "Ecal90", "Ecal220" ]
+      TT 150x150: [ "Tcal150", "Tcal150", "Tcal150", "Tcal150" ]
+      TE 150x150: [ "Tcal150", "Ecal150", "Tcal150", "Ecal150" ]
+      EE 150x150: [ "Ecal150", "Ecal150", "Ecal150", "Ecal150" ]
+      TT 150x220: [ "Tcal150", "Tcal220", "Tcal150", "Tcal220" ]
+      TE 150x220: [ "Tcal150", "Ecal220", "Tcal220", "Ecal150" ]
+      EE 150x220: [ "Ecal150", "Ecal220", "Ecal150", "Ecal220" ]
+      TT 220x220: [ "Tcal220", "Tcal220", "Tcal220", "Tcal220" ]
+      TE 220x220: [ "Tcal220", "Ecal220", "Tcal220", "Ecal220" ]
+      EE 220x220: [ "Ecal220", "Ecal220", "Ecal220", "Ecal220" ]
+
+# GAUSSIAN PRIORS
+priors:
+  - par_names: "tau"
+    central_value: 0.054
+    prior_std: 0.0074
+  - par_names: 'EE_Poisson_90x90'
+    central_value: 0.040469
+    prior_std: 0.012141
+  - par_names: 'EE_Poisson_90x150'
+    central_value: 0.018048
+    prior_std: 0.005414
+  - par_names: 'EE_Poisson_90x220'
+    central_value: 0.015719
+    prior_std: 0.004716
+  - par_names: 'EE_Poisson_150x150'
+    central_value: 0.011495
+    prior_std: 0.003448
+  - par_names: 'EE_Poisson_150x220'
+    central_value: 0.018962
+    prior_std: 0.005689
+  - par_names: 'EE_Poisson_220x220'
+    central_value: 0.047557
+    prior_std: 0.014267
+  - par_names: 'TT_Poisson_90x90'
+    central_value: 51.3204
+    prior_std:  9.442
+  - par_names: 'TT_Poisson_90x150'
+    central_value: 22.4417
+    prior_std: 7.0881
+  - par_names: 'TT_Poisson_90x220'
+    central_value: 20.7004
+    prior_std: 5.9235
+  - par_names: 'TT_Poisson_150x150'
+    central_value: 15.3455
+    prior_std: 4.132
+  - par_names: 'TT_Poisson_150x220'
+    central_value: 28.3573
+    prior_std: 4.1925
+  - par_names: 'TT_Poisson_220x220'
+    central_value: 75.9719
+    prior_std: 14.8624
+  - par_names: 'TT_CIBClustering_Amp'
+    central_value: 3.2263
+    prior_std: 1.8354
+  - par_names: 'TT_CIBClustering_Beta'
+    central_value: 2.2642
+    prior_std: 0.3814
+  - par_names: 'TT_CIBClustering_Alpha'
+    central_value: 0.8
+    prior_std: 1e-05
+  - par_names: 'EE_PolGalDust_Amp'
+    central_value: 0.05
+    prior_std: 0.022
+  - par_names: 'EE_PolGalDust_Alpha'
+    central_value: -2.42
+    prior_std: 0.04
+  - par_names: 'EE_PolGalDust_Beta'
+    central_value: 1.51
+    prior_std: 0.04
+  - par_names: 'TE_PolGalDust_Amp'
+    central_value: 0.12
+    prior_std: 0.051
+  - par_names: 'TE_PolGalDust_Alpha'
+    central_value: -2.42
+    prior_std: 0.04
+  - par_names: 'TE_PolGalDust_Beta'
+    central_value: 1.51
+    prior_std: 0.04
+  - par_names: 'TT_GalCirrus_Amp'
+    central_value: 1.88
+    prior_std: 0.48
+  - par_names: 'TT_GalCirrus_Alpha'
+    central_value: -2.53
+    prior_std: 0.05
+  - par_names: 'TT_GalCirrus_Beta'
+    central_value: 1.48
+    prior_std: 0.02
+  - par_names: 'TT_tSZ_Amp'
+    central_value: 3.2279
+    prior_std: 2.3764
+  - par_names: 'TT_kSZ_Amp'
+    central_value: 3.7287
+    prior_std: 4.644
+  - par_names: 'Kappa'
+    central_value: 0.0
+    prior_std: 0.00045
+  - par_names: ["Tcal90", "Tcal150", "Tcal220", "Ecal90", "Ecal150", "Ecal220"]
+    central_value: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    prior_covariance: "cal_covariance.txt"

@@ -1,0 +1,33 @@
+# BASE INFORMATION
+name: "ACT DR4 TT/TE/EE (Choi et al. 2020, Aiola et al. 2020)"
+# Choi, Hasselfield, Ho, Koopman, Lungu, et al. https://arxiv.org/abs/2007.07289
+# Aiola, Calabrese, Maurin, Naess, L. Schmitt, et al. https://arxiv.org/abs/2007.07288
+
+# FEEDBACK
+feedback: True
+
+# KEY FILES
+band_power_file: "ACT_DR4_CMB_only_bdp.txt"
+covariance_file: "ACT_DR4_CMB_only_cov.txt"
+window_functions_folder: "windows/"
+
+#data_selection: "mask_ACT_DR4_for_Planck.txt"
+
+# DATA INFORMATION
+spectra_info:
+ - TT dxd: 40
+ - TE dxd: 45
+ - EE dxd: 45
+ - TT wxw: 40
+ - TE wxw: 45
+ - EE wxw: 45
+
+data_model:
+  - Module: "common.PolarisationCalibration"
+    cal_param: "yp"
+    descriptor: "Calibration"
+
+priors:
+  - par_names: "tau"
+    central_value: 0.065
+    prior_std: 0.015
