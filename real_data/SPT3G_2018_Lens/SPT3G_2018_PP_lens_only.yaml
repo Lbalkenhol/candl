@@ -1,0 +1,35 @@
+# SPT-3G 2018 Lensing
+# Pan, Bianchini, Wu et al. 2023, https://arxiv.org/abs/2308.11608
+
+# BASE INFORMATION
+name: "SPT-3G 2018 PP (Pan et al. 2023)"
+
+# KEY FILES
+band_power_file: "spt3g_2018_pp_bdp.txt"# Band power file name
+covariance_file: "spt3g_2018_pp_cov.txt"# Band power covariance file name
+window_functions_folder: "windows/"# Window folder
+
+# DATA INFORMATION
+spectra_info:
+  - pp: 12
+
+# DATA MODEL
+data_model:
+  - Module: "common_lensing.BinnedTemplateForeground"
+    template_file: "foreground_templates/spt3g_2018_lensing_foreground_template.txt"
+    amp_param: "A_fg"
+  - Module: "common_lensing.ResponseFunctionM"
+    M_matrices_folder: "lens_delta_windows_phionly/"
+    Mmodes:
+      - pp
+    fiducial_correction_file: "spt3g_2018_pp_lensing_fiducial_correction_phionly.txt"
+
+# GAUSSIAN PRIORS
+# Used in Pan et al. 2023 for lensing only chains
+#priors:
+#  - par_names: 'ombh2'
+#    central_value: 0.02233
+#    prior_std: 0.00036
+#  - par_names: "ns"
+#    central_value: 0.96
+#    prior_std: 0.02

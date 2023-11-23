@@ -1,0 +1,2217 @@
+"""
+candl.transformations.common module
+
+Common transformations, including additive foregrounds (Poisson, CIB, ...), calibration, super-sample lensing, and
+aberration as well as required helper functions.
+These are all that is required to run the data sets made available at initial release.
+Most of the specific foreground subclasses contain examples for how to include them in the data set yaml file.
+
+Warning: this is NOT a comprehensive foreground/data model library. Instead, the classes below are designed
+for the data sets implemented in candl and serve as examples that you can use to implement any model you want.
+
+Specific Example Classes:
+--------
+PoissonPower
+CIBClustering
+GalacticDust
+tSZTemplateForeground
+kSZTemplateForeground
+GalacticDustBandPass
+SynchrotronBandPass
+GalacticDustFixedAlphaBandPass
+SynchrotronFixedAlphaBandPass
+CalibrationAuto
+CalibrationCross
+SuperSampleLensing
+AberrationCorrection
+
+Functions:
+--------
+dust_frequency_scaling
+tSZ_frequency_scaling
+block_body
+black_body_deriv
+"""
+
+# --------------------------------------#
+# IMPORTS
+# --------------------------------------#
+
+from candl.lib import *
+import candl.transformations.abstract_base
+import candl.constants
+
+# --------------------------------------#
+# RADIO GALAXIES
+# --------------------------------------#
+
+
+class PoissonPower(candl.transformations.abstract_base.Foreground):
+    """
+    Adds individual Poisson terms to a series of spectra.
+    $ A * \left( \ell / \ell_{ref} \right)^2 $
+    where:
+        A : amplitude
+        ell_{ref} : reference ell
+    Used by SPT-3G 2018 TT/TE/EE implementation.
+
+    User required arguments in data set yaml file
+    ---------
+    ell_ref : float
+        Reference ell.
+    spec_param_dict : dict
+        A dictionary with keys that are spectrum identifiers and values that are lists of the nuisance parameter names
+        that are used to transform this spectrum.
+
+    Example yaml block to add individual Poisson terms to a series of TT spectra:
+    - Module: "common.PoissonPower"
+      ell_ref: 3000
+      spec_param_dict:
+        TT 90x90: "TT_Poisson_90x90"
+        TT 90x150: "TT_Poisson_90x150"
+        TT 90x220: "TT_Poisson_90x220"
+        TT 150x150: "TT_Poisson_150x150"
+        TT 150x220: "TT_Poisson_150x220"
+        TT 220x220: "TT_Poisson_220x220"
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
+
+    Attributes
+    -------
+    ells : array (float)
+            The ell range the transformation acts on.
+    descriptor : str
+        A short descriptor.
+    par_names : list
+        Names of parameters involved in transformation.
+    ell_ref : float
+        Reference ell.
+    spec_param_dict : dict
+        A dictionary with keys that are spectrum identifiers and values that are lists of the nuisance parameter names
+        that are used to transform this spectrum.
+    spec_order : list
+        Order of the spectra in the long data vector.
+    spec_mask : array (int)
+        Masks which parts of the long data vector are affected by the transformation.
+    N_spec : int
+        The total number of spectra in the long data vector.
+    affected_specs_ix : list (int)
+        Indices in spectra_order of spectra the transformation is applied to.
+    """
+
+    def __init__(
+        self, ells, spec_order, spec_param_dict, ell_ref, descriptor="Poisson Power"
+    ):
+        """
+        Initialise a new instance of the PoissonPower class.
+
+        Arguments
+        -------
+        ells : array (float)
+            The ell range the transformation acts on.
+        descriptor : str
+            A short descriptor.
+        spec_order : array (str)
+            Identifiers of spectra in the order in which spectra are handled in the long data vector.
+        spec_param_dict : dict
+            A dictionary with keys that are spectrum identifiers and values that are lists of the nuisance parameter names
+            that are used to transform this spectrum.
+        spec_order : list
+            Order of the spectra in the long data vector.
+        ell_ref : float
+            Reference ell.
+
+        Returns
+        -------
+        PoissonPower
+            A new instance of the PoissonPower class.
+        """
+
+        super().__init__(
+            ells=ells,
+            ell_ref=ell_ref,
+            descriptor=descriptor,
+            param_names=list(spec_param_dict.values()),
+        )
+
+        self.spec_param_dict = spec_param_dict
+        self.affected_specs = list(self.spec_param_dict.keys())
+
+        self.spec_order = spec_order
+        self.N_spec = len(self.spec_order)
+
+        # Generate boolean mask of affected specs
+        self.spec_mask = np.zeros(
+            len(spec_order)
+        )  # Generate as np array for easier item assignment
+        for i, spec in enumerate(self.spec_order):
+            if spec in self.affected_specs:
+                self.spec_mask[i] = 1
+                # self.spec_mask = self.spec_mask.at[i].set(1)
+        self.spec_mask = self.spec_mask == 1
+        self.spec_mask = jnp.array(self.spec_mask)
+        self.affected_specs_ix = [ix[0] for ix in jnp.argwhere(self.spec_mask)]
+
+    @partial(jit, static_argnums=(0,))
+    def output(self, sample_params):
+        """
+        Return foreground spectrum.
+
+        Arguments
+        -------
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        -------
+        array, float
+            Foreground spectrum.
+        """
+
+        # amplitude part
+        amp_vals = jnp.zeros(len(self.spec_order))
+        for ix in self.affected_specs_ix:
+            amp_vals = jax_optional_set_element(
+                amp_vals, ix, sample_params[self.spec_param_dict[self.spec_order[ix]]]
+            )
+        tiled_amp_vals = jnp.repeat(amp_vals, len(self.ells))
+
+        # ell part
+        ell_dependence = (self.ells / self.ell_ref) ** 2
+        tiled_ell_dependence = jnp.tile(ell_dependence, self.N_spec)
+
+        # Complete foreground contribution
+        fg_pow = tiled_amp_vals * tiled_ell_dependence
+        return fg_pow
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        """
+        Transform the input spectrum.
+
+        Arguments
+        -------
+        Dls : array (float)
+            The spectrum to transform in Dl.
+        sample_params : dict
+            A dictionary of parameters that are used in the transformation
+
+        Returns
+        -------
+        array : float
+            The transformed spectrum in Dl.
+        """
+
+        return Dls + self.output(sample_params)
+
+
+class CIBClustering(candl.transformations.abstract_base.DustyForeground):
+    """
+    Adds CIB clustering power using a power law with fixed index.
+    $ A * g(nu_1, beta) * g(nu_2, beta) * \left( \ell / \ell_{ref} \right)^\alpha $
+    where:
+        A : amplitude
+        ell_{ref} : reference ell
+        alpha : power law index
+        beta : frequency scaling parameter
+    and :
+        g(nu, beta) is the frequency scaling for a modified black body
+    Used by SPT-3G 2018 TT/TE/EE implementation.
+
+
+    User required arguments in data set yaml file
+    ---------
+    ell_ref : float
+        Reference ell.
+    nu_ref : float
+        Reference frequency.
+    T_CIB : float
+        Temperature of the CIB.
+    amp_param : str
+        The name of the amplitude parameter.
+    beta_param : str
+        The name of the frequency scaling parameter.
+    alpha : float
+        The power law index.
+    effective_frequencies : str
+        Keyword to look for in effective frequencies yaml file.
+    affected_specs : str
+        List of spectrum identifiers the transformation is applied to.
+
+    Example yaml block to add CIB clustering power to all TT spectra:
+    - Module: "common.CIBClustering"
+      amp_param: "TT_CIBClustering_Amp"
+      alpha: 0.8
+      beta_param: "TT_CIBClustering_Beta"
+      effective_frequencies: "CIB"# keyword in effective frequencies file with corresponding entry
+      affected_specs: ["TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220"]
+      ell_ref: 3000
+      nu_ref: 150
+      T_CIB: 25
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
+
+    Attributes
+    -------
+    ells : array (float)
+        The ell range the transformation acts on.
+    descriptor : str
+        A short descriptor.
+    par_names : list
+        Names of parameters involved in transformation.
+    spec_order : array (str)
+        Identifiers of spectra in the order in which spectra are handled in the long data vector.
+    freq_info : list
+        List of lists, where each sublist contains the two effective frequencies for a given spectrum.
+    affected_specs : list (str)
+        List of the spectra to apply this foreground to.
+    ell_ref : int
+        Reference ell for normalisation.
+    nu_ref : float
+        Reference frequency.
+    T_dust : float
+        Temperature of the dust.
+    spec_mask : array (int)
+        Masks which spectra of the long data vector are affected by the transformation.
+    full_mask : array (int)
+        Masks which elements of the long data vector are affected by the transformation.
+    N_spec : int
+        The total number of spectra in the long data vector.
+    amp_param : str
+        The name of the amplitude parameter.
+    beta_param : str
+        The name of the frequency scaling parameter.
+    alpha : float
+        The power law index.
+    """
+
+    def __init__(
+        self,
+        ells,
+        spec_order,
+        freq_info,
+        affected_specs,
+        amp_param,
+        beta_param,
+        alpha,
+        ell_ref,
+        nu_ref,
+        T_CIB,
+        descriptor="CIB clustering",
+    ):
+        """
+        Initialise a new instance of the CIBClustering class.
+
+        Arguments
+        -------
+        ells : array (float)
+            The ell range the transformation acts on.
+        descriptor : str
+            A short descriptor.
+        spec_order : array (str)
+            Identifiers of spectra in the order in which spectra are handled in the long data vector.
+        freq_info : list
+            List of lists, where each sublist contains the two effective frequencies for a given spectrum.
+        affected_specs : list (str)
+            List of the spectra to apply this foreground to.
+        ell_ref : int
+            Reference ell for normalisation.
+        nu_ref : float
+            Reference frequency.
+        T_CIB : float
+            Temperature of the CIB.
+        amp_param : str
+            The name of the amplitude parameter.
+        beta_param : str
+            The name of the frequency scaling parameter.
+        alpha : float
+            The power law index.
+
+        Returns
+        -------
+        CIBClustering
+            A new instance of the class.
+        """
+
+        super().__init__(
+            ells=ells,
+            spec_order=spec_order,
+            freq_info=freq_info,
+            affected_specs=affected_specs,
+            ell_ref=ell_ref,
+            nu_ref=nu_ref,
+            T_dust=T_CIB,
+            descriptor=descriptor,
+            param_names=[amp_param, beta_param],
+        )
+
+        # Hold onto names of parameters
+        self.amp_param = amp_param
+        self.beta_param = beta_param
+        self.alpha = alpha
+
+    @partial(jit, static_argnums=(0,))
+    def output(self, sample_params):
+        """
+        Return foreground spectrum.
+
+        Arguments
+        -------
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        -------
+        array, float
+            Foreground spectrum.
+        """
+
+        # amplitude part
+        amp_vals = jnp.array(
+            [
+                dust_frequency_scaling(
+                    sample_params[self.beta_param],
+                    self.T_dust,
+                    self.nu_ref,
+                    self.freq_info[i][0],
+                )
+                * dust_frequency_scaling(
+                    sample_params[self.beta_param],
+                    self.T_dust,
+                    self.nu_ref,
+                    self.freq_info[i][1],
+                )
+                for i in range(self.N_spec)
+            ]
+        )
+        amp_vals *= sample_params[self.amp_param]
+        tiled_amp_vals = jnp.repeat(amp_vals, len(self.ells))
+
+        # ell part
+        ell_dependence = (self.ells / self.ell_ref) ** self.alpha
+        tiled_ell_dependence = jnp.tile(
+            ell_dependence, self.N_spec
+        )  # tiled ell dependence
+
+        # Complete foreground contribution and mask down
+        fg_pow = self.full_mask * tiled_amp_vals * tiled_ell_dependence
+        return fg_pow
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        """
+        Transform spectrum by adding foreground component (result of output method).
+
+        Arguments
+        -------
+        Dls : array
+            Dls to transform.
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        -------
+        array, float
+            Transformed spectrum.
+        """
+
+        return Dls + self.output(sample_params)
+
+
+class GalacticDust(candl.transformations.abstract_base.DustyForeground):
+    """
+    Adds galactic dust power using a power law.
+    $ A * g(nu_1, beta) * g(nu_2, beta) * \left( \ell / \ell_{ref} \right)^(\alpha+2) $
+    where:
+        A : amplitude
+        ell_{ref} : reference ell
+        alpha : power law index
+        beta : frequency scaling parameter
+    and :
+        g(nu, beta) is the frequency scaling for a modified black body
+    Used by SPT-3G 2018 TT/TE/EE implementation.
+
+
+    User required arguments in data set yaml file
+    ---------
+    ell_ref : float
+        Reference ell.
+    nu_ref : float
+        Reference frequency.
+    T_GALDUST : float
+        Temperature of the dust.
+    amp_param : str
+        The name of the amplitude parameter.
+    beta_param : str
+        The name of the frequency scaling parameter.
+    alpha_param : str
+        The name of the power law index parameter.
+    effective_frequencies : str
+        Keyword to look for in effective frequencies yaml file.
+    affected_specs : str
+        List of spectrum identifiers the transformation is applied to.
+
+    Example yaml block to add residual cirrus power to all TT spectra:
+    - Module: "common.GalacticDust"
+      descriptor: "Cirrus"
+      amp_param: "TT_GalCirrus_Amp"
+      alpha_param: "TT_GalCirrus_Alpha"
+      beta_param: "TT_GalCirrus_Beta"
+      effective_frequencies: "cirrus"# keyword in effective frequencies file with corresponding entry
+      affected_specs: ["TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220"]
+      ell_ref: 80
+      nu_ref: 150
+      T_GALDUST: 19.6
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
+
+    Attributes
+    -------
+    ells : array (float)
+        The ell range the transformation acts on.
+    descriptor : str
+        A short descriptor.
+    par_names : list
+        Names of parameters involved in transformation.
+    spec_order : array (str)
+        Identifiers of spectra in the order in which spectra are handled in the long data vector.
+    freq_info : list
+        List of lists, where each sublist contains the two effective frequencies for a given spectrum.
+    affected_specs : list (str)
+        List of the spectra to apply this foreground to.
+    ell_ref : int
+        Reference ell for normalisation.
+    nu_ref : float
+        Reference frequency.
+    T_dust : float
+        Temperature of the dust.
+    spec_mask : array (int)
+        Masks which spectra of the long data vector are affected by the transformation.
+    full_mask : array (int)
+        Masks which elements of the long data vector are affected by the transformation.
+    N_spec : int
+        The total number of spectra in the long data vector.
+    amp_param : str
+        The name of the amplitude parameter.
+    beta_param : str
+        The name of the frequency scaling parameter.
+    alpha_param : str
+        The name of the power law index parameter.
+    """
+
+    def __init__(
+        self,
+        ells,
+        spec_order,
+        freq_info,
+        affected_specs,
+        amp_param,
+        alpha_param,
+        beta_param,
+        ell_ref,
+        nu_ref,
+        T_GALDUST,
+        descriptor="Galactic Dust",
+    ):
+        """
+        Initialise a new instance of the GalacticDust class.
+
+        Arguments
+        -------
+        ells : array (float)
+            The ell range the transformation acts on.
+        descriptor : str
+            A short descriptor.
+        spec_order : array (str)
+            Identifiers of spectra in the order in which spectra are handled in the long data vector.
+        freq_info : list
+            List of lists, where each sublist contains the two effective frequencies for a given spectrum.
+        affected_specs : list (str)
+            List of the spectra to apply this foreground to.
+        ell_ref : int
+            Reference ell for normalisation.
+        nu_ref : float
+            Reference frequency.
+        T_GALDUST : float
+            Temperature of the CIB.
+        amp_param : str
+            The name of the amplitude parameter.
+        beta_param : str
+            The name of the frequency scaling parameter.
+        alpha_param : str
+            The name of the power law index parameter.
+
+        Returns
+        -------
+        GalacticDust
+            A new instance of the class.
+        """
+
+        super().__init__(
+            ells=ells,
+            spec_order=spec_order,
+            freq_info=freq_info,
+            affected_specs=affected_specs,
+            ell_ref=ell_ref,
+            nu_ref=nu_ref,
+            T_dust=T_GALDUST,
+            descriptor=descriptor,
+            param_names=[amp_param, beta_param, alpha_param],
+        )
+
+        # Hold onto names of parameters
+        self.amp_param = amp_param
+        self.beta_param = beta_param
+        self.alpha_param = alpha_param
+
+    @partial(jit, static_argnums=(0,))
+    def output(self, sample_params):
+        """
+        Return foreground spectrum.
+
+        Arguments
+        -------
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        -------
+        array, float
+            Foreground spectrum.
+        """
+
+        # amplitude part
+        amp_vals = jnp.array(
+            [
+                dust_frequency_scaling(
+                    sample_params[self.beta_param],
+                    self.T_dust,
+                    self.nu_ref,
+                    self.freq_info[i][0],
+                )
+                * dust_frequency_scaling(
+                    sample_params[self.beta_param],
+                    self.T_dust,
+                    self.nu_ref,
+                    self.freq_info[i][1],
+                )
+                for i in range(self.N_spec)
+            ]
+        )
+        amp_vals *= sample_params[self.amp_param]
+        tiled_amp_vals = jnp.repeat(amp_vals, len(self.ells))
+
+        # ell part
+        ell_dependence = (self.ells / self.ell_ref) ** (
+            sample_params[self.alpha_param] + 2
+        )
+        tiled_ell_dependence = jnp.tile(
+            ell_dependence, self.N_spec
+        )  # tiled ell dependence
+
+        # Complete foreground contribution and mask down
+        fg_pow = self.full_mask * tiled_amp_vals * tiled_ell_dependence
+        return fg_pow
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        """
+        Transform spectrum by adding foreground component (result of output method).
+
+        Arguments
+        -------
+        Dls : array
+            Dls to transform.
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        -------
+        array, float
+            Transformed spectrum.
+        """
+
+        return Dls + self.output(sample_params)
+
+
+# --------------------------------------#
+# tSZ AND kSZ TEMPLATE FOREGROUNDS
+# --------------------------------------#
+
+
+class tSZTemplateForeground(candl.transformations.abstract_base.TemplateForeground):
+    """
+    tSZ template with frequency scaling and one free amplitude parameter.
+    $ A * g(nu_1) * g(nu_2) * D^{template}_{\ell_{ref}} $
+    where A is the amplitude parameter and g(nu) is the appropriate frequency scaling.
+
+    User required arguments in data set yaml file
+    ---------
+    ell_ref : float
+        Reference ell.
+    template_file : str
+        Relative path to the template file from the candl/ folder.
+    affected_specs : list (str)
+        List of the spectra to apply this foreground to.
+    amp_param : str
+        The name of the amplitude parameter.
+    nu_ref : float
+        Reference frequency.
+    effective_frequencies : str
+        Keyword to look for in effective frequencies yaml file.
+    Used by SPT-3G 2018 TT/TE/EE implementation.
+
+
+    Example yaml block to add tSZ power to all TT spectra:
+    - Module: "common.tSZTemplateForeground"
+      template_file: "foreground_templates/dl_shaw_tsz_s10_153ghz_norm1_fake25000.txt"
+      amp_param: "TT_tSZ_Amp"
+      effective_frequencies: "tSZ"# keyword in effective frequencies file with corresponding entry
+      affected_specs: ["TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220"]
+      ell_ref: 3000
+      nu_ref: 143
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
+
+    Attributes
+    -------
+    template_arr : array (float)
+        Template spectrum and ells.
+    template_spec : array (float)
+        Template spectrum.
+    template_ells : array (int)
+        Template ells.
+    ell_ref : int
+        Reference ell for normalisation.
+    ells : array (float)
+        The ell range the transformation acts on.
+    descriptor : str
+        A short descriptor.
+    par_names : list
+        Names of parameters involved in transformation.
+    nu_ref : float
+        Reference frequency.
+    spec_order : array (str)
+        Identifiers of spectra in the order in which spectra are handled in the long data vector.
+    freq_info : list
+        List of lists, where each sublist contains the two effective frequencies for a given spectrum.
+    affected_specs : list (str)
+        List of the spectra to apply this foreground to.
+    spec_mask : array (int)
+        Masks which spectra of the long data vector are affected by the transformation.
+    full_mask : array (int)
+        Masks which elements of the long data vector are affected by the transformation.
+    N_spec : int
+        The total number of spectra in the long data vector.
+    amp_param : str
+        The name of the amplitude parameter.
+    template_spec_tiled : array (float)
+        Template spectrum repeated N_spec times.
+    T_CMB : float
+        CMB temperature.
+    """
+
+    def __init__(
+        self,
+        ells,
+        spec_order,
+        freq_info,
+        affected_specs,
+        template_arr,
+        amp_param,
+        ell_ref,
+        nu_ref,
+        descriptor="tSZ",
+    ):
+        """
+        Initialise a new instance of the tSZTemplateForeground class.
+
+        Arguments
+        -------
+        template_arr : array (float)
+            Template spectrum and ells.
+        ell_ref : int
+            Reference ell for normalisation.
+        ells : array (float)
+            The ell range the transformation acts on.
+        descriptor : str
+            A short descriptor.
+        nu_ref : float
+            Reference frequency.
+        spec_order : array (str)
+            Identifiers of spectra in the order in which spectra are handled in the long data vector.
+        freq_info : list
+            List of lists, where each sublist contains the two effective frequencies for a given spectrum.
+        affected_specs : list (str)
+            List of the spectra to apply this foreground to.
+        amp_param : str
+            The name of the amplitude parameter.
+
+        Returns
+        -------
+        Foreground
+            A new instance of the tSZTemplateForeground class.
+        """
+
+        super().__init__(
+            ells=ells,
+            template_arr=template_arr,
+            ell_ref=ell_ref,
+            descriptor=descriptor,
+            param_names=[amp_param],
+        )
+
+        self.spec_order = spec_order
+        self.affected_specs = affected_specs
+        self.spec_mask = jnp.asarray(
+            [spec in self.affected_specs for spec in self.spec_order]
+        )
+        self.nu_ref = nu_ref
+        self.amp_param = amp_param
+        self.freq_info = freq_info
+        self.T_CMB = candl.constants.T_CMB
+        self.N_spec = len(freq_info)
+
+        # Turn spectrum mask into a full mask
+        self.full_mask = jnp.asarray(
+            jnp.repeat(self.spec_mask, len(self.ells)), dtype=float
+        )
+
+        # Tile template
+        self.template_spec_tiled = jnp.tile(self.template_spec, self.N_spec)
+
+    @partial(jit, static_argnums=(0,))
+    def output(self, sample_params):
+        """
+        Return foreground spectrum.
+
+        Arguments
+        -------
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        -------
+        array, float
+            Foreground spectrum.
+        """
+
+        # amplitude part
+        amp_vals = jnp.array(
+            [
+                tSZ_frequency_scaling(self.freq_info[i][0], self.nu_ref, self.T_CMB)
+                * tSZ_frequency_scaling(self.freq_info[i][1], self.nu_ref, self.T_CMB)
+                for i in range(self.N_spec)
+            ]
+        )
+        amp_vals *= sample_params[self.amp_param]
+        tiled_amp_vals = jnp.repeat(amp_vals, len(self.ells))
+
+        # Put together with ell template and mask
+        fg_pow = self.full_mask * tiled_amp_vals * self.template_spec_tiled
+        return fg_pow
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        """
+        Transform spectrum by adding foreground component (result of output method).
+
+        Arguments
+        -------
+        Dls : array
+            Dls to transform.
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        -------
+        array, float
+            Transformed spectrum.
+        """
+
+        return Dls + self.output(sample_params)
+
+
+class kSZTemplateForeground(candl.transformations.abstract_base.TemplateForeground):
+    """
+    kSZ template spectrum.
+
+    User required arguments in data set yaml file
+    ---------
+    ell_ref : float
+        Reference ell.
+    template_file : str
+        Relative path to the template file from the candl/ folder.
+    affected_specs : list (str)
+        List of the spectra to apply this foreground to.
+    amp_param : str
+        The name of the amplitude parameter.
+    Used by SPT-3G 2018 TT/TE/EE implementation.
+
+
+    Example yaml block to add kSZ power to all TT spectra:
+    - Module: "common.kSZTemplateForeground"
+      template_file: "foreground_templates/dl_ksz_CSFplusPATCHY_13sep2011_norm1_fake25000.txt"
+      amp_param: "TT_kSZ_Amp"
+      affected_specs: [ "TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220" ]
+      ell_ref: 3000
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
+
+    Attributes
+    -------
+    template_arr : array (float)
+        Template spectrum and ells.
+    template_spec : array (float)
+        Template spectrum.
+    template_ells : array (int)
+        Template ells.
+    ell_ref : int
+        Reference ell for normalisation.
+    ells : array (float)
+        The ell range the transformation acts on.
+    descriptor : str
+        A short descriptor.
+    par_names : list
+        Names of parameters involved in transformation.
+    spec_order : array (str)
+        Identifiers of spectra in the order in which spectra are handled in the long data vector.
+    affected_specs : list (str)
+        List of the spectra to apply this foreground to.
+    spec_mask : array (int)
+        Masks which spectra of the long data vector are affected by the transformation.
+    full_mask : array (int)
+        Masks which elements of the long data vector are affected by the transformation.
+    N_spec : int
+        The total number of spectra in the long data vector.
+    amp_param : str
+        The name of the amplitude parameter.
+    template_spec_tiled : array (float)
+        Template spectrum repeated N_spec times.
+    """
+
+    def __init__(
+        self,
+        ells,
+        spec_order,
+        affected_specs,
+        template_arr,
+        amp_param,
+        ell_ref,
+        descriptor="kSZ",
+    ):
+        """
+        Initialise a new instance of the kSZTemplateForeground class.
+
+        Arguments
+        -------
+        template_arr : array (float)
+            Template spectrum and ells.
+        ell_ref : int
+            Reference ell for normalisation.
+        ells : array (float)
+            The ell range the transformation acts on.
+        descriptor : str
+            A short descriptor.
+        spec_order : array (str)
+            Identifiers of spectra in the order in which spectra are handled in the long data vector.
+        affected_specs : list (str)
+            List of the spectra to apply this foreground to.
+        amp_param : str
+            The name of the amplitude parameter.
+
+        Returns
+        -------
+        Foreground
+            A new instance of the kSZTemplateForeground class.
+        """
+
+        super().__init__(
+            ells=ells,
+            template_arr=template_arr,
+            ell_ref=ell_ref,
+            descriptor=descriptor,
+            param_names=[amp_param],
+        )
+
+        self.spec_order = spec_order
+        self.affected_specs = affected_specs
+        self.spec_mask = jnp.asarray(
+            [spec in self.affected_specs for spec in self.spec_order]
+        )
+        self.amp_param = amp_param
+        self.N_spec = len(self.spec_mask)
+
+        # Turn spectrum mask into a full mask
+        self.full_mask = jnp.asarray(
+            jnp.repeat(self.spec_mask, len(self.ells)), dtype=float
+        )
+
+        # Tile template
+        self.template_spec_tiled = jnp.tile(self.template_spec, self.N_spec)
+
+    @partial(jit, static_argnums=(0,))
+    def output(self, sample_params):
+        """
+        Return foreground spectrum.
+
+        Arguments
+        -------
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        -------
+        array, float
+            Foreground spectrum.
+        """
+
+        # amplitude part
+        tiled_amp_vals = jnp.repeat(
+            sample_params[self.amp_param], len(self.ells) * self.N_spec
+        )
+
+        # Put together with ell template and mask
+        fg_pow = self.full_mask * tiled_amp_vals * self.template_spec_tiled
+        return fg_pow
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        """
+        Transform spectrum by adding foreground component (result of output method).
+
+        Arguments
+        -------
+        Dls : array
+            Dls to transform.
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        -------
+        array, float
+            Transformed spectrum.
+        """
+
+        return Dls + self.output(sample_params)
+
+
+class CIBtSZCorrelationGeometricMean(candl.transformations.abstract_base.Foreground):
+    """
+    Simple correlation term between power-law CIB and template tSZ modules above with a free amplitude..
+    Note that the sign is defined such that a positive correlation parameter leads to a reduction of power at 150GHz.
+    Used by SPT-3G 2018 TT/TE/EE implementation.
+
+
+    User required arguments in data set yaml file
+    ---------
+    link_transformation_module_CIB : str
+        Class of the CIB module to scan initialised transformations for.
+    link_transformation_module_tSZ : str
+        Class of the tSZ module to scan initialised transformations for.
+    amp_param : str
+        Name of the free amplitude parameter.
+    affected_specs : list (str)
+        List of the spectra to apply this foreground to.
+
+    Example yaml block to add tSZ-CIB correlation power:
+    - Module: "common.CIBtSZCorrelationGeometricMean"
+        link_transformation_module_CIB: "common.CIBClustering"
+        link_transformation_module_tSZ: "common.tSZTemplateForeground"
+        amp_param: "TT_tSZ_CIB_Corr_Amp"
+        affected_specs: ["TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220"]
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
+
+    Attributes
+    -------
+    ells : array (float)
+        The ell range the transformation acts on.
+    descriptor : str
+        A short descriptor.
+    par_names : list
+        Names of parameters involved in transformation.
+    spec_order : array (str)
+        Identifiers of spectra in the order in which spectra are handled in the long data vector.
+    ell_ref : int
+        Reference ell for normalisation.
+    spec_mask : array (int)
+        Masks which spectra of the long data vector are affected by the transformation.
+    affected_specs : list (str)
+        List of the spectra to apply this foreground to.
+    full_mask : array (int)
+        Masks which elements of the long data vector are affected by the transformation.
+    affected_specs_ix : list (int)
+        Indices of affected spectra
+    N_spec : int
+        The total number of spectra in the long data vector.
+    amp_param : str
+        The name of the amplitude parameter.
+    CIB : candl.transformations.abstract_base.transformation
+        CIB module.
+    tSZ : candl.transformations.abstract_base.transformation
+        tSZ module.
+    """
+
+    def __init__(
+        self,
+        ells,
+        spec_order,
+        affected_specs,
+        amp_param,
+        link_transformation_module_CIB,
+        link_transformation_module_tSZ,
+        descriptor="CIB-tSZ correlation",
+    ):
+        """
+        Initialise a new instance of the CIBtSZCorrelationGeometricMean class.
+
+        Arguments
+        -------
+        ells : array (float)
+            The ell range the transformation acts on.
+        amp_param : str
+            The name of the amplitude parameter.
+        spec_order : array (str)
+            Identifiers of spectra in the order in which spectra are handled in the long data vector.
+        link_transformation_module_CIB : abstract_base.Transformation
+            CIB transformation
+        link_transformation_module_tSZ : abstract_base.Transformation
+            tSZ transformation
+
+        Output
+        -------
+        CIBtSZCorrelationGeometricMean instance.
+        """
+
+        super().__init__(
+            ells=ells,
+            ell_ref=0,  # reference ell not required
+            descriptor=descriptor,
+            param_names=[amp_param],
+        )
+
+        self.amp_param = amp_param
+        self.spec_order = spec_order
+        self.affected_specs = affected_specs
+        self.spec_mask = jnp.asarray(
+            [spec in self.affected_specs for spec in self.spec_order]
+        )
+        self.N_spec = len(self.spec_mask)
+
+        # Turn spectrum mask into a full mask
+        self.full_mask = jnp.asarray(
+            jnp.repeat(self.spec_mask, len(self.ells)), dtype=float
+        )
+
+        # Make 2 copies of the CIB and tSZ classes and modify their effective frequencies
+        # (need to have nu_1-only and nu_2-only versions of each).
+        self.CIB = [
+            deepcopy(link_transformation_module_CIB),
+            deepcopy(link_transformation_module_CIB),
+        ]
+        self.tSZ = [
+            deepcopy(link_transformation_module_tSZ),
+            deepcopy(link_transformation_module_tSZ),
+        ]
+
+        for i, (CIB_freq_pair, tSZ_freq_pair) in enumerate(
+            zip(
+                link_transformation_module_CIB.freq_info,
+                link_transformation_module_tSZ.freq_info,
+            )
+        ):
+            self.CIB[0].freq_info[i] = [CIB_freq_pair[0], CIB_freq_pair[0]]
+            self.CIB[1].freq_info[i] = [CIB_freq_pair[1], CIB_freq_pair[1]]
+            self.tSZ[0].freq_info[i] = [tSZ_freq_pair[0], tSZ_freq_pair[0]]
+            self.tSZ[1].freq_info[i] = [tSZ_freq_pair[1], tSZ_freq_pair[1]]
+
+    @partial(jit, static_argnums=(0,))
+    def output(self, sample_params):
+        """
+        Return foreground spectrum.
+
+        Arguments
+        -------
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        -------
+        array, float
+            Foreground spectrum.
+        """
+
+        # CIB
+        CIB_nu_1 = self.CIB[0].output(sample_params)
+        CIB_nu_2 = self.CIB[1].output(sample_params)
+
+        # tSZ
+        tSZ_nu_1 = self.tSZ[0].output(sample_params)
+        tSZ_nu_2 = self.tSZ[1].output(sample_params)
+
+        # CIB x tSZ
+        CIB_x_tSZ = jnp.sqrt(CIB_nu_1 * tSZ_nu_2) + jnp.sqrt(CIB_nu_2 * tSZ_nu_1)
+
+        # Complete foreground contribution and mask down
+        fg_pow = -1.0 * self.full_mask * sample_params[self.amp_param] * CIB_x_tSZ
+        return fg_pow
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        """
+        Transform spectrum by adding foreground component (result of output method).
+
+        Arguments
+        -------
+        Dls : array
+            Dls to transform.
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        -------
+        array, float
+            Transformed spectrum.
+        """
+
+        return Dls + self.output(sample_params)
+
+
+class FGSpectraInterfaceFactorizedCrossSpectrum(
+    candl.transformations.abstract_base.Foreground
+):
+
+    """
+    Wrapper for SO's FGSpectra FactorizedCrossSpectrum (https://github.com/simonsobs/fgspectra/tree/main) with a free amplitude.
+
+    User required arguments in data set yaml file
+    ---------
+    fgspectra_sed : str
+        Name of fgspectra.frequency class to use for SED.
+    fgspectra_sed_args : list (str)
+        Names of sampled parameters that need to be passed to the SED instance.
+    fgspectra_sed_args_fixed : dictionary of string : float
+        Names and values of fixed parameters to be passed to the SED instance.
+    fgspectra_cl : str
+        Name of fgspectra.power class to use for Cls.
+    fgspectra_cl_args : list (str))
+        Names of sampled parameters that need to be passed to the Cl instance.
+    fgspectra_cl_args_fixed : dictionary of string : float
+        Names and values of fixed parameters to be passed to the Cl instance.
+    affected_specs : list (str)
+        List of the spectra to apply this foreground to.
+    effective_frequencies : str
+        Keyword to look for in effective frequencies yaml file.
+    amp_param : str
+        Name of the free amplitude parameter
+
+    Example yaml block:
+      - Module: "common.FGSpectraInterfaceFactorizedCrossSpectrum"
+        fgspectra_sed: "ThermalSZ"
+        fgspectra_sed_args: []
+        fgspectra_sed_args_fixed: {nu_0: 150.0}
+        fgspectra_cl: "tSZ_150_bat"
+        fgspectra_cl_args: []
+        fgspectra_cl_args_fixed: {ell_0: 3000}
+        amp_param: "FGSpec_amp"
+        affected_specs: ["TT 90x90", "TT 150x150", "TT 220x220"]
+        effective_frequencies: "tSZ"
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
+
+    Attributes
+    -------
+    fgspectra_sed : Instance of a fgspectra.frequency class
+        Used by FGSpectra for SED.
+    fgspectra_sed_args : list (str)
+        Names of sampled parameters that need to be passed to the SED instance.
+    fgspectra_sed_args_fixed : dictionary of string : float
+        Names and values of fixed parameters to be passed to the SED instance.
+    fgspectra_cl : Instance of a fgspectra.power class
+        Used by FGSpectra for Cls.
+    fgspectra_cl_args : list (str))
+        Names of sampled parameters that need to be passed to the Cl instance.
+    fgspectra_cl_args_fixed : dictionary of string : float
+        Names and values of fixed parameters to be passed to the Cl instance.
+    ells : array (float)
+        The ell range the transformation acts on.
+    descriptor : str
+        A short descriptor.
+    par_names : list
+        Names of parameters involved in transformation.
+    spec_order : array (str)
+        Identifiers of spectra in the order in which spectra are handled in the long data vector.
+    freq_info : list
+        List of lists, where each sublist contains the two effective frequencies for a given spectrum.
+    ell_ref : int
+        Reference ell for normalisation.
+    spec_mask : array (int)
+        Masks which spectra of the long data vector are affected by the transformation.
+    affected_specs : list (str)
+        List of the spectra to apply this foreground to.
+    affected_specs_ix : list (int)
+        Indices of affected spectra
+    N_spec : int
+        The total number of spectra in the long data vector.
+    amp_param : str
+        The name of the amplitude parameter.
+    """
+
+    def __init__(
+        self,
+        ells,
+        fgspectra_sed,
+        fgspectra_sed_args,
+        fgspectra_sed_args_fixed,
+        fgspectra_cl,
+        fgspectra_cl_args,
+        fgspectra_cl_args_fixed,
+        amp_param,
+        freq_info,
+        spec_order,
+        affected_specs,
+        descriptor="FGSpectra Interface",
+    ):
+        """
+        Initialise a new instance of the FGSpectraInterfaceFactorizedCrossSpectrum class.
+
+        Arguments
+        -------
+        ells : array (float)
+            The ell range the transformation acts on.
+        fgspectra_sed : str
+            Name of fgspectra.frequency class to use for SED.
+        fgspectra_sed_args : list (str)
+            Names of sampled parameters that need to be passed to the SED instance.
+        fgspectra_sed_args_fixed : dictionary of string : float
+            Names and values of fixed parameters to be passed to the SED instance.
+        fgspectra_cl : str
+            Name of fgspectra.power class to use for Cls.
+        fgspectra_cl_args : list (str))
+            Names of sampled parameters that need to be passed to the Cl instance.
+        fgspectra_cl_args_fixed : dictionary of string : float
+            Names and values of fixed parameters to be passed to the Cl instance.
+        amp_param : str
+            The name of the amplitude parameter.
+        freq_info : list
+            List of lists, where each sublist contains the two effective frequencies for a given spectrum.
+        spec_order : array (str)
+            Identifiers of spectra in the order in which spectra are handled in the long data vector.
+        affected_specs : list (str)
+            List of the spectra to apply this foreground to.
+        descriptor : str (optional)
+            A short descriptor.
+
+        Output
+        -------
+        FGSpectraInterfaceFactorizedCrossSpectrum instance.
+        """
+
+        super().__init__(
+            ells=ells,
+            ell_ref=fgspectra_cl_args_fixed["ell_0"]
+            if "ell_0" in fgspectra_cl_args_fixed
+            else None,
+            descriptor=descriptor,
+            param_names=list(
+                np.unique([amp_param] + fgspectra_sed_args + fgspectra_cl_args)
+            ),
+        )
+
+        # Initialise fgspectra.cross.FactorizedCrossSpectrum instance
+        fgc = importlib.import_module("fgspectra.cross")
+        fgf = importlib.import_module("fgspectra.frequency")
+        fgp = importlib.import_module("fgspectra.power")
+        self.fgspectra_instance = fgc.FactorizedCrossSpectrum(
+            eval(f"fgf.{fgspectra_sed}()"), eval(f"fgp.{fgspectra_cl}()")
+        )
+
+        self.fgspectra_sed_args = fgspectra_sed_args
+        self.fgspectra_sed_args_fixed = fgspectra_sed_args_fixed
+
+        self.fgspectra_cl_args = fgspectra_cl_args
+        self.fgspectra_cl_args_fixed = fgspectra_cl_args_fixed
+
+        self.amp_param = amp_param
+
+        # Saving spectra order etc.
+        self.affected_specs = affected_specs
+        self.spec_order = spec_order
+        self.N_spec = len(self.spec_order)
+        self.freq_info = [
+            np.array(f) for f in freq_info
+        ]  # FGspectra needs these as arrays
+
+        # Generate boolean mask of affected specs
+        self.spec_mask = np.zeros(
+            len(spec_order)
+        )  # Generate as np array for easier item assignment
+        for i, spec in enumerate(self.spec_order):
+            if spec in self.affected_specs:
+                self.spec_mask[i] = 1
+        self.spec_mask = self.spec_mask == 1
+        self.spec_mask = jnp.array(self.spec_mask)
+        self.affected_specs_ix = [ix[0] for ix in jnp.argwhere(self.spec_mask)]
+
+    # Note: FGSpectra code is not necessarily jit safe
+    def output(self, sample_params):
+        """
+        Return foreground spectrum.
+
+        Arguments
+        -------
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        -------
+        array, float
+            Foreground spectrum.
+        """
+
+        # Grab parameter dict for FGSpectra
+        sed = self.fgspectra_sed_args_fixed
+        cl = self.fgspectra_cl_args_fixed
+        for p in list(sample_params.keys()):
+            if p in self.fgspectra_sed_args:
+                sed[p] = sample_params[p]
+            if p in self.fgspectra_cl_args:
+                cl[p] = sample_params[p]
+        cl["ell"] = self.ells
+
+        # Loop over spectra and slot into array
+        full_fg_array = jnp.zeros(len(self.spec_order) * len(self.ells))
+        for ix in self.affected_specs_ix:
+            sed["nu"] = self.freq_info[ix]
+            full_fg_array = jax_optional_set_element(
+                full_fg_array,
+                jnp.arange(ix * len(self.ells), (ix + 1) * len(self.ells)),
+                self.fgspectra_instance(sed, cl)[0, 1],
+            )  # These are typically in Dl already, I believe
+
+        return sample_params[self.amp_param] * full_fg_array
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        """
+        Transform the input spectrum.
+
+        Arguments
+        -------
+        Dls : array (float)
+            The spectrum to transform in Dl.
+        sample_params : dict
+            A dictionary of parameters that are used in the transformation
+
+        Returns
+        -------
+        array : float
+            The transformed spectrum in Dl.
+        """
+
+        return Dls + self.output(sample_params)
+
+
+# --------------------------------------#
+# CALIBRATION
+# --------------------------------------#
+
+
+class CalibrationSingleScalar(candl.transformations.abstract_base.Transformation):
+    """
+    Simple calibration model for spectra.
+    Scales all model spectra by $1/X$, where X is specified in the spec_param_dict.
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    transform :
+        transforms an input spectrum.
+
+    Attributes
+    -------
+    descriptor : str
+        A short descriptor.
+    cal_param : str
+        Name of the calibration parameter.
+    par_names : list
+        Names of parameters involved in transformation.
+    """
+
+    def __init__(self, cal_param, descriptor="Calibration (single number"):
+        super().__init__(ells=None, descriptor=descriptor, param_names=[cal_param])
+        self.cal_param = cal_param
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        """
+        Transform the input spectrum.
+
+        Arguments
+        -------
+        Dls : array (float)
+           The spectrum to transform in Dl.
+        sample_params : dict
+           A dictionary of parameters that are used in the transformation
+
+        Returns
+        -------
+        array : float
+           The transformed spectrum in Dl.
+        """
+
+        return Dls / sample_params[self.cal_param]
+
+
+class CalibrationCross(candl.transformations.abstract_base.Calibration):
+    """
+    Calibration model for summed spectra, e.g. for TE_90x150 = 0.5 * ( T_90xE_150 + E_90xT_150 ).
+    Scales model spectra by $1/[0.5*(X*Y+WV)]$, where X,Y,W,V are specified in the spec_param_dict
+    (most likely want Tcal and/or Ecal in there).
+    Reduces to CalibrationAuto if parameters are repeated appropriately.
+    Used by SPT-3G 2018 TT/TE/EE implementation.
+
+    User required arguments in data set yaml file
+    ---------
+    spec_param_dict : dict
+        A dictionary with keys that are spectrum identifiers and values that are lists of the nuisance parameter names
+        that are used to transform this spectrum.
+
+    Example yaml block to calibrate TE spectra that are the sum of the two (TE/ET) crosses.
+    - Module: "common.CalibrationCross"
+      spec_param_dict:
+        TE 90x90: ["Tcal90", "Ecal90", "Tcal90", "Ecal90"]
+        TE 90x150: [ "Tcal90", "Ecal150", "Tcal150", "Ecal90" ]
+        TE 90x220: [ "Tcal90", "Ecal220", "Tcal220", "Ecal90" ]
+        TE 150x150: [ "Tcal150", "Ecal150", "Tcal150", "Ecal150" ]
+        TE 150x220: [ "Tcal150", "Ecal220", "Tcal220", "Ecal150" ]
+        TE 220x220: [ "Tcal220", "Ecal220", "Tcal220", "Ecal220" ]
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    transform :
+        transforms an input spectrum.
+
+    Attributes
+    -------
+    ells : array (float)
+        The ell range the transformation acts on.
+    descriptor : str
+        A short descriptor.
+    par_names : list
+        Names of parameters involved in transformation.
+    spec_param_dict : dict
+        A dictionary with keys that are spectrum identifiers and values that are lists of the nuisance parameter names
+        that are used to transform this spectrum.
+    spec_order : list
+        Order of the spectra in the long data vector.
+    N_specs : int
+        Total number of spectra.
+    affected_specs : list (str)
+            List of the spectra to apply this foreground to.
+    spec_mask : array (int)
+        Masks which parts of the long data vector are affected by the transformation.
+    affected_specs_ix : list (int)
+        Indices in spectra_order of spectra the transformation is applied to.
+    """
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        """
+        Transform the input spectrum.
+
+        Arguments
+        -------
+        Dls : array (float)
+           The spectrum to transform in Dl.
+        sample_params : dict
+           A dictionary of parameters that are used in the transformation
+
+        Returns
+        -------
+        array : float
+           The transformed spectrum in Dl.
+        """
+
+        # amplitude part
+        cal_vals = jnp.ones(len(self.spec_order))
+        for ix in self.affected_specs_ix:
+            this_cal_val = (
+                sample_params[self.spec_param_dict[self.spec_order[ix]][0]]
+                * sample_params[self.spec_param_dict[self.spec_order[ix]][1]]
+            )
+            this_cal_val += (
+                sample_params[self.spec_param_dict[self.spec_order[ix]][2]]
+                * sample_params[self.spec_param_dict[self.spec_order[ix]][3]]
+            )
+            cal_vals = jax_optional_set_element(cal_vals, ix, this_cal_val / 2.0)
+        tiled_cal_vals = jnp.repeat(cal_vals, len(self.ells))
+
+        return Dls / tiled_cal_vals
+
+    @partial(jit, static_argnums=(0,))
+    def get_cal_vec(self, sample_params):
+        """
+        Shortcut to access calibration vector.
+        See also: transformation()
+        """
+
+        # amplitude part
+        cal_vals = jnp.ones(len(self.spec_order))
+        for ix in self.affected_specs_ix:
+            this_cal_val = (
+                sample_params[self.spec_param_dict[self.spec_order[ix]][0]]
+                * sample_params[self.spec_param_dict[self.spec_order[ix]][1]]
+            )
+            this_cal_val += (
+                sample_params[self.spec_param_dict[self.spec_order[ix]][2]]
+                * sample_params[self.spec_param_dict[self.spec_order[ix]][3]]
+            )
+            cal_vals = jax_optional_set_element(cal_vals, ix, this_cal_val / 2.0)
+
+        return cal_vals
+
+
+class PolarisationCalibration(candl.transformations.abstract_base.Transformation):
+    """
+    Simple calibration model for spectra.
+    Scales all TE by X and all EE by X^2, where X is specified in the spec_param_dict.
+    Used by ACT DR4 likelihood implementation.
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    transform :
+        transforms an input spectrum.
+
+    Attributes
+    -------
+    ells : array (float)
+        The ell range the transformation acts on.
+    descriptor : str
+        A short descriptor.
+    cal_param : str
+        Name of the calibration parameter.
+    par_names : list
+        Names of parameters involved in transformation.
+    spec_order : array (str)
+        Identifiers of spectra in the order in which spectra are handled in the long data vector.
+    TE_affected_specs_ix : list
+        List of indices of spectra that get a yp factor
+    EE_affected_specs_ix : list
+        List of indices of spectra that get a yp^2 factor
+    """
+
+    def __init__(
+        self, ells, cal_param, spec_order, descriptor="Calibration (single number"
+    ):
+        super().__init__(ells=ells, descriptor=descriptor, param_names=[cal_param])
+        self.spec_order = spec_order
+        self.cal_param = cal_param
+
+        # Generate boolean mask of affected specs
+        self.affected_specs = [spec for spec in self.spec_order if "E" in spec[:2]]
+        self.spec_mask = np.zeros(
+            len(spec_order)
+        )  # Generate as np array for easier item assignment
+        for i, spec in enumerate(self.spec_order):
+            if spec in self.affected_specs:
+                if spec[:2] == "TE":
+                    self.spec_mask[i] = 1
+                elif spec[:2] == "EE":
+                    self.spec_mask[i] = 2
+        self.TE_affected_specs_ix = [ix[0] for ix in jnp.argwhere(self.spec_mask == 1)]
+        self.EE_affected_specs_ix = [ix[0] for ix in jnp.argwhere(self.spec_mask == 2)]
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        """
+        Transform the input spectrum.
+
+        Arguments
+        -------
+        Dls : array (float)
+           The spectrum to transform in Dl.
+        sample_params : dict
+           A dictionary of parameters that are used in the transformation
+
+        Returns
+        -------
+        array : float
+           The transformed spectrum in Dl.
+        """
+
+        # amplitude part
+        cal_vals = jnp.ones(len(self.spec_order))
+        for ix in self.TE_affected_specs_ix:
+            cal_vals = jax_optional_set_element(
+                cal_vals, ix, sample_params[self.cal_param]
+            )
+        for ix in self.EE_affected_specs_ix:
+            cal_vals = jax_optional_set_element(
+                cal_vals, ix, sample_params[self.cal_param] ** 2.0
+            )
+        tiled_cal_vals = jnp.repeat(cal_vals, len(self.ells))
+
+        return Dls * tiled_cal_vals
+
+
+# --------------------------------------#
+# TRANSFORMATIONS INVOLVING dCl/dl DERIVATIVE
+# --------------------------------------#
+
+
+class SuperSampleLensing(candl.transformations.abstract_base.Transformation):
+    """
+    Super sample lensing.
+    Following Equation 32 in Manzotti, Hu, Benoit-Levy 2014 (https://arxiv.org/pdf/1401.7992.pdf).
+    The addition in Cl space is:
+    $ - \frac{\partial\ell^2C_\ell^{XY}}{\partial \ln{\ell}} \frac{\kappa}{\ell^2} $
+    or:
+    $ - \frac{\kappa}{\ell^2} \frac{\partial}{\partial\ln{\ell}}} (\ell^2 C_\ell) $
+    $ = -\kappa(\ell*\frac{\partialC_\ell}{\partial\ell} + 2 C_\ell). $
+    Used by SPT-3G 2018 TT/TE/EE implementation.
+
+
+    User required arguments in data set yaml file
+    ---------
+    kappa_param : str
+        Name of the kappa parameter to be used.
+
+    Example yaml block to add SSL:
+    - Module: "common.SuperSampleLensing"
+      kappa_param: "Kappa"
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive SSL contribution.
+    transform :
+        Returns a transformed spectrum.
+
+    Attributes
+    -------
+    ells : array (float)
+            The ell range the transformation acts on.
+    descriptor : str
+        A short descriptor.
+    par_names : list
+        Names of parameters involved in transformation.
+    kappa_param : str
+        Name of the kappa parameter to be used (i.e. the mean lensing covergence across the field).
+    long_ells : array (float)
+        Long vector of concatenated theory ells.
+    """
+
+    def __init__(self, ells, long_ells, kappa_param, descriptor="Super-Sample Lensing"):
+        """
+        Initialise the SuperSamleLensing transformation.
+
+        Arguments
+        -------
+        ells : array (float)
+            The ell range the transformation acts on.
+        long_ells : array (float)
+            Long vector of concatenated theory ells.
+        kappa_param : str
+            Name of the kappa parameter to be used (i.e. the mean lensing covergence across the field).
+        descriptor : str
+            A short descriptor.
+
+        Returns
+        -------
+        Transformation
+            A new instance of the SuperSampleLensing class.
+        """
+
+        super().__init__(ells=ells, descriptor=descriptor, param_names=[kappa_param])
+
+        self.kappa_param = kappa_param
+        self.long_ells = long_ells
+
+    @partial(jit, static_argnums=(0,))
+    def output(self, Dls, sample_params):
+        """
+        Return SSL contribution.
+        Sightly different signature to foregrounds (Dl dependent), but intended to be accessed through
+        transformation() only.
+
+        Arguments
+        -------
+        Dls : array (float)
+            The spectrum to transform in Dl.
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        -------
+        array, float
+            SSL contribution.
+        """
+
+        # Looks like annoying back and forth, but calculation is more straightforward in Cl space!
+        # Needs to slice up theory vector to avoid spikes in derivatives
+        Cl_deriv = jnp.concatenate(
+            [
+                jnp.gradient(
+                    Dls[i * len(self.ells) : (i + 1) * len(self.ells)]
+                    * 2
+                    * jnp.pi
+                    / (self.ells * (self.ells + 1))
+                )
+                for i in range(int(len(self.long_ells) / len(self.ells)))
+            ]
+        )  # convert to Cls and calculate derivative
+        ssl_correction = (
+            self.long_ells
+            * Cl_deriv
+            * self.long_ells
+            * (self.long_ells + 1)
+            / (2 * jnp.pi)
+        )  # extra factor of ell and move to Dl space
+        ssl_correction += 2 * Dls  # add second term in brackets
+        ssl_correction *= -sample_params[
+            self.kappa_param
+        ]  # fix sign and scale by amplitude parameter
+
+        return ssl_correction
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        """
+        Transform the input spectrum.
+
+        Arguments
+        -------
+        Dls : array (float)
+            The spectrum to transform in Dl.
+        sample_params : dict
+            A dictionary of parameters that are used in the transformation
+
+        Returns
+        -------
+        array : float
+            The transformed spectrum in Dl.
+        """
+
+        return Dls + self.output(Dls, sample_params)
+
+
+class AberrationCorrection(candl.transformations.abstract_base.Transformation):
+    """
+    Super sample lensing.
+    Following Equation 23 in Jeong et al. 2013 (https://arxiv.org/pdf/1309.2285.pdf).
+    Note that this is a fixed transformation and does not depend on any nuisance parameters.
+
+    The addition in Cl space is:
+    $ - AC * \ell * \frac{\partial C_\ell}{\partial \ell} $
+    where AC is the aberration coefficient with $ AC = \beta \langle\cos{\theta}\rangle$
+    where $\beta$ is the speed in units of c (typically ~0.00123)
+    and $langle\cos{\theta}\rangle$ is the average direction (w.r.t. the observed field).
+
+    Used by SPT-3G 2018 TT/TE/EE implementation.
+
+    Example yaml block to add Aberration:
+    - Module: "common.SuperSampleLensing"
+      aberration_coefficient: 0.0001
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive aberration contribution.
+    transform :
+        Returns a transformed spectrum.
+
+    Attributes
+    -------
+    ells : array (float)
+        The ell range the transformation acts on.
+    aberration_coefficient : float
+        Product of the beta and cos(theta) terms.
+    descriptor : str
+        A short descriptor.
+    par_names : list
+        Names of parameters involved in transformation.
+    long_ells : array (float)
+        Long vector of concatenated theory ells.
+
+
+    long_ells : array (float)
+            Long vector of concatenated theory ells.
+
+    """
+
+    def __init__(
+        self,
+        ells,
+        long_ells,
+        aberration_coefficient,
+        descriptor="Aberration Correction",
+    ):
+        """
+        Initialise the AberrationCorrection transformation.
+
+        Arguments
+        -------
+        ells : array (float)
+            The ell range the transformation acts on.
+        long_ells : array (float)
+            Long vector of concatenated theory ells.
+        aberration_coefficient : float
+            Product of the beta and cos(theta) terms.
+        descriptor : str
+            A short descriptor.
+
+        Returns
+        -------
+        Transformation
+            A new instance of the AberrationCorrection class.
+        """
+
+        super().__init__(ells=ells, descriptor=descriptor)
+        self.aberration_coefficient = aberration_coefficient
+        self.long_ells = long_ells
+
+    @partial(jit, static_argnums=(0,))
+    def output(self, Dls):
+        """
+        Return the aberration correction.
+        Sightly different signature to foregrounds (only Dl dependent), but intended to be accessed through
+        transformation() only.
+
+        Arguments
+        -------
+        Dls : array (float)
+            The spectrum to transform in Dl.
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        -------
+        array, float
+            Aberration correcation.
+        """
+
+        # Looks like annoying back and forth, but calculation is actually nicer to do with Cl derivative!
+        # Needs to slice up theory vector to avoid spikes in derivatives
+        Cl_deriv = jnp.concatenate(
+            [
+                jnp.gradient(
+                    Dls[i * len(self.ells) : (i + 1) * len(self.ells)]
+                    * 2
+                    * jnp.pi
+                    / (self.ells * (self.ells + 1))
+                )
+                for i in range(int(len(self.long_ells) / len(self.ells)))
+            ]
+        )  # convert to Cls and calculate derivative
+        ab_correction = (
+            Cl_deriv * self.long_ells * (self.long_ells + 1) / (2 * jnp.pi)
+        )  # move to Dl space
+        ab_correction *= self.long_ells
+        ab_correction *= -self.aberration_coefficient
+        return ab_correction
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        """
+        Transform the input spectrum.
+        Note that sample_params is never accessed, but for uniformity across transformation() methods still included.
+
+        Arguments
+        -------
+        Dls : array (float)
+            The spectrum to transform in Dl.
+        sample_params : dict
+            A dictionary of parameters that are used in the transformation
+
+        Returns
+        -------
+        array : float
+            The transformed spectrum in Dl.
+        """
+
+        return Dls + self.output(Dls)
+
+
+# --------------------------------------#
+# FREQUENCY HELPERS
+# --------------------------------------#
+
+
+# Dust frequency scaling (modified black body) including integral over the band pass
+@jit
+def dust_frequency_scaling_bandpass(
+    beta, Tdust, nu_0_dust, nu_spacing, nu_vals, bandpass_vals, thermo_conv
+):
+    """
+    Modified black body frequency scaling with the integral over the bandpass.
+    Band pass information is expanded out (rather than passing an instance of BandPass) to make @jit easier.
+    Frequency power law index is 3 + beta.
+    Following BK_Planck likelihood.
+
+    Arguments
+    -------
+    beta : float
+        Spectral index
+    Tdust : float
+        Dust temperature.
+    nu_0_dust : float
+        Reference frequency.
+    nu_spacing : float
+        Frequency spacing of the band pass data.
+    nu_spacing : array (float)
+        Frequency values of band pass measurements.
+    bandpass_vals : array (float)
+        Band pass measurements.
+    thermo_conv : float
+        Thermodynamic conversion for the reference frequency.
+
+    Returns
+    -------
+    float :
+        Frequency scaling
+    """
+
+    # Calculate grey-body integrals
+    grey_body_int = jnp.sum(
+        nu_spacing
+        * bandpass_vals
+        * nu_vals ** (3 + beta)
+        / (jnp.exp(nu_vals * candl.constants.GHz_KELVIN / Tdust) - 1)
+    )
+
+    grey_body_norm = nu_0_dust ** (3 + beta) / (
+        jnp.exp(nu_0_dust * candl.constants.GHz_KELVIN / Tdust) - 1
+    )
+
+    # Put everything together including thermodynamic conversion
+    f_dust = (grey_body_int / grey_body_norm) / thermo_conv
+
+    return f_dust
+
+
+# Synchrotron scaling (power law) including integral over the band pass
+@jit
+def sync_frequency_scaling_bandpass(
+    beta, nu_0_sync, nu_spacing, nu_vals, bandpass_vals, thermo_conv
+):
+    """
+    Power law frequency scaling with the integral over the bandpass.
+    Band pass information is expanded out (rather than passing an instance of BandPass) to make @jit easier.
+    Power law index is 2 + beta.
+    Following BK_Planck likelihood.
+
+    Arguments
+    -------
+    beta : float
+        Spectral index
+    nu_0_sync : float
+        Reference frequency.
+    nu_spacing : float
+        Frequency spacing of the band pass data.
+    nu_spacing : array (float)
+        Frequency values of band pass measurements.
+    bandpass_vals : array (float)
+        Band pass measurements.
+    thermo_conv : float
+        Thermodynamic conversion for the reference frequency.
+
+    Returns
+    -------
+    float :
+        Frequency scaling
+    """
+
+    power_law_int = np.sum(nu_spacing * bandpass_vals * nu_vals ** (2 + beta))
+    power_law_norm = nu_0_sync ** (2 + beta)
+
+    # Put everything together including thermodynamic conversion
+    f_sync = (power_law_int / power_law_norm) / thermo_conv
+
+    return f_sync
+
+
+# Simple Dust Frequency Scaling, ignores correction to band pass centre from changing SED
+@jit
+def dust_frequency_scaling(
+    beta: jnp.float64, Tdust: jnp.float64, nu_0_dust: jnp.float64, nu: jnp.float64
+) -> jnp.float64:
+    """
+    Modified black body frequency scaling.
+    Based on code from Christian Reichardt.
+
+    Arguments
+    -------
+    beta : float
+        Spectral index
+    Tdust : float
+        Dust temperature.
+    nu_0_dust : float
+        Reference frequency.
+    nu : float
+        Requested frequency.
+
+    Returns
+    -------
+    float :
+        Frequency scaling
+    """
+
+    fdust = (nu / nu_0_dust) ** beta
+    fdust *= black_body(nu, nu_0_dust, Tdust) / black_body_deriv(
+        nu, nu_0_dust, candl.constants.T_CMB
+    )
+
+    return fdust
+
+
+# tSZ Frequency Scaling
+@jit
+def tSZ_frequency_scaling(
+    nu: jnp.float64, nu0: jnp.float64, T: jnp.float64
+) -> jnp.float64:
+    """
+    tSZ frequency scaling.
+    Based on code from Christian Reichardt.
+
+    Arguments
+    -------
+    T : float
+        CMB temperature.
+    nu_0_dust : float
+        Reference frequency.
+    nu : float
+        Requested frequency.
+
+    Returns
+    -------
+    float :
+        Frequency scaling
+    """
+
+    x0 = candl.constants.GHz_KELVIN * nu0 / T
+    x = candl.constants.GHz_KELVIN * nu / T
+    tSZfac0 = x0 * (jnp.exp(x0) + 1) / (jnp.exp(x0) - 1) - 4
+    tSZfac = x * (jnp.exp(x) + 1) / (jnp.exp(x) - 1) - 4
+    tSZfac = tSZfac / tSZfac0
+
+    return tSZfac
+
+
+@jit
+def black_body(nu: jnp.float64, nu0: jnp.float64, T: jnp.float64) -> jnp.float64:
+    """
+    Black body function, normalised to 1 at nu0.
+    Based on code from Christian Reichardt.
+
+    Arguments
+    -------
+    T : float
+        Temperature.
+    nu0 : float
+        Reference frequency.
+    nu : float
+        Requested frequency.
+
+    Returns
+    -------
+    float :
+        Frequency scaling
+    """
+
+    fac = (nu / nu0) ** 3
+    fac *= (jnp.exp(candl.constants.GHz_KELVIN * nu0 / T) - 1) / (
+        jnp.exp(candl.constants.GHz_KELVIN * nu / T) - 1
+    )
+
+    return fac
+
+
+# Derivative of Planck function normalised to 1 at nu0
+@jit
+def black_body_deriv(nu: jnp.float64, nu0: jnp.float64, T: jnp.float64) -> jnp.float64:
+    """
+    Derivative of black body function, normalised to 1 at nu0.
+    Based on code from Christian Reichardt.
+
+    Arguments
+    -------
+    T : float
+        Temperature.
+    nu0 : float
+        Reference frequency.
+    nu : float
+        Requested frequency.
+
+    Returns
+    -------
+    float :
+        Frequency scaling
+    """
+
+    x0 = candl.constants.GHz_KELVIN * nu0 / T
+    x = candl.constants.GHz_KELVIN * nu / T
+    dBdT0 = x0**4 * jnp.exp(x0) / (jnp.exp(x0) - 1) ** 2
+    dBdT = x**4 * jnp.exp(x) / (jnp.exp(x) - 1) ** 2
+    dBdT = dBdT / dBdT0
+
+    return dBdT

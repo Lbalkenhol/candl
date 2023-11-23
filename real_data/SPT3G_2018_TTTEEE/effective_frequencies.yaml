@@ -1,0 +1,17 @@
+# Effective frequencies for different types of sources
+cirrus: # keywords of the source type, which can be accessed by the foreground classes
+  90: 9.667350E+01 # effective frequency for each frequency identifier
+  150: 1.499544E+02
+  220: 2.219951E+02
+polarised_galactic_dust:
+  90: 9.670270E+01
+  150: 1.499942E+02
+  220: 2.220433E+02
+CIB:
+  90: 9.674500E+01
+  150: 1.501030E+02
+  220: 2.222140E+02
+tSZ:
+  90: 9.648100E+01
+  150: 1.489490E+02
+  220: 2.195780E+02
