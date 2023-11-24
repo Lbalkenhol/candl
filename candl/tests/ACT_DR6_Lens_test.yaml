@@ -1,0 +1,5 @@
+data_set_file: "data/ACT_DR6_Lens/ACT_DR6_KK_lens_only.yaml"
+lensing: True
+test_spectrum: "tests/ACT_DR6_Lens_test_spec.txt"
+param_values: {}
+test_chisq: 14.057911788739437

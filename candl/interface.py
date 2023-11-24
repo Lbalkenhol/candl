@@ -957,9 +957,15 @@ def get_cobaya_likelihood_class_for_like(like):
             pars_to_pass = params
             pars_to_pass["Dl"] = {"ell": np.arange(like.ell_min, like.ell_max + 1)}
             for ky in cls:
-                pars_to_pass["Dl"][ky] = jnp.zeros(N_ell)
-                pars_to_pass["Dl"][ky] = jax_optional_set_element(
-                    pars_to_pass["Dl"][ky],
+                # Some theory codes pass "TT", "EE", "TE", "BB" and some pass "tt", "ee", "te", "bb"
+                pass_ky = ky
+                if pass_ky in ["tt", "ee", "te", "bb"]:
+                    pass_ky = pass_ky.upper()
+
+                # Slot into array
+                pars_to_pass["Dl"][pass_ky] = jnp.zeros(N_ell)
+                pars_to_pass["Dl"][pass_ky] = jax_optional_set_element(
+                    pars_to_pass["Dl"][pass_ky],
                     np.arange(like_start_ix, like_stop_ix),
                     cls[ky][theory_start_ix:theory_stop_ix],
                 )

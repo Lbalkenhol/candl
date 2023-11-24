@@ -1,0 +1,5 @@
+data_set_file: "data/ACT_DR4_CMB_only/ACT_DR4_CMB_only.yaml"
+lensing: False
+test_spectrum: "tests/ACT_DR4_TTTEEE_test_spec.txt"
+param_values: {"yp": 1.003}
+test_chisq: 288.252869629064
