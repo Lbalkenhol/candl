@@ -337,7 +337,7 @@ def read_lensing_M_matrices_from_yaml(full_path, N_bins_total, Mtype="pp"):
     # Load in window functions
 
     # find highest L from the first bin's window
-    first_window = np.loadtxt(full_path + "window" + str(1) + ".txt")
+    first_window = np.loadtxt(full_path + "window_0.txt")
     last_L = int(first_window[-1, 0])
     number_of_ells = last_L - 1  # starting at ell = 2
     start_ix = np.argwhere(first_window[:, 0] == 2)[0, 0]  # start at ell = 2
@@ -378,6 +378,8 @@ def like_init_output(like):
 
     # Skip if no feedback is requested
     if "feedback" not in like.dataset_dict:
+        return
+    if not like.dataset_dict["feedback"]:
         return
 
     if "log_file" in like.dataset_dict:

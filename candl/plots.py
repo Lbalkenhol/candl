@@ -516,7 +516,12 @@ def plot_minimiser_convergence(
         pars_to_plot = list(eval_points[0].keys())
 
     fig, ax = plt.subplots(
-        len(pars_to_plot), 1, sharex=True, sharey=False, gridspec_kw={"hspace": 0}
+        len(pars_to_plot),
+        1,
+        sharex=True,
+        sharey=False,
+        gridspec_kw={"hspace": 0},
+        figsize=(2 * 3.464, len(pars_to_plot) / 4 * 3.464),
     )
 
     for i, par in enumerate(pars_to_plot):
@@ -570,12 +575,14 @@ def plot_minimiser_convergence(
 # --------------------------------------#
 
 
-def plot_band_powers(like):
+def plot_band_powers(like, show_legend=True, colour_by_spec_type=False):
     """
     Plots the band powers for a given primary CMB likelihood.
 
     Parameters:
         like (candl.like): The likelihood.
+        show_legend (bool, optional): Whether to show the legend. Default is True.
+        colour_by_spec_type (bool, optional): Whether to colour the band powers by spectrum type. Default is False.
 
     Returns:
         None
@@ -583,6 +590,15 @@ def plot_band_powers(like):
 
     fig = plt.gcf()
     fig.set_size_inches(2 * 3.464, 1 * 3.464)
+
+    if colour_by_spec_type:
+        all_spec_type_colours = sns.color_palette(
+            n_colors=len(np.unique(like.spec_types))
+        )
+        spec_type_colours = {
+            np.unique(like.spec_types)[i]: all_spec_type_colours[i]
+            for i in range(len(all_spec_type_colours))
+        }
 
     for i, spec in enumerate(like.spec_order):
         # Grab plotting data
@@ -595,19 +611,37 @@ def plot_band_powers(like):
         )
 
         # Plot
-        plt.errorbar(
-            ells_to_plot,
-            abs(bandpowers_to_plot),
-            error_bars_to_plot,
-            lw=0,
-            ms=2,
-            marker="o",
-            label=spec,
-            elinewidth=1,
-        )
+        if colour_by_spec_type:
+            lbl = like.spec_types[i]
+            if lbl in like.spec_types[:i]:
+                lbl = None
+            plt.errorbar(
+                ells_to_plot,
+                abs(bandpowers_to_plot),
+                error_bars_to_plot,
+                lw=0,
+                ms=2,
+                marker="o",
+                label=lbl,
+                elinewidth=1,
+                color=spec_type_colours[like.spec_types[i]],
+            )
+        else:
+            plt.errorbar(
+                ells_to_plot,
+                abs(bandpowers_to_plot),
+                error_bars_to_plot,
+                lw=0,
+                ms=2,
+                marker="o",
+                label=spec,
+                elinewidth=1,
+            )
 
     plt.yscale("log")
-    plt.legend()
+
+    if show_legend:
+        plt.legend()
 
     plt.xlabel("Angular Multipole")
     plt.ylabel(r"$D_\ell \, [ \mu K^2 ]$")
@@ -620,13 +654,18 @@ def plot_band_powers(like):
 
 
 def plot_mcmc_chain_steps(
-    gd_samples, pars_to_plot, bf_point=None, par_cov=None, pars_in_cov=None
+    gd_samples,
+    pars_to_plot,
+    bf_point=None,
+    par_cov=None,
+    pars_in_cov=None,
+    show_logl=True,
 ):
     """
     Plot steps from an MCMC chain. Intended to be used in conjunction with getdist and Cobaya/CosmoMC.
     Plots not only parameter values, but also the log likelihood.
 
-    Arguments
+    Arguments:
     -------
     gd_samples : getdist.mcsamples.MCSamples
         Samples instance containing all the parameter values.
@@ -638,10 +677,12 @@ def plot_mcmc_chain_steps(
         Parameter covariance matrix at the best-fit point.
     pars_in_cov : list
         List of strings specifying the order of parameters in the covariance matrix.
+    show_logl : bool
+        Whether to show the log likelihood values or not.
     """
 
     fig, ax = plt.subplots(
-        len(pars_to_plot) + 1,
+        len(pars_to_plot) + int(show_logl),
         1,
         figsize=(2 * 3.464, 2 * 3.464),
         sharex=True,
@@ -651,27 +692,28 @@ def plot_mcmc_chain_steps(
     steps = np.arange(len(gd_samples.loglikes))
 
     # Plot logl
-    ax[0].plot(steps, gd_samples.loglikes, color=sns.color_palette()[0])
+    if show_logl:
+        ax[0].plot(steps, gd_samples.loglikes, color=sns.color_palette()[0])
 
-    # y axis label
-    ax[0].set_ylabel(r"$\log{\mathcal{L}}$")
-    ax[0].yaxis.set_label_coords(-0.11, 0.5)
+        # y axis label
+        ax[0].set_ylabel(r"$\log{\mathcal{L}}$")
+        ax[0].yaxis.set_label_coords(-0.11, 0.5)
 
     # Plot parameters
     for i, par_to_plot in enumerate(pars_to_plot):
         sample_vals = gd_samples.samples[:, gd_samples.index[par_to_plot]]
-        ax[i + 1].plot(steps, sample_vals, color=sns.color_palette()[0])
+        ax[i + int(show_logl)].plot(steps, sample_vals, color=sns.color_palette()[0])
 
         # Plot bf val if available
         if not bf_point is None:
             bf_val = bf_point[par_to_plot]
-            ax[i + 1].axhline(bf_val, color="0.7", lw=0.75, zorder=99)
+            ax[i + int(show_logl)].axhline(bf_val, color="0.7", lw=0.75, zorder=99)
 
             # Also plot 1 sigma band from parameter covariance if passed
             if not par_cov is None:
                 fisher_err = np.sqrt(np.diag(par_cov))[pars_in_cov.index(par_to_plot)]
                 for i_sigma in [-1, 1]:
-                    ax[i + 1].axhline(
+                    ax[i + int(show_logl)].axhline(
                         bf_val + i_sigma * fisher_err,
                         color="0.7",
                         ls="--",
@@ -681,10 +723,10 @@ def plot_mcmc_chain_steps(
 
         # y labels
         if par_to_plot in PAR_LABEL_DICT:
-            ax[i + 1].set_ylabel(rf"${PAR_LABEL_DICT[par_to_plot]}$")
+            ax[i + int(show_logl)].set_ylabel(rf"${PAR_LABEL_DICT[par_to_plot]}$")
         else:
-            ax[i + 1].set_ylabel(par_to_plot)
-        ax[i + 1].yaxis.set_label_coords(-0.11, 0.5)
+            ax[i + int(show_logl)].set_ylabel(par_to_plot)
+        ax[i + int(show_logl)].yaxis.set_label_coords(-0.11, 0.5)
 
     plt.xlim((np.amin(steps), np.amax(steps)))
 

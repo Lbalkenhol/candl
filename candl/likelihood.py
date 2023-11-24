@@ -18,6 +18,13 @@ Functions:
 from candl.lib import *
 import candl.io
 import candl.transformations.abstract_base
+import os
+
+# --------------------------------------#
+# GRAB DIRECTORY
+# --------------------------------------#
+
+candl_path = os.path.dirname(os.path.realpath(__file__))
 
 # --------------------------------------#
 # LIKELIHOOD
@@ -114,7 +121,7 @@ class Like:
         Window functions start at ell=2.
     """
 
-    def __init__(self, dataset_file):
+    def __init__(self, dataset_file, **kwargs):
         """
         Initialise a new instance of the Like class.
 
@@ -122,6 +129,8 @@ class Like:
         -------
         dataset_file : str
             The file path of a .yaml file that contains all the necessary information to initialise the likelihood.
+        **kwargs : dict
+            Any additional keyword arguments to overwrite the information in the .yaml file.
 
         Returns
         -------
@@ -130,6 +139,10 @@ class Like:
         """
 
         self.dataset_dict = candl.io.load_info_yaml(dataset_file)
+
+        # Overwrite any info in the data set yaml file by passed kwargs
+        for key in kwargs:
+            self.dataset_dict[key] = kwargs[key]
 
         # Specify data path if necessary
         if not "data_set_path" in self.dataset_dict:
@@ -757,7 +770,7 @@ class Like:
                 # Read in any templates
                 if arg == "template_arr":
                     tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
-                        tr_arg_dict["template_file"]
+                        f"{candl_path}/{tr_arg_dict['template_file']}"
                     )
                     del tr_arg_dict["template_file"]
 
@@ -1163,7 +1176,7 @@ class LensLike:
         Band power window functions. Each entry in the N_specs long list is and array with size (N_theory_bins, N_bins).
     """
 
-    def __init__(self, dataset_file):
+    def __init__(self, dataset_file, **kwargs):
         """
         Initialise a new instance of the LensLike class.
 
@@ -1171,6 +1184,8 @@ class LensLike:
         -------
         dataset_file : str
             The file path of a .yaml file that contains all the necessary information to initialise the likelihood.
+        kwargs : dict
+            Any additional information to overwrite the information in the .yaml file.
 
         Returns
         -------
@@ -1179,6 +1194,16 @@ class LensLike:
         """
 
         self.dataset_dict = candl.io.load_info_yaml(dataset_file)
+
+        # Overwrite any info in the data set yaml file by passed kwargs
+        for key in kwargs:
+            self.dataset_dict[key] = kwargs[key]
+
+        # Specify data path if necessary
+        if not "data_set_path" in self.dataset_dict:
+            self.dataset_dict["data_set_path"] = (
+                "/".join(dataset_file.split("/")[:-1]) + "/"
+            )
 
         # Grab fluffy descriptor data
         self.name = candl.io.read_meta_info_from_yaml(self.dataset_dict)
@@ -1523,7 +1548,7 @@ class LensLike:
                 # Read in any templates
                 if arg == "template_arr":
                     tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
-                        tr_arg_dict["template_file"]
+                        f"{candl_path}/{tr_arg_dict['template_file']}"
                     )
                     del tr_arg_dict["template_file"]
 
@@ -1531,7 +1556,7 @@ class LensLike:
                 if arg == "M_matrices":
                     M_matrices = dict()
                     for s in tr_arg_dict["Mmodes"]:
-                        if s in ["TT", "TE", "EE", "pp", "kk"]:
+                        if s in ["TT", "TE", "EE", "BB", "pp", "kk"]:
                             M_matrices[s] = candl.io.read_lensing_M_matrices_from_yaml(
                                 self.dataset_dict["data_set_path"]
                                 + tr_arg_dict["M_matrices_folder"],
