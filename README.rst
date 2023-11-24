@@ -7,4 +7,5 @@ candl: CMB Analysis With A Differentiable Likelihood
 
 :Documentation: ``right here``
 
-This is our awesome likelihood!
+candl is a differentiable likelihood framework for analysing CMB power spectrum measurements (:math:`TT`, :math:`TE`, :math:`EE`, :math:`BB`, :math:`\phi\phi`, :math:`kk`).
+candl comes with a series of pre-installed :ref:`data sets<Data Sets>`.
