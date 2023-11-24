@@ -9,13 +9,13 @@
    :hidden:
    :maxdepth: 2
 
-   tutorial/tutorial_overview
+   data/data_overview
 
 .. toctree::
    :hidden:
    :maxdepth: 2
 
-   data/data_overview
+   tutorial/tutorial_overview
 
 .. toctree::
    :hidden:
