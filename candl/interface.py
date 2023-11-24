@@ -11,7 +11,7 @@ CobayaTheoryPyCapse
 CobayaTheoryBBTemplate
 CobayaTheoryCosmoPowerJAXLensing
 CobayaTheoryCosmoPowerLensing
-CobayaLikelihoodCandlLike
+CandlCobayaLikelihood
 
 Functions:
 --------
@@ -867,13 +867,33 @@ class CobayaTheoryCosmoPowerLensing(cobaya.theory.Theory):
 # --------------------------------------#
 
 
-class CobayaLikelihoodCandlLike(cobaya.likelihood.Likelihood):
+class CandlCobayaLikelihood(cobaya.likelihood.Likelihood):
     data_set_file: str = "./"
     clear_internal_priors: bool = True
+    lensing: bool = False
+    feedback: bool = False
+    data_selection: any = None
 
     def initialize(self):
-        # Initialise likelihood
-        self.candl_like = candl.Like(self.data_set_file)
+        # Grab the correct data set
+        if self.data_set_file.startswith("candl.data."):
+            importlib.import_module("candl.data")
+            self.data_set_file = eval(self.data_set_file)
+        print("Using data set: ", self.data_set_file)
+
+        # Initialise the likelihood
+        if self.lensing:
+            self.candl_like = candl.LensLike(
+                self.data_set_file,
+                feedback=self.feedback,
+                data_selection=self.data_selection,
+            )
+        else:
+            self.candl_like = candl.Like(
+                self.data_set_file,
+                feedback=self.feedback,
+                data_selection=self.data_selection,
+            )
 
         # by default clear internal priors and assume these are taken care off by Cobaya
         if self.clear_internal_priors:

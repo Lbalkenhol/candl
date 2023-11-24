@@ -45,7 +45,7 @@ Note that in this case, the order of the covariance is expected to match the ord
 If no priors are required, the ``priors`` block can be omitted.
 
 
-Data selection
+Data Selection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In order to run the likelihood with only a subset of the data (e.g., :math:`TT` spectra only) use the ``data_selection`` block in the info file.
