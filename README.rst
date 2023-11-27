@@ -1,9 +1,14 @@
+.. image:: candl_wordmark&symbol_col_RGB.png
+    :width: 800
+
 CMB Analysis With A Differentiable Likelihood
 ===============================================================
 
-:Author: us!
+:Authors: us!
 
-:Source: ``git_link``
+:Paper: ``arxiv shield goes here``
+
+:Source: `<https://github.com/Lbalkenhol/candl>`__
 
 :Documentation: ``right here``
 

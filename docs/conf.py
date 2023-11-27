@@ -53,4 +53,4 @@ html_theme = "sphinx_book_theme"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
-html_logo = "candl_logo_crappy_logo_only.png"
+html_logo = "candl_wordmark&symbol_stacked_col_RGB.png"
