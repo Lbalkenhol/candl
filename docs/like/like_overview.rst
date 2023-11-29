@@ -7,7 +7,7 @@ Likelihood Code
    :hidden:
 
    like_data_structure
-   like_transformations
+   Documentation <like_docs>
 
 The likelihood is a function that takes a set of CMB spectra and parameter values returns a log-likelihood value.
 For the default functional form the likelihood is a multivariate Gaussian:
@@ -25,8 +25,10 @@ These transformations adjust the power spectrum supplied by the theory code to a
 The transformations are applied in the order specified in the data set info file.
 Programmatically, the data band powers model spectrum are long vectors of concatenated spectra according to the order defined in the data set info file.
 
-*Note:* the likelihood operates in :math:`D_\ell` space, i.e. on :math:`C_\ell \ell (\ell + 1) / (2 \pi)`, in units of :math:`\mu K_{\mathrm{CMB}}^2` and theory spectra start at :math:`\ell=2`.
+.. note::
 
+    The likelihood operates in :math:`D_\ell` space, i.e. on :math:`C_\ell \ell (\ell + 1) / (2 \pi)`, in units of :math:`\mu K_{\mathrm{CMB}}^2`.
+    Theory spectra start at :math:`\ell=2`.
 
 Primary CMB Likelihood
 -----------------------------

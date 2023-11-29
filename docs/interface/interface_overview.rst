@@ -8,6 +8,7 @@ Interface
 
    interface_theory
    interface_sampler
+   Documentation <interface_docs>
 
 At its heart, the likelihood is a straightforward function that takes a set of parameters and CMB spectra and returns the log likelihood value.
 Therefore, the interface is rather simple and allows candl to be used with a variety of other software.
@@ -16,3 +17,7 @@ The most common use case is to interface the likelihood with a :ref:`theory code
 The next step, is then to explore this function using a :ref:`sampler<Samplers and Minimisers>`, which explores the parameter space and finds the best-fit point or returns samples from the posterior distribution.
 The respective pages contain more information on how both of these tasks are achieved.
 A set of ready-made solutions for different popular software packages is provided in the ``interface`` module.
+
+.. tip::
+
+   In addition to tools to interface the likelihood with theory codes and samplers separately, we also provide tools to interface CosmoPower, CosmoPower-JAX, and Capse.jl emulators with Cobaya.

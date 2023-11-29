@@ -1,36 +1,44 @@
 """
-candl.transformations.common module
-
-Common transformations, including additive foregrounds (Poisson, CIB, ...), calibration, super-sample lensing, and
-aberration as well as required helper functions.
+Common transformations, including additive foregrounds (Poisson, CIB, ...), calibration, super-sample lensing, and aberration as well as required helper functions.
 These are all that is required to run the data sets made available at initial release.
 Most of the specific foreground subclasses contain examples for how to include them in the data set yaml file.
 
-Warning: this is NOT a comprehensive foreground/data model library. Instead, the classes below are designed
-for the data sets implemented in candl and serve as examples that you can use to implement any model you want.
+Note:
+---------------
+Warning: this is NOT a comprehensive foreground/data model library. Instead, the classes below are designed for the data sets implemented in candl and serve as examples that you can use to implement any model you want.
 
-Specific Example Classes:
---------
-PoissonPower
-CIBClustering
-GalacticDust
-tSZTemplateForeground
-kSZTemplateForeground
-GalacticDustBandPass
-SynchrotronBandPass
-GalacticDustFixedAlphaBandPass
-SynchrotronFixedAlphaBandPass
-CalibrationAuto
-CalibrationCross
-SuperSampleLensing
-AberrationCorrection
+Overview:
+-----------------
 
-Functions:
---------
-dust_frequency_scaling
-tSZ_frequency_scaling
-block_body
-black_body_deriv
+Extragalactic foregrounds:
+
+* :class:`PoissonPower`
+* :class:`CIBClustering`
+* :class:`tSZTemplateForeground`
+* :class:`kSZTemplateForeground`
+
+Galactic contamination:
+
+* :class:`GalacticDust`
+* :class:`GalacticDustBandPass`
+
+Calibration:
+
+* :class:`CalibrationCross`
+* :class:`PolarisationCalibration`
+
+Other:
+
+* :class:`SuperSampleLensing`
+* :class:`AberrationCorrection`
+
+Frequency scaling functions:
+
+* :func:`dust_frequency_scaling`
+* :func:`dust_frequency_scaling_bandpass`
+* :func:`tSZ_frequency_scaling`
+* :func:`block_body`
+* :func:`black_body_deriv`
 """
 
 # --------------------------------------#
@@ -49,42 +57,19 @@ import candl.constants
 class PoissonPower(candl.transformations.abstract_base.Foreground):
     """
     Adds individual Poisson terms to a series of spectra.
-    $ A * \left( \ell / \ell_{ref} \right)^2 $
+
+    .. math::
+        A * \\left( \\ell / \\ell_{ref} \\right)^2
+
     where:
-        A : amplitude
-        ell_{ref} : reference ell
+
+    * :math:`A` is the amplitude
+    * :math:`\\ell_{ref}` is the reference ell
+
     Used by SPT-3G 2018 TT/TE/EE implementation.
 
-    User required arguments in data set yaml file
-    ---------
-    ell_ref : float
-        Reference ell.
-    spec_param_dict : dict
-        A dictionary with keys that are spectrum identifiers and values that are lists of the nuisance parameter names
-        that are used to transform this spectrum.
-
-    Example yaml block to add individual Poisson terms to a series of TT spectra:
-    - Module: "common.PoissonPower"
-      ell_ref: 3000
-      spec_param_dict:
-        TT 90x90: "TT_Poisson_90x90"
-        TT 90x150: "TT_Poisson_90x150"
-        TT 90x220: "TT_Poisson_90x220"
-        TT 150x150: "TT_Poisson_150x150"
-        TT 150x220: "TT_Poisson_150x220"
-        TT 220x220: "TT_Poisson_220x220"
-
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    output :
-        gives the additive foreground contribution.
-    transform :
-        transforms an input spectrum.
-
     Attributes
-    -------
+    --------------------
     ells : array (float)
             The ell range the transformation acts on.
     descriptor : str
@@ -104,6 +89,37 @@ class PoissonPower(candl.transformations.abstract_base.Foreground):
         The total number of spectra in the long data vector.
     affected_specs_ix : list (int)
         Indices in spectra_order of spectra the transformation is applied to.
+
+    Methods
+    ----------------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
+
+    Notes
+    ----------------
+    User required arguments in data set yaml file:
+
+    * ell_ref (float) : Reference ell.
+    * spec_param_dict (dict) : A dictionary with keys that are spectrum identifiers and values that are lists of the nuisance parameter names that are used to transform this spectrum.
+
+    Examples
+    -------------------
+    Example yaml block to add individual Poisson terms to a series of TT spectra: ::
+
+        - Module: "common.PoissonPower"
+          ell_ref: 3000
+          spec_param_dict:
+            TT 90x90: "TT_Poisson_90x90"
+            TT 90x150: "TT_Poisson_90x150"
+            TT 90x220: "TT_Poisson_90x220"
+            TT 150x150: "TT_Poisson_150x150"
+            TT 150x220: "TT_Poisson_150x220"
+            TT 220x220: "TT_Poisson_220x220"
+
     """
 
     def __init__(
@@ -113,7 +129,7 @@ class PoissonPower(candl.transformations.abstract_base.Foreground):
         Initialise a new instance of the PoissonPower class.
 
         Arguments
-        -------
+        --------------
         ells : array (float)
             The ell range the transformation acts on.
         descriptor : str
@@ -129,7 +145,7 @@ class PoissonPower(candl.transformations.abstract_base.Foreground):
             Reference ell.
 
         Returns
-        -------
+        --------------
         PoissonPower
             A new instance of the PoissonPower class.
         """
@@ -165,12 +181,12 @@ class PoissonPower(candl.transformations.abstract_base.Foreground):
         Return foreground spectrum.
 
         Arguments
-        -------
+        --------------
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
         array, float
             Foreground spectrum.
         """
@@ -197,14 +213,14 @@ class PoissonPower(candl.transformations.abstract_base.Foreground):
         Transform the input spectrum.
 
         Arguments
-        -------
+        --------------
         Dls : array (float)
             The spectrum to transform in Dl.
         sample_params : dict
             A dictionary of parameters that are used in the transformation
 
         Returns
-        -------
+        --------------
         array : float
             The transformed spectrum in Dl.
         """
@@ -215,58 +231,23 @@ class PoissonPower(candl.transformations.abstract_base.Foreground):
 class CIBClustering(candl.transformations.abstract_base.DustyForeground):
     """
     Adds CIB clustering power using a power law with fixed index.
-    $ A * g(nu_1, beta) * g(nu_2, beta) * \left( \ell / \ell_{ref} \right)^\alpha $
+
+    .. math::
+
+        A * g(\\nu_1, \\beta) * g(\\nu_2, \\beta) * \\left( \\ell / \\ell_{ref} \\right)^\\alpha
+
     where:
-        A : amplitude
-        ell_{ref} : reference ell
-        alpha : power law index
-        beta : frequency scaling parameter
-    and :
-        g(nu, beta) is the frequency scaling for a modified black body
+
+    * :math:`A` is the amplitude
+    * :math:`\\ell_{ref}` is the reference ell
+    * :math:`\\alpha` is the power law index
+    * :math:`\\beta` is the frequency scaling parameter
+    * :math:`g(\\nu, \\beta)` is the frequency scaling for a modified black body
+
     Used by SPT-3G 2018 TT/TE/EE implementation.
 
-
-    User required arguments in data set yaml file
-    ---------
-    ell_ref : float
-        Reference ell.
-    nu_ref : float
-        Reference frequency.
-    T_CIB : float
-        Temperature of the CIB.
-    amp_param : str
-        The name of the amplitude parameter.
-    beta_param : str
-        The name of the frequency scaling parameter.
-    alpha : float
-        The power law index.
-    effective_frequencies : str
-        Keyword to look for in effective frequencies yaml file.
-    affected_specs : str
-        List of spectrum identifiers the transformation is applied to.
-
-    Example yaml block to add CIB clustering power to all TT spectra:
-    - Module: "common.CIBClustering"
-      amp_param: "TT_CIBClustering_Amp"
-      alpha: 0.8
-      beta_param: "TT_CIBClustering_Beta"
-      effective_frequencies: "CIB"# keyword in effective frequencies file with corresponding entry
-      affected_specs: ["TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220"]
-      ell_ref: 3000
-      nu_ref: 150
-      T_CIB: 25
-
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    output :
-        gives the additive foreground contribution.
-    transform :
-        transforms an input spectrum.
-
     Attributes
-    -------
+    --------------
     ells : array (float)
         The ell range the transformation acts on.
     descriptor : str
@@ -297,6 +278,44 @@ class CIBClustering(candl.transformations.abstract_base.DustyForeground):
         The name of the frequency scaling parameter.
     alpha : float
         The power law index.
+
+    Methods
+    ----------------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
+
+    Notes
+    ----------------
+
+    User required arguments in data set yaml file:
+
+    * ell_ref (float) : Reference ell.
+    * nu_ref (float) : Reference frequency.
+    * T_CIB (float) : Temperature of the CIB.
+    * amp_param (str) : The name of the amplitude parameter.
+    * beta_param (str) : The name of the frequency scaling parameter.
+    * alpha (float) : The power law index.
+    * effective_frequencies (str) : Keyword to look for in effective frequencies yaml file.
+    * affected_specs (str) : List of spectrum identifiers the transformation is applied to.
+
+    Examples
+    -------------------
+
+    Example yaml block to add CIB clustering power to all TT spectra::
+
+        - Module: "common.CIBClustering"
+          amp_param: "TT_CIBClustering_Amp"
+          alpha: 0.8
+          beta_param: "TT_CIBClustering_Beta"
+          effective_frequencies: "CIB"# keyword in effective frequencies file with corresponding entry
+          affected_specs: ["TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220"]
+          ell_ref: 3000
+          nu_ref: 150
+          T_CIB: 25
     """
 
     def __init__(
@@ -317,7 +336,7 @@ class CIBClustering(candl.transformations.abstract_base.DustyForeground):
         Initialise a new instance of the CIBClustering class.
 
         Arguments
-        -------
+        --------------
         ells : array (float)
             The ell range the transformation acts on.
         descriptor : str
@@ -342,7 +361,7 @@ class CIBClustering(candl.transformations.abstract_base.DustyForeground):
             The power law index.
 
         Returns
-        -------
+        --------------
         CIBClustering
             A new instance of the class.
         """
@@ -370,12 +389,12 @@ class CIBClustering(candl.transformations.abstract_base.DustyForeground):
         Return foreground spectrum.
 
         Arguments
-        -------
+        --------------
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
         array, float
             Foreground spectrum.
         """
@@ -417,14 +436,14 @@ class CIBClustering(candl.transformations.abstract_base.DustyForeground):
         Transform spectrum by adding foreground component (result of output method).
 
         Arguments
-        -------
+        --------------
         Dls : array
             Dls to transform.
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
         array, float
             Transformed spectrum.
         """
@@ -435,59 +454,23 @@ class CIBClustering(candl.transformations.abstract_base.DustyForeground):
 class GalacticDust(candl.transformations.abstract_base.DustyForeground):
     """
     Adds galactic dust power using a power law.
-    $ A * g(nu_1, beta) * g(nu_2, beta) * \left( \ell / \ell_{ref} \right)^(\alpha+2) $
+
+    .. math::
+
+        A * g(\\nu_1, b\\eta) * g(\\nu_2, b\\eta) * \\left( \\ell / \\ell_{ref} \\right)^{(\\alpha+2)}
+
     where:
-        A : amplitude
-        ell_{ref} : reference ell
-        alpha : power law index
-        beta : frequency scaling parameter
-    and :
-        g(nu, beta) is the frequency scaling for a modified black body
+
+    * :math:`A` is the amplitude
+    * :math:`\\ell_{ref}` is the reference ell
+    * :math:`\\alpha` is the power law index
+    * :math:`\\beta` is the frequency scaling parameter
+    * :math:`g(\\nu, \\beta)` is the frequency scaling for a modified black body
+
     Used by SPT-3G 2018 TT/TE/EE implementation.
 
-
-    User required arguments in data set yaml file
-    ---------
-    ell_ref : float
-        Reference ell.
-    nu_ref : float
-        Reference frequency.
-    T_GALDUST : float
-        Temperature of the dust.
-    amp_param : str
-        The name of the amplitude parameter.
-    beta_param : str
-        The name of the frequency scaling parameter.
-    alpha_param : str
-        The name of the power law index parameter.
-    effective_frequencies : str
-        Keyword to look for in effective frequencies yaml file.
-    affected_specs : str
-        List of spectrum identifiers the transformation is applied to.
-
-    Example yaml block to add residual cirrus power to all TT spectra:
-    - Module: "common.GalacticDust"
-      descriptor: "Cirrus"
-      amp_param: "TT_GalCirrus_Amp"
-      alpha_param: "TT_GalCirrus_Alpha"
-      beta_param: "TT_GalCirrus_Beta"
-      effective_frequencies: "cirrus"# keyword in effective frequencies file with corresponding entry
-      affected_specs: ["TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220"]
-      ell_ref: 80
-      nu_ref: 150
-      T_GALDUST: 19.6
-
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    output :
-        gives the additive foreground contribution.
-    transform :
-        transforms an input spectrum.
-
     Attributes
-    -------
+    --------------
     ells : array (float)
         The ell range the transformation acts on.
     descriptor : str
@@ -518,6 +501,45 @@ class GalacticDust(candl.transformations.abstract_base.DustyForeground):
         The name of the frequency scaling parameter.
     alpha_param : str
         The name of the power law index parameter.
+
+    Methods
+    ----------------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
+
+    Notes
+    ----------------
+
+    User required arguments in data set yaml file:
+
+    * ell_ref (float) : Reference ell.
+    * nu_ref (float) : Reference frequency.
+    * T_GALDUST (float) : Temperature of the dust.
+    * amp_param (str) : The name of the amplitude parameter.
+    * beta_param (str) : The name of the frequency scaling parameter.
+    * alpha (float) : The power law index.
+    * effective_frequencies (str) : Keyword to look for in effective frequencies yaml file.
+    * affected_specs (str) : List of spectrum identifiers the transformation is applied to.
+
+    Examples
+    -------------------
+
+    Example yaml block to add residual cirrus power to all TT spectra::
+
+        - Module: "common.GalacticDust"
+          descriptor: "Cirrus"
+          amp_param: "TT_GalCirrus_Amp"
+          alpha_param: "TT_GalCirrus_Alpha"
+          beta_param: "TT_GalCirrus_Beta"
+          effective_frequencies: "cirrus"# keyword in effective frequencies file with corresponding entry
+          affected_specs: ["TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220"]
+          ell_ref: 80
+          nu_ref: 150
+          T_GALDUST: 19.6
     """
 
     def __init__(
@@ -538,7 +560,7 @@ class GalacticDust(candl.transformations.abstract_base.DustyForeground):
         Initialise a new instance of the GalacticDust class.
 
         Arguments
-        -------
+        --------------
         ells : array (float)
             The ell range the transformation acts on.
         descriptor : str
@@ -563,7 +585,7 @@ class GalacticDust(candl.transformations.abstract_base.DustyForeground):
             The name of the power law index parameter.
 
         Returns
-        -------
+        --------------
         GalacticDust
             A new instance of the class.
         """
@@ -591,12 +613,12 @@ class GalacticDust(candl.transformations.abstract_base.DustyForeground):
         Return foreground spectrum.
 
         Arguments
-        -------
+        --------------
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
         array, float
             Foreground spectrum.
         """
@@ -640,14 +662,257 @@ class GalacticDust(candl.transformations.abstract_base.DustyForeground):
         Transform spectrum by adding foreground component (result of output method).
 
         Arguments
-        -------
+        --------------
         Dls : array
             Dls to transform.
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
+        array, float
+            Transformed spectrum.
+        """
+
+        return Dls + self.output(sample_params)
+
+
+class GalacticDustBandPass(candl.transformations.abstract_base.ForegroundBandPass):
+    """
+    Dusty foreground with modified black-body frequency scaling with integral over band pass with a power law ell
+    power spectrum.
+
+    .. math::
+
+        A * f(\\beta, \\mathrm{bdp}_1) * f(\\beta, \\mathrm{bdp}_2) * \\left( \\ell / \\ell_{ref} \\right)^{(\\alpha + 2)}
+
+    where:
+
+    * :math:`A` is the amplitude
+    * :math:`\\ell_{ref}` is the reference ell
+    * :math:`\\alpha` is the power law index
+    * :math:`\\beta` is the frequency scaling parameter
+    * :math:`f(\\beta, \\mathrm{bdp})` is the frequency scaling for a modified black body with band pass :math:`\\mathrm{bdp}`
+
+    The +2 to the exponent is convention.
+
+    Attributes
+    --------------
+    ells : array (float)
+        The ell range the transformation acts on.
+    descriptor : str
+        A short descriptor.
+    par_names : list
+        Names of parameters involved in transformation.
+    spec_order : array (str)
+        Identifiers of spectra in the order in which spectra are handled in the long data vector.
+    bandpass_info : list
+        List of lists, where each sublist contains the two candl.transformations.abstract_base.BandPass instances for the two
+        frequencies involved.
+    ell_ref : int
+        Reference ell for normalisation.
+    nu_ref : float
+        Reference frequency.
+    N_spec : int
+        The total number of spectra in the long data vector.
+    affected_specs : list (str)
+        List of the spectra to apply this foreground to.
+    spec_mask : array (int)
+        Masks which spectra of the long data vector are affected by the transformation.
+    full_mask : array (int)
+        Masks which elements of the long data vector are affected by the transformation.
+    T_dust : float
+        Dust temperature.
+    amp_param : str
+        The name of the amplitude parameter.
+    alpha_param : str
+        The name of the power law index parameter.
+    beta_param : str
+        The name of the frequency scaling parameter.
+
+    Methods
+    ----------------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
+
+    Notes
+    ----------------
+
+    User required arguments in data set yaml file:
+
+    * ell_ref (float) : Reference ell.
+    * nu_ref (float) : Reference frequency.
+    * T_GALDUST (float) : Temperature of the dust.
+    * amp_param (str) : The name of the amplitude parameter.
+    * beta_param (str) : The name of the frequency scaling parameter.
+    * alpha (float) : The power law index.
+    * affected_specs (str) : List of spectrum identifiers the transformation is applied to.
+
+    Examples
+    -------------------
+
+    Example yaml block to add polarised galactic dust to all EE spectra::
+
+        - Module: "common.GalacticDustBandPass"
+          amp_param: "BB_GalDust_BDP_Amp"
+          alpha_param: "BB_GalDust_BDP_Alpha"
+          beta_param: "BB_GalDust_BDP_Beta"
+          nu_ref: 353
+          affected_specs: ["BB 90x90", "BB 90x150", "BB 90x220", "BB 150x150", "BB 150x220", "BB 220x220"]
+          ell_ref: 80
+          T_GALDUST: 19.6
+          descriptor: "BB Polarised Galactic Dust (Bandpass)"
+
+    """
+
+    def __init__(
+        self,
+        ells,
+        spec_order,
+        bandpass_info,
+        affected_specs,
+        amp_param,
+        alpha_param,
+        beta_param,
+        ell_ref,
+        nu_ref,
+        T_GALDUST,
+        descriptor="Galactic Dust (Band pass)",
+    ):
+        """
+        Initialise a new instance of the GalacticDustBandPass class.
+
+        Arguments
+        --------------
+        ells : array (float)
+            The ell range the transformation acts on.
+        descriptor : str
+            A short descriptor.
+        bandpass_info : list
+            List of lists, where each sublist contains the two candl.transformations.abstract_base.BandPass instances for the two
+            frequencies involved.
+        spec_order : array (str)
+            Identifiers of spectra in the order in which spectra are handled in the long data vector.
+        affected_specs : list (str)
+            List of the spectra to apply this foreground to.
+        ell_ref : int
+            Reference ell for normalisation.
+        nu_ref : float
+            Reference frequency.
+        T_GALDUST : float
+            Temperature of the CIB.
+        amp_param : str
+            The name of the amplitude parameter.
+        alpha_param : str
+            The name of the power law index parameter.
+        beta_param : str
+            The name of the frequency scaling parameter.
+
+        Returns
+        --------------
+        GalacticDustBandPass
+            A new instance of the class.
+        """
+
+        super().__init__(
+            ells=ells,
+            spec_order=spec_order,
+            bandpass_info=bandpass_info,
+            ell_ref=ell_ref,
+            nu_ref=nu_ref,
+            descriptor=descriptor,
+            param_names=[amp_param, alpha_param, beta_param],
+        )
+
+        self.T_dust = T_GALDUST
+        self.amp_param = amp_param
+        self.alpha_param = alpha_param
+        self.beta_param = beta_param
+
+        self.affected_specs = affected_specs
+        self.spec_mask = jnp.asarray(
+            [spec in self.affected_specs for spec in self.spec_order]
+        )
+
+        # Turn spectrum mask into a full mask
+        self.full_mask = jnp.asarray(
+            jnp.repeat(self.spec_mask, len(self.ells)), dtype=float
+        )
+
+    @partial(jit, static_argnums=(0,))
+    def output(self, sample_params):
+        """
+        Return foreground spectrum.
+
+        Arguments
+        --------------
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        --------------
+        array, float
+            Foreground spectrum.
+        """
+
+        # amplitude part (frequency scaling)
+        amp_vals = jnp.array(
+            [
+                dust_frequency_scaling_bandpass(
+                    sample_params[self.beta_param],
+                    self.T_dust,
+                    self.nu_ref,
+                    self.bandpass_info[i][0].nu_spacing,
+                    self.bandpass_info[i][0].nu_vals,
+                    self.bandpass_info[i][0].bandpass_vals,
+                    self.bandpass_info[i][0].thermo_conv[self.nu_ref],
+                )
+                * dust_frequency_scaling_bandpass(
+                    sample_params[self.beta_param],
+                    self.T_dust,
+                    self.nu_ref,
+                    self.bandpass_info[i][1].nu_spacing,
+                    self.bandpass_info[i][1].nu_vals,
+                    self.bandpass_info[i][1].bandpass_vals,
+                    self.bandpass_info[i][1].thermo_conv[self.nu_ref],
+                )
+                for i in range(self.N_spec)
+            ]
+        )
+
+        amp_vals *= sample_params[self.amp_param]
+        tiled_amp_vals = jnp.repeat(amp_vals, len(self.ells))
+
+        # ell part
+        ell_dependence = (self.ells / self.ell_ref) ** (
+            sample_params[self.alpha_param] + 2
+        )
+        tiled_ell_dependence = jnp.tile(
+            ell_dependence, self.N_spec
+        )  # tiled ell dependence
+
+        # Complete foreground contribution and mask down
+        fg_pow = self.full_mask * tiled_amp_vals * tiled_ell_dependence
+        return fg_pow
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        """
+        Transform spectrum by adding foreground component (result of output method).
+
+        Arguments
+        --------------
+        Dls : array
+            Dls to transform.
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        --------------
         array, float
             Transformed spectrum.
         """
@@ -663,46 +928,19 @@ class GalacticDust(candl.transformations.abstract_base.DustyForeground):
 class tSZTemplateForeground(candl.transformations.abstract_base.TemplateForeground):
     """
     tSZ template with frequency scaling and one free amplitude parameter.
-    $ A * g(nu_1) * g(nu_2) * D^{template}_{\ell_{ref}} $
-    where A is the amplitude parameter and g(nu) is the appropriate frequency scaling.
 
-    User required arguments in data set yaml file
-    ---------
-    ell_ref : float
-        Reference ell.
-    template_file : str
-        Relative path to the template file from the candl/ folder.
-    affected_specs : list (str)
-        List of the spectra to apply this foreground to.
-    amp_param : str
-        The name of the amplitude parameter.
-    nu_ref : float
-        Reference frequency.
-    effective_frequencies : str
-        Keyword to look for in effective frequencies yaml file.
+    .. math::
+        A * g(\\nu_1) * g(\\nu_2) * D^{\\mathrm{template}}_{\\ell_{ref}}
+
+    where:
+
+    * :math:`A` is the amplitude parameter
+    * :math:`g(\\nu)` is the appropriate frequency scaling
+
     Used by SPT-3G 2018 TT/TE/EE implementation.
 
-
-    Example yaml block to add tSZ power to all TT spectra:
-    - Module: "common.tSZTemplateForeground"
-      template_file: "foreground_templates/dl_shaw_tsz_s10_153ghz_norm1_fake25000.txt"
-      amp_param: "TT_tSZ_Amp"
-      effective_frequencies: "tSZ"# keyword in effective frequencies file with corresponding entry
-      affected_specs: ["TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220"]
-      ell_ref: 3000
-      nu_ref: 143
-
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    output :
-        gives the additive foreground contribution.
-    transform :
-        transforms an input spectrum.
-
     Attributes
-    -------
+    --------------
     template_arr : array (float)
         Template spectrum and ells.
     template_spec : array (float)
@@ -737,6 +975,40 @@ class tSZTemplateForeground(candl.transformations.abstract_base.TemplateForegrou
         Template spectrum repeated N_spec times.
     T_CMB : float
         CMB temperature.
+
+    Methods
+    ----------------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
+
+    Notes
+    ----------------
+
+    User required arguments in data set yaml file:
+
+    * ell_ref (float) : Reference ell.
+    * template_file (str) : Relative path to the template file from the candl/ folder.
+    * affected_specs (list) : List of the spectra to apply this foreground to.
+    * amp_param (str) : The name of the amplitude parameter.
+    * nu_ref (float) : Reference frequency.
+    * effective_frequencies (str) : Keyword to look for in effective frequencies yaml file.
+
+    Examples
+    ------------
+    Example yaml block to add tSZ power to all TT spectra::
+
+        - Module: "common.tSZTemplateForeground"
+          template_file: "foreground_templates/dl_shaw_tsz_s10_153ghz_norm1_fake25000.txt"
+          amp_param: "TT_tSZ_Amp"
+          effective_frequencies: "tSZ"# keyword in effective frequencies file with corresponding entry
+          affected_specs: ["TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220"]
+          ell_ref: 3000
+          nu_ref: 143
+
     """
 
     def __init__(
@@ -755,7 +1027,7 @@ class tSZTemplateForeground(candl.transformations.abstract_base.TemplateForegrou
         Initialise a new instance of the tSZTemplateForeground class.
 
         Arguments
-        -------
+        --------------
         template_arr : array (float)
             Template spectrum and ells.
         ell_ref : int
@@ -776,7 +1048,7 @@ class tSZTemplateForeground(candl.transformations.abstract_base.TemplateForegrou
             The name of the amplitude parameter.
 
         Returns
-        -------
+        --------------
         Foreground
             A new instance of the tSZTemplateForeground class.
         """
@@ -814,12 +1086,12 @@ class tSZTemplateForeground(candl.transformations.abstract_base.TemplateForegrou
         Return foreground spectrum.
 
         Arguments
-        -------
+        --------------
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
         array, float
             Foreground spectrum.
         """
@@ -845,14 +1117,14 @@ class tSZTemplateForeground(candl.transformations.abstract_base.TemplateForegrou
         Transform spectrum by adding foreground component (result of output method).
 
         Arguments
-        -------
+        --------------
         Dls : array
             Dls to transform.
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
         array, float
             Transformed spectrum.
         """
@@ -863,38 +1135,10 @@ class tSZTemplateForeground(candl.transformations.abstract_base.TemplateForegrou
 class kSZTemplateForeground(candl.transformations.abstract_base.TemplateForeground):
     """
     kSZ template spectrum.
-
-    User required arguments in data set yaml file
-    ---------
-    ell_ref : float
-        Reference ell.
-    template_file : str
-        Relative path to the template file from the candl/ folder.
-    affected_specs : list (str)
-        List of the spectra to apply this foreground to.
-    amp_param : str
-        The name of the amplitude parameter.
     Used by SPT-3G 2018 TT/TE/EE implementation.
 
-
-    Example yaml block to add kSZ power to all TT spectra:
-    - Module: "common.kSZTemplateForeground"
-      template_file: "foreground_templates/dl_ksz_CSFplusPATCHY_13sep2011_norm1_fake25000.txt"
-      amp_param: "TT_kSZ_Amp"
-      affected_specs: [ "TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220" ]
-      ell_ref: 3000
-
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    output :
-        gives the additive foreground contribution.
-    transform :
-        transforms an input spectrum.
-
     Attributes
-    -------
+    --------------
     template_arr : array (float)
         Template spectrum and ells.
     template_spec : array (float)
@@ -923,6 +1167,37 @@ class kSZTemplateForeground(candl.transformations.abstract_base.TemplateForegrou
         The name of the amplitude parameter.
     template_spec_tiled : array (float)
         Template spectrum repeated N_spec times.
+
+    Methods
+    ----------------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
+
+    Notes
+    ----------------
+
+    User required arguments in data set yaml file:
+
+    * ell_ref (float) : Reference ell.
+    * template_file (str) : Relative path to the template file from the candl/ folder.
+    * affected_specs (list) : List of the spectra to apply this foreground to.
+    * amp_param (str) : The name of the amplitude parameter.
+
+
+    Examples
+    ------------
+
+    Example yaml block to add kSZ power to all TT spectra::
+
+        - Module: "common.kSZTemplateForeground"
+          template_file: "foreground_templates/dl_ksz_CSFplusPATCHY_13sep2011_norm1_fake25000.txt"
+          amp_param: "TT_kSZ_Amp"
+          affected_specs: [ "TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220" ]
+          ell_ref: 3000
     """
 
     def __init__(
@@ -939,7 +1214,7 @@ class kSZTemplateForeground(candl.transformations.abstract_base.TemplateForegrou
         Initialise a new instance of the kSZTemplateForeground class.
 
         Arguments
-        -------
+        --------------
         template_arr : array (float)
             Template spectrum and ells.
         ell_ref : int
@@ -956,7 +1231,7 @@ class kSZTemplateForeground(candl.transformations.abstract_base.TemplateForegrou
             The name of the amplitude parameter.
 
         Returns
-        -------
+        --------------
         Foreground
             A new instance of the kSZTemplateForeground class.
         """
@@ -991,12 +1266,12 @@ class kSZTemplateForeground(candl.transformations.abstract_base.TemplateForegrou
         Return foreground spectrum.
 
         Arguments
-        -------
+        --------------
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
         array, float
             Foreground spectrum.
         """
@@ -1016,14 +1291,14 @@ class kSZTemplateForeground(candl.transformations.abstract_base.TemplateForegrou
         Transform spectrum by adding foreground component (result of output method).
 
         Arguments
-        -------
+        --------------
         Dls : array
             Dls to transform.
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
         array, float
             Transformed spectrum.
         """
@@ -1037,36 +1312,8 @@ class CIBtSZCorrelationGeometricMean(candl.transformations.abstract_base.Foregro
     Note that the sign is defined such that a positive correlation parameter leads to a reduction of power at 150GHz.
     Used by SPT-3G 2018 TT/TE/EE implementation.
 
-
-    User required arguments in data set yaml file
-    ---------
-    link_transformation_module_CIB : str
-        Class of the CIB module to scan initialised transformations for.
-    link_transformation_module_tSZ : str
-        Class of the tSZ module to scan initialised transformations for.
-    amp_param : str
-        Name of the free amplitude parameter.
-    affected_specs : list (str)
-        List of the spectra to apply this foreground to.
-
-    Example yaml block to add tSZ-CIB correlation power:
-    - Module: "common.CIBtSZCorrelationGeometricMean"
-        link_transformation_module_CIB: "common.CIBClustering"
-        link_transformation_module_tSZ: "common.tSZTemplateForeground"
-        amp_param: "TT_tSZ_CIB_Corr_Amp"
-        affected_specs: ["TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220"]
-
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    output :
-        gives the additive foreground contribution.
-    transform :
-        transforms an input spectrum.
-
     Attributes
-    -------
+    --------------
     ells : array (float)
         The ell range the transformation acts on.
     descriptor : str
@@ -1093,6 +1340,37 @@ class CIBtSZCorrelationGeometricMean(candl.transformations.abstract_base.Foregro
         CIB module.
     tSZ : candl.transformations.abstract_base.transformation
         tSZ module.
+
+    Methods
+    ----------------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
+
+    Notes
+    ----------------
+
+    Due to the functional form, this transformation is non-differentiable.
+    User required arguments in data set yaml file:
+
+    * link_transformation_module_CIB (str) : Class of the CIB module to scan initialised transformations for.
+    * link_transformation_module_tSZ (str) : Class of the tSZ module to scan initialised transformations for.
+    * amp_param (str) : Name of the free amplitude parameter.
+    * affected_specs (list) : List of the spectra to apply this foreground to.
+
+    Examples
+    ----------------
+
+    Example yaml block to add tSZ-CIB correlation power::
+
+        - Module: "common.CIBtSZCorrelationGeometricMean"
+          link_transformation_module_CIB: "common.CIBClustering"
+          link_transformation_module_tSZ: "common.tSZTemplateForeground"
+          amp_param: "TT_tSZ_CIB_Corr_Amp"
+          affected_specs: ["TT 90x90", "TT 90x150", "TT 90x220", "TT 150x150", "TT 150x220", "TT 220x220"]
     """
 
     def __init__(
@@ -1109,7 +1387,7 @@ class CIBtSZCorrelationGeometricMean(candl.transformations.abstract_base.Foregro
         Initialise a new instance of the CIBtSZCorrelationGeometricMean class.
 
         Arguments
-        -------
+        --------------
         ells : array (float)
             The ell range the transformation acts on.
         amp_param : str
@@ -1122,7 +1400,7 @@ class CIBtSZCorrelationGeometricMean(candl.transformations.abstract_base.Foregro
             tSZ transformation
 
         Output
-        -------
+        --------------
         CIBtSZCorrelationGeometricMean instance.
         """
 
@@ -1174,12 +1452,12 @@ class CIBtSZCorrelationGeometricMean(candl.transformations.abstract_base.Foregro
         Return foreground spectrum.
 
         Arguments
-        -------
+        --------------
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
         array, float
             Foreground spectrum.
         """
@@ -1205,14 +1483,14 @@ class CIBtSZCorrelationGeometricMean(candl.transformations.abstract_base.Foregro
         Transform spectrum by adding foreground component (result of output method).
 
         Arguments
-        -------
+        --------------
         Dls : array
             Dls to transform.
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
         array, float
             Transformed spectrum.
         """
@@ -1227,50 +1505,8 @@ class FGSpectraInterfaceFactorizedCrossSpectrum(
     """
     Wrapper for SO's FGSpectra FactorizedCrossSpectrum (https://github.com/simonsobs/fgspectra/tree/main) with a free amplitude.
 
-    User required arguments in data set yaml file
-    ---------
-    fgspectra_sed : str
-        Name of fgspectra.frequency class to use for SED.
-    fgspectra_sed_args : list (str)
-        Names of sampled parameters that need to be passed to the SED instance.
-    fgspectra_sed_args_fixed : dictionary of string : float
-        Names and values of fixed parameters to be passed to the SED instance.
-    fgspectra_cl : str
-        Name of fgspectra.power class to use for Cls.
-    fgspectra_cl_args : list (str))
-        Names of sampled parameters that need to be passed to the Cl instance.
-    fgspectra_cl_args_fixed : dictionary of string : float
-        Names and values of fixed parameters to be passed to the Cl instance.
-    affected_specs : list (str)
-        List of the spectra to apply this foreground to.
-    effective_frequencies : str
-        Keyword to look for in effective frequencies yaml file.
-    amp_param : str
-        Name of the free amplitude parameter
-
-    Example yaml block:
-      - Module: "common.FGSpectraInterfaceFactorizedCrossSpectrum"
-        fgspectra_sed: "ThermalSZ"
-        fgspectra_sed_args: []
-        fgspectra_sed_args_fixed: {nu_0: 150.0}
-        fgspectra_cl: "tSZ_150_bat"
-        fgspectra_cl_args: []
-        fgspectra_cl_args_fixed: {ell_0: 3000}
-        amp_param: "FGSpec_amp"
-        affected_specs: ["TT 90x90", "TT 150x150", "TT 220x220"]
-        effective_frequencies: "tSZ"
-
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    output :
-        gives the additive foreground contribution.
-    transform :
-        transforms an input spectrum.
-
     Attributes
-    -------
+    --------------
     fgspectra_sed : Instance of a fgspectra.frequency class
         Used by FGSpectra for SED.
     fgspectra_sed_args : list (str)
@@ -1305,6 +1541,46 @@ class FGSpectraInterfaceFactorizedCrossSpectrum(
         The total number of spectra in the long data vector.
     amp_param : str
         The name of the amplitude parameter.
+
+    Methods
+    ----------------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
+
+    Notes
+    -----------
+
+    User required arguments in data set yaml file:
+
+    * fg_spectra_sed (str) : Name of fgspectra.frequency class to use for SED.
+    * fg_spectra_sed_args (list) : Names of sampled parameters that need to be passed to the SED instance.
+    * fg_spectra_sed_args_fixed (dict) : Names and values of fixed parameters to be passed to the SED instance.
+    * fg_spectra_cl (str) : Name of fgspectra.power class to use for Cls.
+    * fg_spectra_cl_args (list) : Names of sampled parameters that need to be passed to the Cl instance.
+    * fg_spectra_cl_args_fixed (dict) : Names and values of fixed parameters to be passed to the Cl instance.
+    * amp_param (str) : The name of the amplitude parameter.
+    * affected_specs (list) : List of the spectra to apply this foreground to.
+    * effective_frequencies (str) : Keyword to look for in effective frequencies yaml file.
+
+    Examples
+    ----------------
+
+    Example yaml block::
+
+        - Module: "common.FGSpectraInterfaceFactorizedCrossSpectrum"
+          fgspectra_sed: "ThermalSZ"
+          fgspectra_sed_args: []
+          fgspectra_sed_args_fixed: {nu_0: 150.0}
+          fgspectra_cl: "tSZ_150_bat"
+          fgspectra_cl_args: []
+          fgspectra_cl_args_fixed: {ell_0: 3000}
+          amp_param: "FGSpec_amp"
+          affected_specs: ["TT 90x90", "TT 150x150", "TT 220x220"]
+          effective_frequencies: "tSZ"
     """
 
     def __init__(
@@ -1326,7 +1602,7 @@ class FGSpectraInterfaceFactorizedCrossSpectrum(
         Initialise a new instance of the FGSpectraInterfaceFactorizedCrossSpectrum class.
 
         Arguments
-        -------
+        --------------
         ells : array (float)
             The ell range the transformation acts on.
         fgspectra_sed : str
@@ -1353,7 +1629,7 @@ class FGSpectraInterfaceFactorizedCrossSpectrum(
             A short descriptor.
 
         Output
-        -------
+        --------------
         FGSpectraInterfaceFactorizedCrossSpectrum instance.
         """
 
@@ -1409,12 +1685,12 @@ class FGSpectraInterfaceFactorizedCrossSpectrum(
         Return foreground spectrum.
 
         Arguments
-        -------
+        --------------
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
         array, float
             Foreground spectrum.
         """
@@ -1447,14 +1723,14 @@ class FGSpectraInterfaceFactorizedCrossSpectrum(
         Transform the input spectrum.
 
         Arguments
-        -------
+        --------------
         Dls : array (float)
             The spectrum to transform in Dl.
         sample_params : dict
             A dictionary of parameters that are used in the transformation
 
         Returns
-        -------
+        --------------
         array : float
             The transformed spectrum in Dl.
         """
@@ -1470,17 +1746,17 @@ class FGSpectraInterfaceFactorizedCrossSpectrum(
 class CalibrationSingleScalar(candl.transformations.abstract_base.Transformation):
     """
     Simple calibration model for spectra.
-    Scales all model spectra by $1/X$, where X is specified in the spec_param_dict.
+    Scales all model spectra by :math:`1/X`, where :math:`X` is specified in the spec_param_dict.
 
     Methods
-    ---------
+    ----------------
     __init__ :
         initialises an instance of the class.
     transform :
         transforms an input spectrum.
 
     Attributes
-    -------
+    --------------
     descriptor : str
         A short descriptor.
     cal_param : str
@@ -1499,14 +1775,14 @@ class CalibrationSingleScalar(candl.transformations.abstract_base.Transformation
         Transform the input spectrum.
 
         Arguments
-        -------
+        --------------
         Dls : array (float)
            The spectrum to transform in Dl.
         sample_params : dict
            A dictionary of parameters that are used in the transformation
 
         Returns
-        -------
+        --------------
         array : float
            The transformed spectrum in Dl.
         """
@@ -1516,37 +1792,13 @@ class CalibrationSingleScalar(candl.transformations.abstract_base.Transformation
 
 class CalibrationCross(candl.transformations.abstract_base.Calibration):
     """
-    Calibration model for summed spectra, e.g. for TE_90x150 = 0.5 * ( T_90xE_150 + E_90xT_150 ).
-    Scales model spectra by $1/[0.5*(X*Y+WV)]$, where X,Y,W,V are specified in the spec_param_dict
-    (most likely want Tcal and/or Ecal in there).
+    Calibration model for summed spectra, e.g. for TE_90x150: :math:` 0.5 * ( T_{90}xE_{150} + E_{90}xT_{150} )`.
+    Scales model spectra by :math:`1/[0.5*(X*Y+WV)]`, where :math:`X,Y,W,V` are specified in the spec_param_dict (most likely want Tcal and/or Ecal in there).
     Reduces to CalibrationAuto if parameters are repeated appropriately.
     Used by SPT-3G 2018 TT/TE/EE implementation.
 
-    User required arguments in data set yaml file
-    ---------
-    spec_param_dict : dict
-        A dictionary with keys that are spectrum identifiers and values that are lists of the nuisance parameter names
-        that are used to transform this spectrum.
-
-    Example yaml block to calibrate TE spectra that are the sum of the two (TE/ET) crosses.
-    - Module: "common.CalibrationCross"
-      spec_param_dict:
-        TE 90x90: ["Tcal90", "Ecal90", "Tcal90", "Ecal90"]
-        TE 90x150: [ "Tcal90", "Ecal150", "Tcal150", "Ecal90" ]
-        TE 90x220: [ "Tcal90", "Ecal220", "Tcal220", "Ecal90" ]
-        TE 150x150: [ "Tcal150", "Ecal150", "Tcal150", "Ecal150" ]
-        TE 150x220: [ "Tcal150", "Ecal220", "Tcal220", "Ecal150" ]
-        TE 220x220: [ "Tcal220", "Ecal220", "Tcal220", "Ecal220" ]
-
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    transform :
-        transforms an input spectrum.
-
     Attributes
-    -------
+    --------------
     ells : array (float)
         The ell range the transformation acts on.
     descriptor : str
@@ -1566,6 +1818,34 @@ class CalibrationCross(candl.transformations.abstract_base.Calibration):
         Masks which parts of the long data vector are affected by the transformation.
     affected_specs_ix : list (int)
         Indices in spectra_order of spectra the transformation is applied to.
+
+    Methods
+    ----------------
+    __init__ :
+        initialises an instance of the class.
+    transform :
+        transforms an input spectrum.
+
+    Notes
+    ----------------
+
+    User required arguments in data set yaml file
+
+    * spec_param_dict (dict) : A dictionary with keys that are spectrum identifiers and values that are lists of the nuisance parameter names that are used to transform this spectrum.
+
+    Examples
+    ----------------
+
+    Example yaml block to calibrate TE spectra that are the sum of the two (TE/ET) crosses::
+
+        - Module: "common.CalibrationCross"
+          spec_param_dict:
+            TE 90x90: ["Tcal90", "Ecal90", "Tcal90", "Ecal90"]
+            TE 90x150: [ "Tcal90", "Ecal150", "Tcal150", "Ecal90" ]
+            TE 90x220: [ "Tcal90", "Ecal220", "Tcal220", "Ecal90" ]
+            TE 150x150: [ "Tcal150", "Ecal150", "Tcal150", "Ecal150" ]
+            TE 150x220: [ "Tcal150", "Ecal220", "Tcal220", "Ecal150" ]
+            TE 220x220: [ "Tcal220", "Ecal220", "Tcal220", "Ecal220" ]
     """
 
     @partial(jit, static_argnums=(0,))
@@ -1574,14 +1854,14 @@ class CalibrationCross(candl.transformations.abstract_base.Calibration):
         Transform the input spectrum.
 
         Arguments
-        -------
+        --------------
         Dls : array (float)
            The spectrum to transform in Dl.
         sample_params : dict
            A dictionary of parameters that are used in the transformation
 
         Returns
-        -------
+        --------------
         array : float
            The transformed spectrum in Dl.
         """
@@ -1628,18 +1908,11 @@ class CalibrationCross(candl.transformations.abstract_base.Calibration):
 class PolarisationCalibration(candl.transformations.abstract_base.Transformation):
     """
     Simple calibration model for spectra.
-    Scales all TE by X and all EE by X^2, where X is specified in the spec_param_dict.
+    Scales all TE by :math:`X` and all EE by :math:`X^2`, where :math:`X` is specified in spec_param_dict.
     Used by ACT DR4 likelihood implementation.
 
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    transform :
-        transforms an input spectrum.
-
     Attributes
-    -------
+    --------------
     ells : array (float)
         The ell range the transformation acts on.
     descriptor : str
@@ -1654,6 +1927,29 @@ class PolarisationCalibration(candl.transformations.abstract_base.Transformation
         List of indices of spectra that get a yp factor
     EE_affected_specs_ix : list
         List of indices of spectra that get a yp^2 factor
+
+    Methods
+    ----------------
+    __init__ :
+        initialises an instance of the class.
+    transform :
+        transforms an input spectrum.
+
+    Notes
+    ----------------
+
+    User required arguments in data set yaml file:
+
+    * cal_param (str) : Name of the calibration parameter.
+
+    Examples
+    ----------------
+
+    Example yaml block to calibrate TE and EE spectra::
+
+        - Module: "common.PolarisationCalibration"
+          cal_param: "yp"
+          descriptor: "Calibration"
     """
 
     def __init__(
@@ -1683,14 +1979,14 @@ class PolarisationCalibration(candl.transformations.abstract_base.Transformation
         Transform the input spectrum.
 
         Arguments
-        -------
+        --------------
         Dls : array (float)
            The spectrum to transform in Dl.
         sample_params : dict
            A dictionary of parameters that are used in the transformation
 
         Returns
-        -------
+        --------------
         array : float
            The transformed spectrum in Dl.
         """
@@ -1720,33 +2016,21 @@ class SuperSampleLensing(candl.transformations.abstract_base.Transformation):
     Super sample lensing.
     Following Equation 32 in Manzotti, Hu, Benoit-Levy 2014 (https://arxiv.org/pdf/1401.7992.pdf).
     The addition in Cl space is:
-    $ - \frac{\partial\ell^2C_\ell^{XY}}{\partial \ln{\ell}} \frac{\kappa}{\ell^2} $
+
+    .. math::
+        - \\frac{\\partial\\ell^2 C_\\ell^{XY}}{\\partial \\ln{\\ell}} \\frac{\\kappa}{\\ell^2}
+
     or:
-    $ - \frac{\kappa}{\ell^2} \frac{\partial}{\partial\ln{\ell}}} (\ell^2 C_\ell) $
-    $ = -\kappa(\ell*\frac{\partialC_\ell}{\partial\ell} + 2 C_\ell). $
+
+    .. math::
+
+        - \\frac{\\kappa}{\\ell^2} \\frac{\\partial}{\\partial\\ln{\\ell}} (\\ell^2 C_\\ell)
+        = -\\kappa(\\ell*\\frac{\\partial C_\\ell}{\\partial\\ell} + 2 C_\\ell)
+
     Used by SPT-3G 2018 TT/TE/EE implementation.
 
-
-    User required arguments in data set yaml file
-    ---------
-    kappa_param : str
-        Name of the kappa parameter to be used.
-
-    Example yaml block to add SSL:
-    - Module: "common.SuperSampleLensing"
-      kappa_param: "Kappa"
-
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    output :
-        gives the additive SSL contribution.
-    transform :
-        Returns a transformed spectrum.
-
     Attributes
-    -------
+    --------------
     ells : array (float)
             The ell range the transformation acts on.
     descriptor : str
@@ -1757,6 +2041,30 @@ class SuperSampleLensing(candl.transformations.abstract_base.Transformation):
         Name of the kappa parameter to be used (i.e. the mean lensing covergence across the field).
     long_ells : array (float)
         Long vector of concatenated theory ells.
+
+    Methods
+    ----------------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive SSL contribution.
+    transform :
+        Returns a transformed spectrum.
+
+    Notes
+    ----------------
+
+    User required arguments in data set yaml file:
+
+    * kappa_param (str) : Name of the kappa parameter to be used.
+
+    Examples
+    ----------------
+
+    Example yaml block to add SSL::
+
+        - Module: "common.SuperSampleLensing"
+          kappa_param: "Kappa"
     """
 
     def __init__(self, ells, long_ells, kappa_param, descriptor="Super-Sample Lensing"):
@@ -1764,7 +2072,7 @@ class SuperSampleLensing(candl.transformations.abstract_base.Transformation):
         Initialise the SuperSamleLensing transformation.
 
         Arguments
-        -------
+        --------------
         ells : array (float)
             The ell range the transformation acts on.
         long_ells : array (float)
@@ -1775,7 +2083,7 @@ class SuperSampleLensing(candl.transformations.abstract_base.Transformation):
             A short descriptor.
 
         Returns
-        -------
+        --------------
         Transformation
             A new instance of the SuperSampleLensing class.
         """
@@ -1793,14 +2101,14 @@ class SuperSampleLensing(candl.transformations.abstract_base.Transformation):
         transformation() only.
 
         Arguments
-        -------
+        --------------
         Dls : array (float)
             The spectrum to transform in Dl.
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
         array, float
             SSL contribution.
         """
@@ -1838,14 +2146,14 @@ class SuperSampleLensing(candl.transformations.abstract_base.Transformation):
         Transform the input spectrum.
 
         Arguments
-        -------
+        --------------
         Dls : array (float)
             The spectrum to transform in Dl.
         sample_params : dict
             A dictionary of parameters that are used in the transformation
 
         Returns
-        -------
+        --------------
         array : float
             The transformed spectrum in Dl.
         """
@@ -1860,28 +2168,18 @@ class AberrationCorrection(candl.transformations.abstract_base.Transformation):
     Note that this is a fixed transformation and does not depend on any nuisance parameters.
 
     The addition in Cl space is:
-    $ - AC * \ell * \frac{\partial C_\ell}{\partial \ell} $
-    where AC is the aberration coefficient with $ AC = \beta \langle\cos{\theta}\rangle$
-    where $\beta$ is the speed in units of c (typically ~0.00123)
-    and $langle\cos{\theta}\rangle$ is the average direction (w.r.t. the observed field).
+
+    .. math::
+
+        - AC * \\ell * \\frac{\\partial C_\\ell}{\\partial \\ell}
+
+    where AC is the aberration coefficient with :math:`AC = \\beta \\langle\\cos{\\theta}\\rangle`.
+    Here :math:`\\beta` is the speed in units of c (typically ~0.00123) and :math:`\\langle\\cos{\\theta}\\rangle` is the average direction (w.r.t. the observed field).
 
     Used by SPT-3G 2018 TT/TE/EE implementation.
 
-    Example yaml block to add Aberration:
-    - Module: "common.SuperSampleLensing"
-      aberration_coefficient: 0.0001
-
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    output :
-        gives the additive aberration contribution.
-    transform :
-        Returns a transformed spectrum.
-
     Attributes
-    -------
+    --------------
     ells : array (float)
         The ell range the transformation acts on.
     aberration_coefficient : float
@@ -1893,10 +2191,22 @@ class AberrationCorrection(candl.transformations.abstract_base.Transformation):
     long_ells : array (float)
         Long vector of concatenated theory ells.
 
+    Methods
+    ----------------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive aberration contribution.
+    transform :
+        Returns a transformed spectrum.
 
-    long_ells : array (float)
-            Long vector of concatenated theory ells.
+    Examples
+    ----------------
 
+    Example yaml block to add Aberration::
+
+        - Module: "common.SuperSampleLensing"
+          aberration_coefficient: 0.0001
     """
 
     def __init__(
@@ -1910,7 +2220,7 @@ class AberrationCorrection(candl.transformations.abstract_base.Transformation):
         Initialise the AberrationCorrection transformation.
 
         Arguments
-        -------
+        --------------
         ells : array (float)
             The ell range the transformation acts on.
         long_ells : array (float)
@@ -1921,7 +2231,7 @@ class AberrationCorrection(candl.transformations.abstract_base.Transformation):
             A short descriptor.
 
         Returns
-        -------
+        --------------
         Transformation
             A new instance of the AberrationCorrection class.
         """
@@ -1938,14 +2248,14 @@ class AberrationCorrection(candl.transformations.abstract_base.Transformation):
         transformation() only.
 
         Arguments
-        -------
+        --------------
         Dls : array (float)
             The spectrum to transform in Dl.
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
         array, float
             Aberration correcation.
         """
@@ -1977,14 +2287,14 @@ class AberrationCorrection(candl.transformations.abstract_base.Transformation):
         Note that sample_params is never accessed, but for uniformity across transformation() methods still included.
 
         Arguments
-        -------
+        --------------
         Dls : array (float)
             The spectrum to transform in Dl.
         sample_params : dict
             A dictionary of parameters that are used in the transformation
 
         Returns
-        -------
+        --------------
         array : float
             The transformed spectrum in Dl.
         """
@@ -2009,7 +2319,7 @@ def dust_frequency_scaling_bandpass(
     Following BK_Planck likelihood.
 
     Arguments
-    -------
+    --------------
     beta : float
         Spectral index
     Tdust : float
@@ -2026,7 +2336,7 @@ def dust_frequency_scaling_bandpass(
         Thermodynamic conversion for the reference frequency.
 
     Returns
-    -------
+    --------------
     float :
         Frequency scaling
     """
@@ -2049,47 +2359,6 @@ def dust_frequency_scaling_bandpass(
     return f_dust
 
 
-# Synchrotron scaling (power law) including integral over the band pass
-@jit
-def sync_frequency_scaling_bandpass(
-    beta, nu_0_sync, nu_spacing, nu_vals, bandpass_vals, thermo_conv
-):
-    """
-    Power law frequency scaling with the integral over the bandpass.
-    Band pass information is expanded out (rather than passing an instance of BandPass) to make @jit easier.
-    Power law index is 2 + beta.
-    Following BK_Planck likelihood.
-
-    Arguments
-    -------
-    beta : float
-        Spectral index
-    nu_0_sync : float
-        Reference frequency.
-    nu_spacing : float
-        Frequency spacing of the band pass data.
-    nu_spacing : array (float)
-        Frequency values of band pass measurements.
-    bandpass_vals : array (float)
-        Band pass measurements.
-    thermo_conv : float
-        Thermodynamic conversion for the reference frequency.
-
-    Returns
-    -------
-    float :
-        Frequency scaling
-    """
-
-    power_law_int = np.sum(nu_spacing * bandpass_vals * nu_vals ** (2 + beta))
-    power_law_norm = nu_0_sync ** (2 + beta)
-
-    # Put everything together including thermodynamic conversion
-    f_sync = (power_law_int / power_law_norm) / thermo_conv
-
-    return f_sync
-
-
 # Simple Dust Frequency Scaling, ignores correction to band pass centre from changing SED
 @jit
 def dust_frequency_scaling(
@@ -2097,10 +2366,10 @@ def dust_frequency_scaling(
 ) -> jnp.float64:
     """
     Modified black body frequency scaling.
-    Based on code from Christian Reichardt.
+    Based on code shared by Christian Reichardt - thank you!
 
     Arguments
-    -------
+    --------------
     beta : float
         Spectral index
     Tdust : float
@@ -2111,7 +2380,7 @@ def dust_frequency_scaling(
         Requested frequency.
 
     Returns
-    -------
+    --------------
     float :
         Frequency scaling
     """
@@ -2131,10 +2400,10 @@ def tSZ_frequency_scaling(
 ) -> jnp.float64:
     """
     tSZ frequency scaling.
-    Based on code from Christian Reichardt.
+    Based on code shared by Christian Reichardt - thank you!
 
     Arguments
-    -------
+    --------------
     T : float
         CMB temperature.
     nu_0_dust : float
@@ -2143,7 +2412,7 @@ def tSZ_frequency_scaling(
         Requested frequency.
 
     Returns
-    -------
+    --------------
     float :
         Frequency scaling
     """
@@ -2161,10 +2430,10 @@ def tSZ_frequency_scaling(
 def black_body(nu: jnp.float64, nu0: jnp.float64, T: jnp.float64) -> jnp.float64:
     """
     Black body function, normalised to 1 at nu0.
-    Based on code from Christian Reichardt.
+    Based on code shared by Christian Reichardt - thank you!
 
     Arguments
-    -------
+    --------------
     T : float
         Temperature.
     nu0 : float
@@ -2173,7 +2442,7 @@ def black_body(nu: jnp.float64, nu0: jnp.float64, T: jnp.float64) -> jnp.float64
         Requested frequency.
 
     Returns
-    -------
+    --------------
     float :
         Frequency scaling
     """
@@ -2191,10 +2460,10 @@ def black_body(nu: jnp.float64, nu0: jnp.float64, T: jnp.float64) -> jnp.float64
 def black_body_deriv(nu: jnp.float64, nu0: jnp.float64, T: jnp.float64) -> jnp.float64:
     """
     Derivative of black body function, normalised to 1 at nu0.
-    Based on code from Christian Reichardt.
+    Based on code shared by Christian Reichardt - thank you!
 
     Arguments
-    -------
+    --------------
     T : float
         Temperature.
     nu0 : float
@@ -2203,7 +2472,7 @@ def black_body_deriv(nu: jnp.float64, nu0: jnp.float64, T: jnp.float64) -> jnp.f
         Requested frequency.
 
     Returns
-    -------
+    --------------
     float :
         Frequency scaling
     """

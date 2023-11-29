@@ -1,0 +1,40 @@
+#------Experiments to test (separated with commas)-----
+data.experiments=['candl_mp']
+
+#------ Parameter list -------
+# data.parameters[class name] = [mean, min, max, 1-sigma, scale, role]
+# - if min max irrelevant, put to -1 or None (if you want a boundary of -1, use -1.0)
+# - if fixed, put 1-sigma to 0
+# - if scale irrelevant, put to 1, otherwise to the appropriate factor
+# - role is either 'cosmo', 'nuisance' or 'derived'
+
+# Class computation products needed
+# These are handled by candl under the hood
+#data.cosmo_arguments['output'] = 'tCl pCl lCl'
+
+# Cosmological parameters list
+data.parameters['omega_b'] 	= [2.233,  -1,-1, 0.018, 0.01,'cosmo']
+data.parameters['omega_cdm'] 	= [0.1198, -1,-1, 0.0024,1,   'cosmo']
+data.parameters['n_s']       	= [0.963,  -1,-1, 0.004, 1,   'cosmo']
+data.parameters['ln10^{10}A_s']       	= [3.043,   -1,-1, 0.016, 1,'cosmo']
+data.parameters['H0']         	= [67.37,  -1,-1, 0.91,1,   'cosmo']
+data.parameters['tau_reio']    	= [0.054,  -1,-1, 0.0074,1,   'cosmo']
+
+# Nuisance parameter list, same call, except the name does not have to be a class name
+# Note the nuisance parameters must follow *immediately after* the cosmo parameters,
+# MP expects cosmo, nuisance, derived
+
+data.parameters['yp'] = [1.0, 0.9, 1.1, 0.0001, 1, 'nuisance']
+
+# Derived parameter list
+data.parameters['z_reio']       = [0,       -1, -1, 0,1,  'derived']
+data.parameters['Omega_Lambda'] = [0,       -1, -1, 0,1,  'derived']
+
+#------ Mcmc parameters ----
+# Number of steps taken, by default (overwritten by the -N command)
+data.N=10
+# Number of accepted steps before writing to file the chain. Larger means less
+# access to disc, but this is not so much time consuming.
+data.write_step=5
+
+# Note: MP will only interpret comments if the line begins with # (you cannot add comments at the end of lines!)

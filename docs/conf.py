@@ -18,10 +18,12 @@ extensions = [
     "sphinx.ext.duration",
     "sphinx.ext.doctest",
     "sphinx.ext.autodoc",
+    "sphinx_collapse",
     "sphinx.ext.autosummary",
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.intersphinx",
     "myst_parser",
+    "numpydoc",
 ]
 
 intersphinx_mapping = {
