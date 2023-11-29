@@ -1,28 +1,44 @@
 """
-candl.tools module
-
 Various tools that interact with the likelihood and its products.
 
-Functions:
---------
-get_fisher_matrix
-newton_raphson_minimiser
-newton_raphson_minimiser_bdp
-add_uniform_scatter
-generate_mock_data
-make_MV_combination
-test_statistic_MV_consistency
-make_frequency_conditional
-conditional_prediction
-test_statistic_conditional
-make_difference_spectra
-test_statistic_difference
-get_params_to_logl_func
-get_params_to_chi_square_func
-pars_to_model_specs
-pars_to_model_specs_partial_transformation
-undo_transformations
+Overview:
+--------------
 
+Fisher matrix calculation:
+
+* :func:`get_fisher_matrix`
+
+Simple minimiser:
+
+* :func:`newton_raphson_minimiser`
+* :func:`newton_raphson_minimiser_bdp`
+* :func:`add_uniform_scatter`
+
+Mock data generation:
+
+* :func:`generate_mock_data`
+
+Multi-frequency analysis:
+
+* :func:`get_foreground_contributions`
+* :func:`make_MV_combination`
+* :func:`test_statistic_MV_consistency`
+* :func:`make_frequency_conditional`
+* :func:`conditional_prediction`
+* :func:`test_statistic_conditional`
+* :func:`make_difference_spectra`
+* :func:`test_statistic_difference`
+
+Bundling likelihood and theory code together:
+
+* :func:`get_params_to_logl_func`
+* :func:`get_params_to_chi_square_func`
+
+Helpers to transform model spectra:
+
+* :func:`pars_to_model_specs`
+* :func:`pars_to_model_specs_partial_transformation`
+* :func:`undo_transformations`
 """
 
 # --------------------------------------#
@@ -46,8 +62,8 @@ def get_fisher_matrix(
     Calculate the Fisher matrix using a differentiable theory code and the covariance of the data set.
     Applies priors on nuisance parameters.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     pars_to_theory_specs : func
         Differentiable function moving dictionary of parameters to CMB spectra.
     like : candl.Like
@@ -60,7 +76,7 @@ def get_fisher_matrix(
         return a list of parameters to indicate the order in the matrix.
 
     Returns
-    -------
+    --------------
     array (float) :
         Parameter covariance matrix.
     list (str) :
@@ -123,10 +139,13 @@ def newton_raphson_minimiser(
 ):
     """
     Take Newton-Raphson steps towards the minimum.
-    Disclaimer: this is not a stress-tested minimiser, but rather a simple implementation of the algorithm. Use at your own risk.
 
-    Arguments
-    -------
+    Warning
+    --------------
+    This is not a stress-tested minimiser, but rather a simple implementation of the algorithm. Use at your own risk.
+
+    Parameters
+    --------------
     like_deriv : func
         Derivative of the likelihood.
     like_hess : func
@@ -143,7 +162,7 @@ def newton_raphson_minimiser(
         Show tqdm progress bar.
 
     Returns
-    -------
+    --------------
     list :
         List of all evaluation points
     list :
@@ -219,7 +238,10 @@ def newton_raphson_minimiser_bdp(
     Same as newton_raphson_minimiser() but allows for the input of data band powers.
     This can be useful if dealing with the same likelihood but lots of mock data realisations to avoid the jitting
     penalty of new likelihoods for each realisation.
-    Disclaimer: this is not a stress-tested minimiser, but rather a simple implementation of the algorithm. Use at your own risk.
+
+    Warning
+    --------------
+    This is not a stress-tested minimiser, but rather a simple implementation of the algorithm. Use at your own risk.
     """
 
     # Progress bar
@@ -285,8 +307,8 @@ def add_uniform_scatter(start_params, box_width, par_errs, seed=None):
     """
     Add uniform scatter to a point, helpful to offset starting points for minimisers.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     start_params : dict
         Central parameter values.
     box_width : float
@@ -297,7 +319,7 @@ def add_uniform_scatter(start_params, box_width, par_errs, seed=None):
         RNG seed.
 
     Returns
-    -------
+    --------------
     dict :
         Offset parameters.
     dict :
@@ -329,8 +351,8 @@ def generate_mock_data(pars, pars_to_theory_specs, like, N_real, seed=None):
     """
     Generate mock band powers based on the covariance matrix.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     pars : dict
         Fiducial parameter values.
     pars_to_theory_specs: func
@@ -343,10 +365,10 @@ def generate_mock_data(pars, pars_to_theory_specs, like, N_real, seed=None):
         RNG seed.
 
     Returns
-    -------
+    --------------
     array :
         Binned model Dls (CMB and all transformation of the likelihood)
-    List :
+    list :
         List of mock band power realisations.
     """
 
@@ -370,6 +392,149 @@ def generate_mock_data(pars, pars_to_theory_specs, like, N_real, seed=None):
 
 
 # --------------------------------------#
+# FOREGROUND CONTRIBUTIONS
+# --------------------------------------#
+
+
+def get_foreground_contributions(
+    like, params, return_type="arr", remove_zeros=True, binning="unbinned"
+):
+    """
+    Return the foreground contributions.
+    This method is intended to be accessed by the user for visualisation purposes to show the contributions of
+    the different foreground components.
+
+    Parameters
+    --------------
+    params : dict
+        Nuisance parameter values.
+    return_type : str
+        One of ["arr", "dict", "dict by spec"]. Determines the output format.
+    remove_zeros : bool
+        Remove foreground components that are zero for all ells.
+    binning : str
+        One of ["unbinned", "binned", "both"]. Whether to return the foreground components for individual ells,
+        binned, or both.
+
+    Returns
+    --------------
+    Depending on return_type:
+    "arr" : array, float
+        A (N_ell_bins_theory*N_spectra_total or N_bins_total x N_foregrounds) array containing all the foreground
+        contributions.
+    "dict" : dict
+        A dictionary with keys corresponding to the different foreground components and the values are
+        (N_ell_bins_theory*N_spectra_total or N_bins_total) long vectors containing each contribution.
+    "dict by spec" : dict
+        A dictionary with keys corresponding to different spectra, each holding another dictionary with
+        foreground names as keys and contributions as values.
+    if binning is "both" then the output is wrapped in a dictionary containing "binned" and "unbinned" contributions
+    at the lowest level.
+    """
+
+    # Check return_type argument
+    if not return_type in ["arr", "dict", "dict by spec"]:
+        raise Exception(
+            f"Did not understand return_type '{return_type}'; must be one of (arr, dict, dict by spec). Returning as array"
+        )
+        return_type = "arr"
+
+    # Check binning argument
+    if not binning in ["unbinned", "binned", "both"]:
+        raise Exception(
+            f"Did not understand binning '{binning}'; must be one of (unbinned, binned, both). Returning unbinned"
+        )
+        binning = "unbinned"
+
+    # Get foreground contributions
+    foreground_contributions = []
+    foreground_names = []
+    for transformation in like.data_model:
+        # Check if the transformation is a foreground - if so grab contribution and short name
+        if isinstance(transformation, candl.transformations.abstract_base.Foreground):
+            foreground_contributions.append(transformation.output(params))
+            foreground_names.append(transformation.descriptor)
+
+    foreground_contributions = jnp.asarray(foreground_contributions)
+
+    # Return requested type
+    if return_type == "dict":
+        # Return as dictionary {label:contribution}
+        if binning == "unbinned":
+            return {
+                foreground_names[i_fg]: foreground_contributions[i_fg, :]
+                for i_fg in range(len(foreground_names))
+            }
+        elif binning == "binned":
+            return {
+                foreground_names[i_fg]: like.bin_model_specs(
+                    foreground_contributions[i_fg, :]
+                )
+                for i_fg in range(len(foreground_names))
+            }
+        elif binning == "both":
+            return {
+                foreground_names[i_fg]: {
+                    "unbinned": like.bin_model_specs(foreground_contributions[i_fg, :]),
+                    "binned": like.bin_model_specs(foreground_contributions[i_fg, :]),
+                }
+                for i_fg in range(len(foreground_names))
+            }
+        return {
+            foreground_names[i_fg]: foreground_contributions[i_fg, :]
+            for i_fg in range(len(foreground_names))
+        }
+
+    elif return_type == "dict by spec":
+        # Return as individual dictionaries for spectra {spec: {label:contribution}}
+        dict_by_spec = {}
+        for i_spec, spec in enumerate(like.spec_order):
+            dict_by_spec[spec] = {}
+            for i_fg, fg_label in enumerate(foreground_names):
+                fg_arr = foreground_contributions[
+                    i_fg,
+                    like.N_ell_bins_theory
+                    * i_spec : like.N_ell_bins_theory
+                    * (i_spec + 1),
+                ]
+                if all(fg_arr == 0) and remove_zeros:
+                    pass
+                else:
+                    if binning == "unbinned":
+                        dict_by_spec[spec][fg_label] = fg_arr
+                    else:
+                        binned_fg_arr = like.bin_model_specs(
+                            foreground_contributions[i_fg, :]
+                        )[like.bins_start_ix[i_spec] : like.bins_stop_ix[i_spec]]
+                        if binning == "binned":
+                            dict_by_spec[spec][fg_label] = binned_fg_arr
+                        elif binning == "both":
+                            dict_by_spec[spec][fg_label] = {
+                                "unbinned": fg_arr,
+                                "binned": binned_fg_arr,
+                            }
+        return dict_by_spec
+
+    # Return as array
+    if binning == "unbinned":
+        return foreground_contributions, foreground_names
+    else:
+        binned_fg_arr = []
+        for i_fg in range(len(foreground_names)):
+            binned_fg_arr.append(
+                like.bin_model_specs(foreground_contributions[i_fg, :])
+            )
+        binned_fg_arr = jnp.asarray(binned_fg_arr)
+        if binning == "binned":
+            return binned_fg_arr, foreground_names
+        elif binning == "both":
+            return {
+                "unbinned": foreground_contributions,
+                "binned": binned_fg_arr,
+            }, foreground_names
+
+
+# --------------------------------------#
 # MINIMUM-VARIANCE COMBINATION
 # --------------------------------------#
 
@@ -379,8 +544,8 @@ def make_MV_combination(like, data_CMB_only, design_matrix):
     Combine multifrequency band powers into MV estimate.
     See Appendix C4 here https://arxiv.org/pdf/1507.02704.pdf for details.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     like : candl.Like
         The likelihood.
     data_CMB_only : array (float)
@@ -389,7 +554,7 @@ def make_MV_combination(like, data_CMB_only, design_matrix):
         The design matrix.
 
     Returns
-    -------
+    --------------
     dict :
         "MV spec" : MV spectrum (array (float))
         "MV cov" : MV covariance (array (float))
@@ -424,8 +589,8 @@ def test_statistic_MV_consistency(like, MV_dict, data_CMB_only, design_matrix):
     """
     Test consistency by comparing multifrequency band powers to MV combination
 
-    Arguments
-    -------
+    Parameters
+    --------------
     like : candl.Like
         The likelihood.
     MV_dict : dict
@@ -436,9 +601,11 @@ def test_statistic_MV_consistency(like, MV_dict, data_CMB_only, design_matrix):
         The design matrix.
 
     Returns
-    -------
-    float : chisq
-    float : PTE
+    --------------
+    float:
+        chisq
+    float:
+        PTE
     """
 
     delta = (design_matrix @ MV_dict["MV spec"]) - data_CMB_only
@@ -461,8 +628,8 @@ def make_frequency_conditional(spec_str, like, best_fit_model_binned):
     Generate frequency conditional prediction.
     See Section 6.3.6 here https://arxiv.org/pdf/1907.12875.pdf for details.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     spec_str : str
         String identifying the spectrum. Intended format is (type) (freq1)x(freq2), e.g. "TT 150x150"
     like : candl.Like
@@ -471,7 +638,7 @@ def make_frequency_conditional(spec_str, like, best_fit_model_binned):
         The binned best fit spectrum.
 
     Returns
-    -------
+    --------------
     dict :
         "cond spec" : Conditional spectrum (array (float))
         "cond cov" : Conditional covariance (array (float))
@@ -537,8 +704,8 @@ def conditional_prediction(x, x_bar, sigma, mask=None):
     Linear algebra behind the conditional prediction.
     Code supplied by Karim Benabed.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     x : array (float)
         The data vector.
     x_bar : array (float)
@@ -549,20 +716,20 @@ def conditional_prediction(x, x_bar, sigma, mask=None):
         Mask specifying which parts to excise in generating the conditional prediction.
 
     Returns
-    -------
-    float : conditional prediction
-    float : conditional covariance
+    --------------
+    float:
+        Conditional prediction
+    float:
+        Conditional covariance
 
-    Original Doc-String
-    -------
-    this compute the conditionnal
-    x is the data vector, x_bar is the theoretical prediction
-    both are 1D vectors and the ordering is whatever you want, provided that it's
-    the same than the sigma covariance (a 2d array obvisouly)
-    mask is an optional 1D array of boolean, same size as x, to select a particular
-    part of the data you want to ignore in the conditional
-    implements eq. 353 of https://www.math.uwaterloo.ca/~hwolkowi/matrixcookbook.pdf
-    returns, x_tilde and sigma_tilde
+    Notes
+    --------------
+    Original doc-string:
+    This computes the conditional.
+    x is the data vector, x_bar is the theoretical prediction.
+    Both are 1D vectors and the ordering is whatever you want, provided that it's the same than the sigma covariance (a 2d array obviously).
+    Mask is an optional 1D array of boolean, same size as x, to select a particular part of the data you want to ignore in the conditional implements eq. 353 of https://www.math.uwaterloo.ca/~hwolkowi/matrixcookbook.pdf.
+    Returns, x_tilde and sigma_tilde.
     """
 
     if mask is None:
@@ -585,8 +752,8 @@ def test_statistic_conditional(spec_str, cond_dict, like):
     """
     Test conditional prediction against measured band powers.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     spec_str : str
         String identifying the spectrum. Intended format is (type) (freq1)x(freq2), e.g. "TT 150x150"
     cond_dict : dict
@@ -595,9 +762,11 @@ def test_statistic_conditional(spec_str, cond_dict, like):
         The likelihood.
 
     Returns
-    -------
-    float : chisq
-    float : PTE
+    --------------
+    float:
+        chisq
+    float:
+        PTE
     """
     ix = like.spec_order.index(spec_str)
     delta_cond = (
@@ -621,10 +790,9 @@ def make_difference_spectra(spec_str_1, spec_str_2, data_CMB_only, like):
     """
     Generate frequency conditional prediction.
     See Section 6.3.6 here https://arxiv.org/pdf/1907.12875.pdf for details.
-    NOTE: The code only works for equal length spectra at the moment!
 
-    Arguments
-    -------
+    Parameters
+    --------------
     spec_str_1 : str
         String identifying the first spectrum. Intended format is (type) (freq1)x(freq2), e.g. "TT 150x150"
     spec_str_2 : str
@@ -635,10 +803,14 @@ def make_difference_spectra(spec_str_1, spec_str_2, data_CMB_only, like):
         The likelihood.
 
     Returns
-    -------
+    --------------
     dict :
         "diff spec" : Difference spectrum (array (float))
         "diff cov" : Difference covariance (array (float))
+
+    Warning
+    --------------
+    The code only works for equal length spectra at the moment.
     """
 
     # Check that valid difference was requested
@@ -692,15 +864,17 @@ def test_statistic_difference(diff_dict):
     """
     Test difference spectrum against zero.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     diff_dict : dict
         Dictionary containing information about the difference spectrum (intended is output from make_difference_spectra).
 
     Returns
-    -------
-    float : chisq
-    float : PTE
+    --------------
+    float:
+        chisq
+    float:
+        PTE
     """
 
     chisq = (
@@ -724,16 +898,16 @@ def get_params_to_logl_func(like, pars_to_theory_specs):
     Thin wrapper bundling together likelihood and theory code to move straight from parameters to logl.
 
     Parameters
-    ----------
+    --------------
     like: candl.Like
         Likelihood to be used.
     pars_to_theory_specs: func
         function moving dictionary of cosmological parameters to dictionary of CMB Dls
 
     Returns
-    -------
+    --------------
     func:
-        Function that takes parameter values as input and returns the log likelihood
+        Function that takes a dictionary of parameter values as input and returns the log likelihood
         (bundling theory code and likelihood together).
 
     """
@@ -757,16 +931,16 @@ def get_params_to_chi_square_func(like, pars_to_theory_specs):
     Thin wrapper bundling together likelihood and theory code to move straight from parameters to chi square.
 
     Parameters
-    ----------
+    --------------
     like: candl.Like
         Likelihood to be used.
     pars_to_theory_specs: func
         function moving dictionary of cosmological parameters to dictionary of CMB Dls
 
     Returns
-    -------
+    --------------
     func:
-        Function that takes parameter values as input and returns the chi square value
+        Function that takes a dictionary of parameter values as input and returns the chi square value
         (bundling theory code and likelihood together).
 
     """
@@ -795,8 +969,8 @@ def pars_to_model_specs(like, pars, pars_to_theory_specs):
     Helper to move parameters to transformed model spectra and bin them.
     For lensing likelihoods only binned model spectra are returned.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     like : candl.Like
         Likelihood to take care of transformation and binning.
     pars : dict
@@ -805,9 +979,11 @@ def pars_to_model_specs(like, pars, pars_to_theory_specs):
         function moving dictionary of cosmological parameters to dictionary of CMB Dls
 
     Returns
-    -------
-    array (float) : best-fit model unbinned.
-    array (float) : best-fit model binned.
+    --------------
+    array:
+        Best-fit model unbinned.
+    array:
+        Best-fit model binned.
     """
 
     # Calculate theory Dls
@@ -833,8 +1009,8 @@ def pars_to_model_specs_partial_transformation(
     Helper to move parameters to transformed model spectra and crop them.
     Only applies some of the transformations.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     like : candl.Like
         Likelihood to take care of transformation and binning.
     pars : dict
@@ -845,9 +1021,11 @@ def pars_to_model_specs_partial_transformation(
         Index of the transformation at which to stop
 
     Returns
-    -------
-    array (float) : best-fit model unbinned.
-    array (float) : best-fit model binned.
+    --------------
+    array:
+        Best-fit model unbinned.
+    array:
+        Best-fit model binned.
     """
 
     # Calculate theory Dls
@@ -880,8 +1058,8 @@ def undo_transformations(like, pars, pars_to_theory_specs):
     Special care needs to be taken for transformations that take Dls as their input too
     (e.g. super-sample lensing).
 
-    Arguments
-    -------
+    Parameters
+    --------------
     like : candl.Like
         Likelihood to take care of transformation and binning.
     pars : dict
@@ -890,8 +1068,9 @@ def undo_transformations(like, pars, pars_to_theory_specs):
         function moving dictionary of cosmological parameters to dictionary of CMB Dls
 
     Returns
-    -------
-    array (float) : data band power with all transformations undone.
+    --------------
+    array:
+        Data band power with all transformations undone.
     """
 
     data_CMB_only_vec = deepcopy(like.data_bandpowers)

@@ -1,20 +1,18 @@
 """
-candl.transformations.abstract_base module
-
 Transformation module containing abstract base classes. They establish the general framework of how transformations
 work in the likelihood. Specific foregrounds or other transformations are intended to be implemented as subclasses
 of these in their own files. See candl.transformations.common.py for examples.
 
-Abstract Base Classes:
---------
-Transformation
-Foreground
-TemplateForeground
-DustyForeground
-Calibration
-ForegroundBandPass
-BandPass
+Overview
+-----------
 
+* :class:`Transformation`
+* :class:`Foreground`
+* :class:`TemplateForeground`
+* :class:`DustyForeground`
+* :class:`Calibration`
+* :class:`ForegroundBandPass`
+* :class:`BandPass`
 """
 
 # --------------------------------------#
@@ -35,15 +33,8 @@ class Transformation:
     Transformations are applied to theory spectra in order to make them comparable to the data.
     Transformations are instantiated by the likelihood.
 
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    transform :
-        Returns a transformed spectrum.
-
     Attributes
-    -------
+    --------------
     ells : array (float)
             The ell range the transformation acts on.
     descriptor : str
@@ -51,24 +42,16 @@ class Transformation:
     par_names : list
         Names of parameters involved in transformation.
 
-    Making Subclasses
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    transform :
+        Returns a transformed spectrum.
+
+    Notes
     -----------------
-    Initialisation arguments can either correspond the names of attributes of the likelihood, supplied by the
-    user, or one of the few special keywords that the likelihood understands.
-    In general, try to keep the arguments in this order:
-    (passed by like)
-    ells,
-    spec_order,
-    freq_info,
-    (passed explicitly by user)
-    affected_specs,
-    spec_param_dict,
-    template_arr,
-    ell_ref,
-    nu_ref,
-    T_dust,
-    descriptor,
-    param_names
+    On making subclasses: initialisation arguments can either correspond the names of attributes of the likelihood, supplied by the user, or one of the few special keywords that the likelihood understands.
     """
 
     def __init__(self, ells, descriptor="", param_names=[]):
@@ -76,8 +59,8 @@ class Transformation:
         Initialise the Transformation.
         Intended to be expanded upon by subclasses.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         ells : array (float)
             The ell range the transformation acts on.
         descriptor : str
@@ -86,7 +69,7 @@ class Transformation:
             Names of parameters involved in transformation.
 
         Returns
-        -------
+        --------------
         Transformation
             A new instance of the Transformation class.
         """
@@ -100,15 +83,15 @@ class Transformation:
         Transform the input spectrum.
         Intended to be overwritten by subclasses.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         Dls : array (float)
             The spectrum to transform in Dl.
         sample_params : dict
             A dictionary of parameters that are used in the transformation
 
         Returns
-        -------
+        --------------
         array : float
             The transformed spectrum in Dl.
         """
@@ -125,17 +108,8 @@ class Foreground(Transformation):
     """
     Abstract base class for foregrounds.
 
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    output :
-        gives the additive foreground contribution.
-    transform :
-        transforms an input spectrum.
-
     Attributes
-    -------
+    --------------
     ells : array (float)
             The ell range the transformation acts on.
     descriptor : str
@@ -146,6 +120,15 @@ class Foreground(Transformation):
         Reference ell.
     nu_ref : float
         Reference frequency.
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
     """
 
     def __init__(self, ells, ell_ref=None, nu_ref=None, descriptor="", param_names=[]):
@@ -153,8 +136,8 @@ class Foreground(Transformation):
         Initialise a new instance of the Foreground class.
         Intended to be expanded upon by subclasses.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         ells : array (float)
             The ell range the transformation acts on.
         descriptor : str
@@ -183,13 +166,13 @@ class Foreground(Transformation):
         Return foreground spectrum.
         Intended to be overwritten by subclasses.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
         array, float
             Foreground spectrum.
         """
@@ -201,15 +184,15 @@ class Foreground(Transformation):
         Transform spectrum by adding foreground component (result of output method).
         Intended to be overwritten by subclasses.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         Dls : array
             Dls to transform.
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
         array, float
             Transformed spectrum.
         """
@@ -222,17 +205,8 @@ class TemplateForeground(Foreground):
     Abstract base class for template foregrounds, i.e. some D_\ell template spectrum that gets reused with potentially
     a free amplitude or frequency scaling added on top.
 
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    output :
-        gives the additive foreground contribution.
-    transform :
-        transforms an input spectrum.
-
     Attributes
-    -------
+    --------------
     template_arr : array (float)
         Template spectrum and ells.
     template_spec : array (float)
@@ -249,6 +223,15 @@ class TemplateForeground(Foreground):
         Names of parameters involved in transformation.
     nu_ref : float
         Reference frequency.
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
     """
 
     def __init__(self, ells, template_arr, ell_ref, descriptor="", param_names=[]):
@@ -257,8 +240,8 @@ class TemplateForeground(Foreground):
         Intended to be expanded upon by subclasses.
         Crops template to required ell range and normalised to amplitude of 1 at ell_ref.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         ells : array (float)
             The ell range the transformation acts on.
         descriptor : str
@@ -271,7 +254,7 @@ class TemplateForeground(Foreground):
             Reference ell to normalise the template at (amplitude = 1).
 
         Returns
-        -------
+        --------------
         Foreground
             A new instance of the TemplateForeground class.
         """
@@ -304,13 +287,13 @@ class TemplateForeground(Foreground):
         Return foreground spectrum.
         Intended to be overwritten by subclasses.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
         array, float
             Foreground spectrum.
         """
@@ -322,15 +305,15 @@ class TemplateForeground(Foreground):
         Transform spectrum by adding foreground component (result of output method).
         Intended to be overwritten by subclasses.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         Dls : array
             Dls to transform.
         sampled_params : dict
             Dictionary of nuisance parameter values.
 
         Returns
-        -------
+        --------------
         array, float
             Transformed spectrum.
         """
@@ -342,17 +325,8 @@ class DustyForeground(Foreground):
     """
     Abstract base class for dusty foregrounds using modified black-body spectra.
 
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    output :
-        gives the additive foreground contribution.
-    transform :
-        transforms an input spectrum.
-
     Attributes
-    -------
+    --------------
     ells : array (float)
         The ell range the transformation acts on.
     descriptor : str
@@ -377,6 +351,15 @@ class DustyForeground(Foreground):
         Masks which elements of the long data vector are affected by the transformation.
     N_spec : int
         The total number of spectra in the long data vector.
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
     """
 
     def __init__(
@@ -395,8 +378,8 @@ class DustyForeground(Foreground):
         Initialise a new instance of the DustyForeground class.
         Intended to be expanded upon by subclasses.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         ells : array (float)
             The ell range the transformation acts on.
         descriptor : str
@@ -417,7 +400,7 @@ class DustyForeground(Foreground):
             Temperature of the dust.
 
         Returns
-        -------
+        --------------
         DustyForeground
             A new instance of the DustyForeground class.
         """
@@ -449,15 +432,8 @@ class Calibration(Transformation):
     """
     Abstract base class for calibration.
 
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    transform :
-        transforms an input spectrum.
-
     Attributes
-    -------
+    --------------
     ells : array (float)
         The ell range the transformation acts on.
     descriptor : str
@@ -477,6 +453,13 @@ class Calibration(Transformation):
         Masks which parts of the long data vector are affected by the transformation.
     affected_specs_ix : list (int)
         Indices in spectra_order of spectra the transformation is applied to.
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    transform :
+        transforms an input spectrum.
     """
 
     def __init__(self, ells, spec_order, spec_param_dict, descriptor="Calibration"):
@@ -484,8 +467,8 @@ class Calibration(Transformation):
         Initialise a new instance of the Calibration class.
         Intended to be expanded upon by subclasses.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         ells : array (float)
             The ell range the transformation acts on.
         descriptor : str
@@ -499,7 +482,7 @@ class Calibration(Transformation):
             Order of the spectra in the long data vector.
 
         Returns
-        -------
+        --------------
         DustyForeground
             A new instance of the Calibration class.
         """
@@ -540,15 +523,15 @@ class Calibration(Transformation):
         Transform the input spectrum.
         Intended to be overwritten by subclasses with the details of the calibration model.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         Dls : array (float)
             The spectrum to transform in Dl.
         sample_params : dict
             A dictionary of parameters that are used in the transformation
 
         Returns
-        -------
+        --------------
         array : float
             The transformed spectrum in Dl.
         """
@@ -560,17 +543,8 @@ class ForegroundBandPass(Foreground):
     """
     Abstract base class for foreground with a frequency scaling using integrals over the band pass.
 
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    output :
-        gives the additive foreground contribution.
-    transform :
-        transforms an input spectrum.
-
     Attributes
-    -------
+    --------------
     ells : array (float)
         The ell range the transformation acts on.
     descriptor : str
@@ -588,6 +562,15 @@ class ForegroundBandPass(Foreground):
         Reference frequency.
     N_spec : int
         The total number of spectra in the long data vector.
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
     """
 
     def __init__(
@@ -604,8 +587,8 @@ class ForegroundBandPass(Foreground):
         Initialise a new instance of the DustyForeground class.
         Intended to be expanded upon by subclasses.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         ells : array (float)
             The ell range the transformation acts on.
         descriptor : str
@@ -623,7 +606,7 @@ class ForegroundBandPass(Foreground):
             Reference frequency.
 
         Returns
-        -------
+        --------------
         ForegroundBandPass
             A new instance of the ForegroundBandPass class.
 
@@ -649,19 +632,12 @@ class ForegroundBandPass(Foreground):
 
 class BandPass:
     """
-    Base class to hold band pass.
-    Following BK_Planck likelihood.
-    Assumes all band pass measurements are equally spaced.
-
-    Methods
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    calculate_thermodynamic_conversion :
-        Calculates the thermodynamic conversion.
+    Base class to hold band pass. Assumes all band pass measurements are equally spaced.
+    Modelled on procedure in BK_Planck likelihood:
+    BICEP2/Keck Array and Planck Joint Analysis January 2015 Data Products, The BICEP2/Keck and Planck Collaborations, A Joint Analysis of BICEP2/Keck Array and Planck Data (http://bicepkeck.org/).
 
     Attributes
-    -------
+    --------------
     nu_vals : array (float)
         Frequencies where the band pass is measured
     bandpass_vals : array (float)
@@ -671,19 +647,26 @@ class BandPass:
     thermo_conv : dict
         Dictionary holding the thermodynamic conversion factors for different reference frequencies.
 
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    calculate_thermodynamic_conversion :
+        Calculates the thermodynamic conversion.
+
     """
 
     def __init__(self, bandpass_array):
         """
         Initialise the Band pass.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         bandpass_array : array (float)
             (2, N) array holding frequencies and band pass measurements in this order.
 
         Returns
-        -------
+        --------------
         Transformation
             A new instance of the Bandpass class.
         """
@@ -703,8 +686,8 @@ class BandPass:
         """
         Calculate the thermodynamic conversion factor for a given reference frequency.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         nu_ref : float
             Reference frequency.
         """

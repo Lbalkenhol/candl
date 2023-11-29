@@ -1,13 +1,25 @@
 """
-candl.likelihood module
-
 Main module containing the likelihood and prior classes.
 
-Classes:
---------
+Overview
+-----------
 
-Functions:
---------
+Primary CMB likelihood class:
+
+* :class:`Like`
+
+Lensing likelihood class:
+
+* :class:`LensLike`
+
+Gaussian prior:
+
+* :class:`GaussianPrior`
+
+Misc:
+
+* :func:`get_start_stop_ix`
+* :func:`cholesky_decomposition`
 
 """
 
@@ -35,41 +47,8 @@ class Like:
     """
     Likelihood class for primary CMB power spectra (TT/TE/EE/BB) used to move from theory Dls and parameter values to log likelihood value.
 
-    Methods:
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    log_like :
-        Calculates the log likelihood given a theory CMB spectrum and nuisance parameter values.
-    log_like_for_bdp :
-        Calculates the log likelihood given a theory CMB spectrum, nuisance parameter values, and band powers.
-    prior_logl :
-        Calculates the log_like contribution of the priors.
-    gaussian_logl :
-        Gaussian log likelihood (helper for log_like)
-    chi_square :
-        Calculates the chi square given a theory CMB spectrum and nuisance parameter values.
-    get_model_specs :
-        Returns the theory CMB spectra adjusted by the nuisance parameter model.
-    bin_model_specs :
-        Performs the binning.
-    get_foreground_contributions :
-        Gets the contributions of all foregrounds and can output them in various formats.
-    init_data_model :
-        Initialises the data model.
-    init_priors :
-        Initialises the priors.
-    crop_for_data_selection :
-        Adjusts the attributes of the likelihood for an arbitrary selection of the data.
-    generate_crop_mask :
-        Generate a boolean mask based on which data to use.
-    interpret_crop_hint :
-        Interpret a string hint to generate a crop mask.
-    get_ell_helpers :
-        Returns useful variables surrounding the ells.
-
-    Attributes:
-    ----------
+    Attributes
+    --------------
     N_bins : array, int
         The number of band power bins of each spectrum.
     N_bins_total : int
@@ -90,7 +69,7 @@ class Like:
         A mask to be applies to the original data vector for any subselection.
     data_bandpowers : array, float
         The data band powers.
-    data_model : list, candl.transformations.abstract_base.Transformation
+    data_model : list of candl.transformations.abstract_base.Transformation
         List of transformations to be applied to the theory spectra.
     dataset_dict : dict
         Dictionary read in from data set .yaml file containing all the information needed to initialise the likelihood.
@@ -101,7 +80,7 @@ class Like:
     ells : array, float
         Angular multipole moments for a single spectrum.
     long_ells : array, float
-         Angular multipole moments for a all spectra.
+         Angular multipole moments for all spectra.
     name : str
         Name of the likelihood.
     priors : list, GaussianPrior
@@ -119,21 +98,53 @@ class Like:
     window_functions : list of arrays (float)
         Band power window functions in order of spectra. One list entry for each spectrum with size (N_theory_bins, N_bins).
         Window functions start at ell=2.
+
+    Methods
+    --------------
+    __init__ :
+        initialises an instance of the class.
+    log_like :
+        Calculates the log likelihood given a theory CMB spectrum and nuisance parameter values.
+    log_like_for_bdp :
+        Calculates the log likelihood given a theory CMB spectrum, nuisance parameter values, and band powers.
+    prior_logl :
+        Calculates the log_like contribution of the priors.
+    gaussian_logl :
+        Gaussian log likelihood (helper for log_like)
+    chi_square :
+        Calculates the chi square given a theory CMB spectrum and nuisance parameter values.
+    get_model_specs :
+        Returns the theory CMB spectra adjusted by the nuisance parameter model.
+    bin_model_specs :
+        Performs the binning.
+    init_data_model :
+        Initialises the data model.
+    init_priors :
+        Initialises the priors.
+    crop_for_data_selection :
+        Adjusts the attributes of the likelihood for an arbitrary selection of the data.
+    generate_crop_mask :
+        Generate a boolean mask based on which data to use.
+    interpret_crop_hint :
+        Interpret a string hint to generate a crop mask.
+    get_ell_helpers :
+        Returns useful variables surrounding the ells.
+
     """
 
     def __init__(self, dataset_file, **kwargs):
         """
         Initialise a new instance of the Like class.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         dataset_file : str
             The file path of a .yaml file that contains all the necessary information to initialise the likelihood.
         **kwargs : dict
             Any additional keyword arguments to overwrite the information in the .yaml file.
 
         Returns
-        -------
+        --------------
         Like
             A new instance of the base likelihood class with all data read in and the set-up completed.
         """
@@ -284,14 +295,13 @@ class Like:
         """
         Returns the negative log likelihood for a given set of theory Dls and nuisance parameter values.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         params : dict
-            Dictionary containing theory Dls and nuisance parameter values. Required entries:
-                "Dl" : the theory Dls starting from ell=2 and going to ell=2+N_ell_bins_theory.
-                Nuisance parameters for any requested models.
+            Dictionary containing theory Dls and nuisance parameter values. Required entries: "Dl", the theory Dls starting from ell=2 and going to ell=2+N_ell_bins_theory. Nuisance parameters for any requested models.
+
         Returns
-        -------
+        --------------
         float
             Negative log likelihood.
         """
@@ -317,14 +327,13 @@ class Like:
         Shortcut to input band powers is useful to jit up the likelihood function with more flexibility,
         e.g. when calculating the derivative for different mock data sets.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         params : dict
-            Dictionary containing theory Dls and nuisance parameter values. Required entries:
-                "Dl" : the theory Dls starting from ell=2 and going to ell=2+N_ell_bins_theory.
-                Nuisance parameters for any requested models.
+            Dictionary containing theory Dls and nuisance parameter values. Required entries: "Dl", the theory Dls starting from ell=2 and going to ell=2+N_ell_bins_theory. Nuisance parameters for any requested models.
+
         Returns
-        -------
+        --------------
         float
             Negative log likelihood.
         """
@@ -348,12 +357,13 @@ class Like:
         """
         Returns the positive log likelihood of the priors.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         params : dict
             Dictionary containing nuisance parameter values.
+
         Returns
-        -------
+        --------------
         float
             Positive log likelihood.
         """
@@ -368,15 +378,15 @@ class Like:
         logl = 0.5 * (x-m) @ C^-1 @ (x-m)
         Uses the cholesky decomposition of the covariance for speed.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         data_bandpowers : array, float
             Data band powers
         binned_theory_Dls : array, float
             Model spectra
 
         Returns
-        -------
+        --------------
         float
             Positive log likelihood.
         """
@@ -399,14 +409,15 @@ class Like:
         logl = 0.5 * (x-m) @ C^-1 @ (x-m) + log | cov |
         Adds beam covariance and re-computes the Cholesky decomposition.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         data_bandpowers : array, float
             Data band powers
         binned_theory_Dls : array, float
             Model spectra
+
         Returns
-        -------
+        --------------
         float
             Positive log likelihood.
         """
@@ -437,14 +448,13 @@ class Like:
         Returns the chi squared for a given set of theory Dls and nuisance parameter values.
         Adds beam covariance contribution to covariance if present.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         params : dict
-            Dictionary containing theory Dls and nuisance parameter values. Required entries:
-                "Dl" : the theory Dls starting from ell=2 and going to ell=2+N_ell_bins_theory.
-                Nuisance parameters for any requested models.
+            Dictionary containing theory Dls and nuisance parameter values. Required entries: "Dl", the theory Dls starting from ell=2 and going to ell=2+N_ell_bins_theory. Nuisance parameters for any requested models.
+
         Returns
-        -------
+        --------------
         float
             Chi square value
         """
@@ -481,14 +491,14 @@ class Like:
         """
         Returns the theory spectra adjusted for the foreground/nuisance model.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         params : dict
-            Dictionary containing theory Dls and nuisance parameter values. Required entries:
-                "Dl" : the theory Dls starting from ell=2 and going to ell=2+N_ell_bins_theory.
-                Nuisance parameters for any requested models.
+            Dictionary containing theory Dls and nuisance parameter values. Required entries: "Dl", the theory Dls starting from ell=2 and going to ell=2+N_ell_bins_theory. Nuisance parameters for any requested models.
+
+
         Returns
-        -------
+        --------------
         array (float)
             Theory Dls adjusted for the nuisance and foreground model. Covering ell=2-(2+N_ell_bins_theory).
         """
@@ -507,12 +517,13 @@ class Like:
         """
         Bin model spectra.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         model_specs : array, float
             The spectra to be binned.
+
         Returns
-        -------
+        --------------
         array (float)
             The binned spectra.
         """
@@ -536,148 +547,6 @@ class Like:
 
         return binned_theory_Dls
 
-    def get_foreground_contributions(
-        self, params, return_type="arr", remove_zeros=True, binning="unbinned"
-    ):
-        """
-        Return the foreground contributions.
-        This method is intended to be accessed by the user for visualisation purposes to show the contributions of
-        the different foreground components.
-
-        Arguments
-        -------
-        params : dict
-            Nuisance parameter values.
-        return_type : str
-            One of ["arr", "dict", "dict by spec"]. Determines the output format.
-        remove_zeros : bool
-            Remove foreground components that are zero for all ells.
-        binning : str
-            One of ["unbinned", "binned", "both"]. Whether to return the foreground components for individual ells,
-            binned, or both.
-        Returns
-        -------
-        Depending on return_type:
-        "arr" : array, float
-            A (N_ell_bins_theory*N_spectra_total or N_bins_total x N_foregrounds) array containing all the foreground
-            contributions.
-        "dict" : dict
-            A dictionary with keys corresponding to the different foreground components and the values are
-            (N_ell_bins_theory*N_spectra_total or N_bins_total) long vectors containing each contribution.
-        "dict by spec" : dict
-            A dictionary with keys corresponding to different spectra, each holding another dictionary with
-            foreground names as keys and contributions as values.
-        if binning is "both" then the output is wrapped in a dictionary containing "binned" and "unbinned" contributions
-        at the lowest level.
-        """
-
-        # Check return_type argument
-        if not return_type in ["arr", "dict", "dict by spec"]:
-            raise Exception(
-                f"Did not understand return_type '{return_type}'; must be one of (arr, dict, dict by spec). Returning as array"
-            )
-            return_type = "arr"
-
-        # Check binning argument
-        if not binning in ["unbinned", "binned", "both"]:
-            raise Exception(
-                f"Did not understand binning '{binning}'; must be one of (unbinned, binned, both). Returning unbinned"
-            )
-            binning = "unbinned"
-
-        # Get foreground contributions
-        foreground_contributions = []
-        foreground_names = []
-        for transformation in self.data_model:
-            # Check if the transformation is a foreground - if so grab contribution and short name
-            if isinstance(
-                transformation, candl.transformations.abstract_base.Foreground
-            ):
-                foreground_contributions.append(transformation.output(params))
-                foreground_names.append(transformation.descriptor)
-
-        foreground_contributions = jnp.asarray(foreground_contributions)
-
-        # Return requested type
-        if return_type == "dict":
-            # Return as dictionary {label:contribution}
-            if binning == "unbinned":
-                return {
-                    foreground_names[i_fg]: foreground_contributions[i_fg, :]
-                    for i_fg in range(len(foreground_names))
-                }
-            elif binning == "binned":
-                return {
-                    foreground_names[i_fg]: self.bin_model_specs(
-                        foreground_contributions[i_fg, :]
-                    )
-                    for i_fg in range(len(foreground_names))
-                }
-            elif binning == "both":
-                return {
-                    foreground_names[i_fg]: {
-                        "unbinned": self.bin_model_specs(
-                            foreground_contributions[i_fg, :]
-                        ),
-                        "binned": self.bin_model_specs(
-                            foreground_contributions[i_fg, :]
-                        ),
-                    }
-                    for i_fg in range(len(foreground_names))
-                }
-            return {
-                foreground_names[i_fg]: foreground_contributions[i_fg, :]
-                for i_fg in range(len(foreground_names))
-            }
-
-        elif return_type == "dict by spec":
-            # Return as individual dictionaries for spectra {spec: {label:contribution}}
-            dict_by_spec = {}
-            for i_spec, spec in enumerate(self.spec_order):
-                dict_by_spec[spec] = {}
-                for i_fg, fg_label in enumerate(foreground_names):
-                    fg_arr = foreground_contributions[
-                        i_fg,
-                        self.N_ell_bins_theory
-                        * i_spec : self.N_ell_bins_theory
-                        * (i_spec + 1),
-                    ]
-                    if all(fg_arr == 0) and remove_zeros:
-                        pass
-                    else:
-                        if binning == "unbinned":
-                            dict_by_spec[spec][fg_label] = fg_arr
-                        else:
-                            binned_fg_arr = self.bin_model_specs(
-                                foreground_contributions[i_fg, :]
-                            )[self.bins_start_ix[i_spec] : self.bins_stop_ix[i_spec]]
-                            if binning == "binned":
-                                dict_by_spec[spec][fg_label] = binned_fg_arr
-                            elif binning == "both":
-                                dict_by_spec[spec][fg_label] = {
-                                    "unbinned": fg_arr,
-                                    "binned": binned_fg_arr,
-                                }
-            return dict_by_spec
-
-        # Return as array
-        if binning == "unbinned":
-            return foreground_contributions, foreground_names
-        else:
-            binned_fg_arr = []
-            for i_fg in range(len(foreground_names)):
-                binned_fg_arr.append(
-                    self.bin_model_specs(foreground_contributions[i_fg, :])
-                )
-            binned_fg_arr = jnp.asarray(binned_fg_arr)
-            if binning == "binned":
-                return binned_fg_arr, foreground_names
-            elif binning == "both":
-                return {
-                    "unbinned": foreground_contributions,
-                    "binned": binned_fg_arr,
-                }, foreground_names
-
     def init_data_model(self):
         """
         Initialise the data model, i.e. the series of transformations to be applied to the theory spectra.
@@ -688,7 +557,7 @@ class Like:
         template_file.
 
         Returns
-        -------
+        --------------
         list of candl.transformations.abstract_base.Transformation
             The initialised transformation instances in the intended order ready to be applied to the theory spectra.
         """
@@ -804,7 +673,7 @@ class Like:
         and initialises GaussianPrior instances using the passed information.
 
         Returns
-        -------
+        --------------
         list of GaussianPrior
             The initialised priors ready to be evaluated.
         """
@@ -920,7 +789,7 @@ class Like:
         See also: interpret_crop_hint
 
         Returns
-        -------
+        --------------
         array : bool
             The mask to be applied to the uncropped long data vector.
         """
@@ -982,7 +851,7 @@ class Like:
         * "only" only keep this part, removing all the rest
 
         Returns
-        -------
+        --------------
         array : bool
             The mask to be applied to the uncropped long data vector corresponding to this data hint.
         """
@@ -1050,7 +919,7 @@ class Like:
         Calculate useful variables concerning the ell range and binning.
 
         Returns
-        -------
+        --------------
         array : float
             array running over the angular multipoles for one spectrum (2->N_ell_bins_theory+2)
         array : float
@@ -1089,41 +958,8 @@ class LensLike:
     """
     Lensing likelihood class used to move from theory Dls and parameter values to the log likelihood value.
 
-    Methods:
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    log_like :
-        Calculates the log likelihood given a theory CMB spectrum and nuisance parameter values.
-    log_like_for_bdp :
-        Calculates the log likelihood given a theory CMB spectrum, nuisance parameter values, and band powers.
-    prior_logl :
-        Calculates the log_like contribution of the priors.
-    gaussian_logl :
-        Gaussian log likelihood (helper for log_like)
-    chi_square :
-        Calculates the chi square given a theory CMB spectrum and nuisance parameter values.
-    get_model_specs :
-        Returns the theory CMB spectra adjusted by the nuisance parameter model.
-    bin_model_specs :
-        Performs the binning.
-    get_foreground_contributions :
-        Gets the contributions of all foregrounds and can output them in various formats.
-    init_data_model :
-        Initialises the data model.
-    init_priors :
-        Initialises the priors.
-    crop_for_data_selection :
-        Adjusts the attributes of the likelihood for an arbitrary selection of the data.
-    generate_crop_mask :
-        Generate a boolean mask based on which data to use.
-    interpret_crop_hint :
-        Interpret a string hint to generate a crop mask.
-    get_ell_helpers :
-        Returns useful variables surrounding the ells.
-
-    Attributes:
-    ----------
+    Attributes
+    -----------------
     N_bins : array, int
         The number of band power bins of each spectrum.
     N_bins_total : int
@@ -1144,7 +980,7 @@ class LensLike:
         A mask to be applies to the original data vector for any subselection.
     data_bandpowers : array, float
         The data band powers.
-    data_model : list, candl.transformations.abstract_base.Transformation
+    data_model : list of candl.transformations.abstract_base.Transformation
         List of transformations to be applied to the theory spectra.
     dataset_dict : dict
         Dictionary read in from data set .yaml file containing all the information needed to initialise the likelihood.
@@ -1155,11 +991,7 @@ class LensLike:
     lensing_fiducial_correction : array, float
         M * Cfid, loaded from files.
     long_ells : array, float
-         Angular multipole moments for a all spectra.
-    M_matrix_pp : array, float
-        M matrix for pp->pp, loaded from files, if requested in .yaml file.
-    M_matrix_TT : array, float
-        M matrix for TT->pp, loaded from files, if requested in .yaml file.
+         Angular multipole moments for all spectra.
     name : str
         Name of the likelihood.
     priors : list, GaussianPrior
@@ -1174,21 +1006,53 @@ class LensLike:
         2d array of ell values for unbinned model spectra.
     window_functions : list of arrays (float)
         Band power window functions. Each entry in the N_specs long list is and array with size (N_theory_bins, N_bins).
+
+    Methods
+    ----------------
+    __init__ :
+        initialises an instance of the class.
+    log_like :
+        Calculates the log likelihood given a theory CMB spectrum and nuisance parameter values.
+    log_like_for_bdp :
+        Calculates the log likelihood given a theory CMB spectrum, nuisance parameter values, and band powers.
+    prior_logl :
+        Calculates the log_like contribution of the priors.
+    gaussian_logl :
+        Gaussian log likelihood (helper for log_like)
+    chi_square :
+        Calculates the chi square given a theory CMB spectrum and nuisance parameter values.
+    get_model_specs :
+        Returns the theory CMB spectra adjusted by the nuisance parameter model.
+    bin_model_specs :
+        Performs the binning.
+    init_data_model :
+        Initialises the data model.
+    init_priors :
+        Initialises the priors.
+    crop_for_data_selection :
+        Adjusts the attributes of the likelihood for an arbitrary selection of the data.
+    generate_crop_mask :
+        Generate a boolean mask based on which data to use.
+    interpret_crop_hint :
+        Interpret a string hint to generate a crop mask.
+    get_ell_helpers :
+        Returns useful variables surrounding the ells.
+
     """
 
     def __init__(self, dataset_file, **kwargs):
         """
         Initialise a new instance of the LensLike class.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         dataset_file : str
             The file path of a .yaml file that contains all the necessary information to initialise the likelihood.
         kwargs : dict
             Any additional information to overwrite the information in the .yaml file.
 
         Returns
-        -------
+        --------------
         LensLike
             A new instance of the base lensing likelihood class with all data read in and the set-up completed.
         """
@@ -1303,14 +1167,14 @@ class LensLike:
         """
         Returns the negative log likelihood for a given set of theory Dls and nuisance parameter values.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         params : dict
-            Dictionary containing theory Dls and nuisance parameter values. Required entries:
-                "Dl" : the theory Dls starting from ell=2 and going to ell=2+N_ell_bins_theory.
-                Nuisance parameters for any requested models.
+            Dictionary containing theory Dls and nuisance parameter values. Required entries: "Dl", the theory Dls starting from ell=2 and going to ell=2+N_ell_bins_theory. Nuisance parameters for any requested models.
+
+
         Returns
-        -------
+        --------------
         float
             Negative log likelihood.
         """
@@ -1336,14 +1200,14 @@ class LensLike:
         Shortcut to input band powers is useful to jit up the likelihood function with more flexibility,
         e.g. when calculating the derivative for different mock data sets.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         params : dict
-            Dictionary containing theory Dls and nuisance parameter values. Required entries:
-                "Dl" : the theory Dls starting from ell=2 and going to ell=2+N_ell_bins_theory.
-                Nuisance parameters for any requested models.
+            Dictionary containing theory Dls and nuisance parameter values. Required entries: "Dl", the theory Dls starting from ell=2 and going to ell=2+N_ell_bins_theory. Nuisance parameters for any requested models.
+
+
         Returns
-        -------
+        --------------
         float
             Negative log likelihood.
         """
@@ -1367,12 +1231,13 @@ class LensLike:
         """
         Returns the positive log likelihood of the priors.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         params : dict
             Dictionary containing nuisance parameter values.
+
         Returns
-        -------
+        --------------
         float
             Positive log likelihood.
         """
@@ -1387,12 +1252,13 @@ class LensLike:
         logl = 0.5 * (x-m) @ C^-1 @ (x-m)
         Uses the cholesky decomposition of the covariance for speed.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         delta_bdp : array, float
             Difference between data and model band powers
+
         Returns
-        -------
+        --------------
         float
             Positive log likelihood.
         """
@@ -1412,14 +1278,14 @@ class LensLike:
         Intentionally not reusing the gaussian_logl function as we might add a beam covariance contribution
         at a later date.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         params : dict
-            Dictionary containing theory Dls and nuisance parameter values. Required entries:
-                "Dl" : the theory Dls starting from ell=2 and going to ell=2+N_ell_bins_theory.
-                Nuisance parameters for any requested models.
+            Dictionary containing theory Dls and nuisance parameter values. Required entries: "Dl", the theory Dls starting from ell=2 and going to ell=2+N_ell_bins_theory. Nuisance parameters for any requested models.
+
+
         Returns
-        -------
+        --------------
         float
             Chi square value
         """
@@ -1443,14 +1309,14 @@ class LensLike:
         """
         Returns the theory spectra adjusted for the foreground/nuisance model.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         params : dict
-            Dictionary containing theory Dls and nuisance parameter values. Required entries:
-                "Dl" : the theory Dls starting from ell=2 and going to ell=2+N_ell_bins_theory.
-                Nuisance parameters for any requested models.
+            Dictionary containing theory Dls and nuisance parameter values. Required entries: "Dl", the theory Dls starting from ell=2 and going to ell=2+N_ell_bins_theory. Nuisance parameters for any requested models.
+
+
         Returns
-        -------
+        --------------
         array (float)
             Theory Dls adjusted for the nuisance and foreground model. Covering ell=2-(2+N_ell_bins_theory).
         """
@@ -1473,12 +1339,13 @@ class LensLike:
         """
         Bin model spectra.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         model_specs : array, float
             The spectra to be binned.
+
         Returns
-        -------
+        --------------
         array (float)
             The binned spectra.
         """
@@ -1512,7 +1379,7 @@ class LensLike:
         template_file.
 
         Returns
-        -------
+        --------------
         list of candl.transformations.abstract_base.Transformation
             The initialised transformation instances in the intended order ready to be applied to the theory spectra.
         """
@@ -1585,7 +1452,7 @@ class LensLike:
         and initialises GaussianPrior instances using the passed information.
 
         Returns
-        -------
+        --------------
         list of GaussianPrior
             The initialised priors ready to be evaluated.
         """
@@ -1691,7 +1558,7 @@ class LensLike:
         See also: interpret_crop_hint
 
         Returns
-        -------
+        --------------
         array : bool
             The mask to be applied to the uncropped long data vector.
         """
@@ -1744,7 +1611,7 @@ class LensLike:
         * "only" only keep this part, removing all the rest
 
         Returns
-        -------
+        --------------
         array : bool
             The mask to be applied to the uncropped long data vector corresponding to this data hint.
         """
@@ -1803,7 +1670,7 @@ class LensLike:
         Calculate useful variables concerning the ell range and binning.
 
         Returns
-        -------
+        --------------
         array : float
             array running over the angular multipoles for one spectrum (2->N_ell_bins_theory+2)
         array : float
@@ -1842,15 +1709,8 @@ class GaussianPrior:
     """
     Base class for Gaussian priors.
 
-    Methods:
-    ---------
-    __init__ :
-        initialises an instance of the class.
-    log_like :
-        Calculates the positive log likelihood of the prior.
-
-    Attributes:
-    ----------
+    Attributes
+    -----------------
     central_value : array, float
         The central value of the prior.
     par_names : list, str
@@ -1859,6 +1719,14 @@ class GaussianPrior:
         The covariance matrix.
     prior_covariance_chol : array, float
         Cholesky decomposition of the covariance matrix.
+
+    Methods
+    ----------------
+    __init__ :
+        initialises an instance of the class.
+    log_like :
+        Calculates the positive log likelihood of the prior.
+
     """
 
     def __init__(self, central_value, prior_covariance, par_names):
@@ -1867,8 +1735,8 @@ class GaussianPrior:
         Note that the order of parameters across arguments is expected to be the same, i.e. the [i] central value
         corresponds to the [i,i] entry in the covariance and the [i] parameter name.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         central_value : float or array (float)
             Central values of the prior
         prior_covariance : float or array (float)
@@ -1877,7 +1745,7 @@ class GaussianPrior:
             List of names the prior acts on.
 
         Returns
-        -------
+        --------------
         GaussianPrior :
             A new instance of the GaussianPrior class with the set-up completed.
         """
@@ -1900,13 +1768,13 @@ class GaussianPrior:
         """
         Calculates the positive log likelihood of the prior.
 
-        Arguments
-        -------
+        Parameters
+        --------------
         sampled_pars : dict
             Dictionary that holds the values of all parameters in par_names.
 
         Returns
-        -------
+        --------------
         float :
             The positive log likelihood of the prior evaluated for the sampled_params.
         """
@@ -1931,13 +1799,13 @@ def get_start_stop_ix(N_bins):
     """
     Generates a list of start anad stop indices given the number of bins in each spectrum.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     N_bins : array (int)
         List with an int entry for each spectrum giving the number of bins.
 
     Returns
-    -------
+    --------------
     array (int) :
         The start indices of each spectrum in a long vector.
     array (int) :
@@ -1954,13 +1822,13 @@ def cholesky_decomposition(covariance):
     """
     Performs theCcholesky decomposition of the covariance matrix. Stops the program if unsuccessful.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     covariance : array (float)
         The matrix to be decomposed
 
     Returns
-    -------
+    --------------
     array (float) :
         Cholesky decomposition of the input matrix.
     """

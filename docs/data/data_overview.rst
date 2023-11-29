@@ -83,5 +83,5 @@ ACT DR6 PP
 
 :Website: `Github <https://github.com/ACTCollaboration/act_dr6_lenslike>`__
 
-*Note*: this data set uses the lensing power spectrum in :math:`\kappa\kappa`
+*Note*: this data set uses the lensing power spectrum in :math:`\kappa\kappa`.
 For the ACT + Planck lensing combination see also `Carron, Mirmelstein, Lewis 2023 <https://arxiv.org/abs/2206.07773>`_.

@@ -1,24 +1,34 @@
 """
-candl.plots module
-
 Tools to plot that work together with the likelihood.
 
-Warning: this is NOT a comprehensive plotting library. Instead, the functions below are largely designed as
+Warning:
+------------
+This is NOT a comprehensive plotting library. Instead, the functions below are largely designed as
 templates that you should modify for your specific purposes.
 
-Global Variables:
---------
-PAR_LABEL_DICT
+Overview:
+------------------------
 
-Functions:
---------
-set_plot_style
-add_confidence_ellipse
-triangle_plot_from_cov
-add_min_trajectory
-plot_mock_band_powers
-plot_mcmc_chain_steps
-plot_foreground_components
+Helper for pretty LaTeX parameter labels and general plot style:
+
+* :const:`PAR_LABEL_DICT`
+* :func:`set_plot_style`
+
+Showing the parameter covariance matrix:
+
+* :func:`triangle_plot_from_cov`
+* :func:`add_confidence_ellipse`
+
+Analysing minimisers:
+
+* :func:`add_min_trajectory`
+* :func:`plot_minimiser_convergence`
+
+Other:
+
+* :func:`plot_mock_band_powers`
+* :func:`plot_mcmc_chain_steps`
+* :func:`plot_foreground_components`
 """
 
 # --------------------------------------#
@@ -58,9 +68,10 @@ PAR_LABEL_DICT = {
 
 
 def set_plot_style():
-    # Sets the plotting style. Important to unify things across figures and machines and generally makes plots prettier.
-    # Thank you to Federico Bianchini for this template!
-
+    """
+    Sets the plotting style. Important to unify things across figures and machines and generally makes plots prettier.
+    Thank you to Federico Bianchini for this template!
+    """
     # rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
     # plt.rcParams.update({
     # "text.usetex": True,
@@ -111,8 +122,8 @@ def add_confidence_ellipse(
     There may be a slight mix-up between ix/jx and mean_x/mean_y, worth trying out some permutations if you use
     this function by itself.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     ax : matplotlib.axes
         The axes to add the ellipse to.
     this_cov : array
@@ -192,8 +203,8 @@ def triangle_plot_from_cov(
     This can be called multiple times to add multiple data sets to one plot. For subsequent calls pass the axes
     instance and (you probably want to) set set_axlims=False.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     pars_to_plot : list
         List of parameters to plot.
     bf_point : dict
@@ -398,8 +409,8 @@ def add_min_trajectory(
     Add the trajectory of a minimiser run to a triangle plot. Designed to work with plots created by
     triangle_plot_from_cov().
 
-    Arguments
-    -------
+    Parameters
+    --------------
     ax : matplotlib.axes
         The axes to add the ellipse to.
     pars_to_plot : list
@@ -491,8 +502,8 @@ def plot_minimiser_convergence(
     """
     Plots the steps of the minimizer to help assess convergence.
 
-    Parameters:
-    ----------
+    Parameters
+    -----------------
     eval_points : list
         List of dictionaries representing the evaluation points.
     pars_to_plot : list, optional
@@ -503,10 +514,6 @@ def plot_minimiser_convergence(
         Order of parameters in the covariance matrix. Required if par_cov is provided.
     relative : bool, optional
         If True, the parameter values will be plotted relative to the last value and in units of the covariance. Default is False.
-
-    Returns:
-    -------
-    None
     """
 
     if not par_cov is None and par_cov_order is None:
@@ -579,13 +586,15 @@ def plot_band_powers(like, show_legend=True, colour_by_spec_type=False):
     """
     Plots the band powers for a given primary CMB likelihood.
 
-    Parameters:
-        like (candl.like): The likelihood.
-        show_legend (bool, optional): Whether to show the legend. Default is True.
-        colour_by_spec_type (bool, optional): Whether to colour the band powers by spectrum type. Default is False.
+    Parameters
+    --------------
+    like : candl.like
+        The likelihood.
+    show_legend : bool (optional)
+        Whether to show the legend. Default is True.
+    colour_by_spec_type bool (optional)
+        Whether to colour the band powers by spectrum type. Default is False.
 
-    Returns:
-        None
     """
 
     fig = plt.gcf()
@@ -663,10 +672,9 @@ def plot_mcmc_chain_steps(
 ):
     """
     Plot steps from an MCMC chain. Intended to be used in conjunction with getdist and Cobaya/CosmoMC.
-    Plots not only parameter values, but also the log likelihood.
 
-    Arguments:
-    -------
+    Parameters
+    --------------
     gd_samples : getdist.mcsamples.MCSamples
         Samples instance containing all the parameter values.
     pars_to_plot : list
@@ -747,8 +755,8 @@ def plot_foreground_components(like, fg_dict):
     If you have other needs please create a copy and modify it.
     This means this function can also not deal with cropped likelihoods.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     like : candl.Like
         Likelihood instance. Used to get effective ell centres, spectrum order and identifiers, etc.
     fg_dict : dict

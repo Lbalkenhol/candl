@@ -1,31 +1,36 @@
 """
-candl.interface module
-
 Tools to help interface the likelihood code with other software.
 
-Classes:
---------
-CobayaTheoryCosmoPowerJAX
-CobayaTheoryCosmoPower
-CobayaTheoryPyCapse
-CobayaTheoryBBTemplate
-CobayaTheoryCosmoPowerJAXLensing
-CobayaTheoryCosmoPowerLensing
-CandlCobayaLikelihood
+Overview:
+---------------
 
-Functions:
---------
-The functions contained in this module are:
-get_cobaya_likelihood_class_for_like
-get_cobaya_info_dict_for_like
-get_montepython_nuisance_param_block_for_like
-get_cobaya_pars_to_thoery_specs_func
-get_CosmoPowerJAX_pars_to_thoery_specs_func
-get_CosmoPower_pars_to_thoery_specs_func
-get_PyCapse_pars_to_thoery_specs_func
-get_CAMB_pars_to_thoery_specs_func
-get_CLASS_pars_to_thoery_specs_func
+Theory Code Interface Functions:
 
+* :func:`get_CosmoPowerJAX_pars_to_theory_specs_func`
+* :func:`get_CosmoPower_pars_to_theory_specs_func`
+* :func:`get_PyCapse_pars_to_theory_specs_func`
+* :func:`get_CAMB_pars_to_theory_specs_func`
+* :func:`get_CLASS_pars_to_theory_specs_func`
+* :func:`get_CobayaTheory_pars_to_theory_specs_func`
+
+MontePython Interface:
+
+* :func:`get_montepython_nuisance_param_block_for_like`
+
+Cobaya Interface:
+
+* :class:`CandlCobayaLikelihood`
+* :func:`get_cobaya_likelihood_class_for_like`
+* :func:`get_cobaya_info_dict_for_like`
+
+Cobaya Theory Code Classes:
+
+* :class:`CobayaTheoryCosmoPowerJAX`
+* :class:`CobayaTheoryCosmoPower`
+* :class:`CobayaTheoryPyCapse`
+* :class:`CobayaTheoryBBTemplate`
+* :class:`CobayaTheoryCosmoPowerJAXLensing`
+* :class:`CobayaTheoryCosmoPowerLensing`
 """
 
 # --------------------------------------#
@@ -43,11 +48,25 @@ import candl
 
 class CobayaTheoryCosmoPowerJAX(cobaya.theory.Theory):
     """
-    Wraps CosmoPower-JAX model into a cobaya theory class.
+    Wraps CosmoPower-JAX model into a cobaya.theory.Theory class.
     See D. Piras, A. Spurio Mancini 2023 and A. Spurio Mancini et al. 2021 for more (https://arxiv.org/abs/2305.06347, https://arxiv.org/abs/2106.03846).
 
     This code is taken from the Cobaya example for custom theory codes and only slightly modified.
     See https://cobaya.readthedocs.io/en/latest/theories_and_dependencies.html.
+    Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290)
+
+    Attributes
+    ----------------
+    emulator_filenames : dict
+        File names of emulators.
+    cp_emulators : dict
+        CosmoPower emulators.
+    cp_pars : list
+        List of parameters required by the emulators.
+    provider : Provider
+        Cobaya provider.
+    current_state : dict
+        Dict containing current parameters and results.
 
     Methods
     ---------
@@ -67,28 +86,35 @@ class CobayaTheoryCosmoPowerJAX(cobaya.theory.Theory):
         Carry out the calculation.
     get_Cl :
         Return result of calculation (Cl and Dl).
-
-
-    Attributes
-    -------
-    emulator_filenames : dict
-        File names of emulators.
-    cp_emulators : dict
-        CosmoPower emulators.
-    cp_pars : list
-        List of parameters required by the emulators.
-    provider : Provider
-        Cobaya provider.
-    current_state : dict
-        Dict containing current parameters and results.
     """
 
     def __init__(self, emulator_filenames):
+        """
+        Initialise an instance of the class.
+
+        Parameters
+        ------------
+        emulator_filenames : dict
+            Spectrum type (TT, TE, ...) and file names of corresponding emulator models.
+
+        Returns
+        ----------
+        candl.interface.CobayaTheoryCosmoPowerJAX
+
+        Notes
+        ----------
+        For CosmoPower-JAX emulator models are expected to be placed in the package directory.
+        TE emulators are loaded as PCA+NN, other spectra as NN-only models.
+
+        """
         self.emulator_filenames = emulator_filenames
         super().__init__()
 
     def initialize(self):
-        """called from __init__ to initialize"""
+        """
+        Called from __init__ to initialise.
+        Loads the emulator models.
+        """
 
         self.cp_emulators = {}
         for spec_type in list(self.emulator_filenames.keys()):
@@ -124,12 +150,22 @@ class CobayaTheoryCosmoPowerJAX(cobaya.theory.Theory):
         return {p: None for p in self.cp_pars}
 
     def must_provide(self, **requirements):
+        """
+        Return dictionary of parameters that must be provided.
+        """
         return {p: None for p in self.cp_pars}
 
     def get_can_provide(self):
+        """
+        Return list of quantities that can be provided.
+        """
         return ["Cl", "Dl"]
 
     def calculate(self, state, want_derived=True, **params_values_dict):
+        """
+        Calculate the CMB spectra.
+        Calls the CosmoPower-JAX emulator models.
+        """
         # Prepare hand-off to CosmoPower
         # numpy array creation is faster, but need jnp to get derivs
         # This is the order expected by CosmoPower-JAX
@@ -156,6 +192,9 @@ class CobayaTheoryCosmoPowerJAX(cobaya.theory.Theory):
             )
 
     def get_Cl(self, ell_factor=False, **kwargs):
+        """
+        Return the Cls or Dls
+        """
         if ell_factor:
             return self.current_state["Dl"].copy()
         else:
@@ -169,6 +208,20 @@ class CobayaTheoryCosmoPower(cobaya.theory.Theory):
 
     This code is taken from the Cobaya example for custom theory codes and only slightly modified.
     See https://cobaya.readthedocs.io/en/latest/theories_and_dependencies.html.
+    Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290)
+
+    Attributes
+    -------------
+    emulator_filenames : dict
+        File names of emulators.
+    cp_emulators : dict
+        CosmoPower emulators.
+    cp_pars : list
+        List of parameters required by the emulators.
+    provider : Provider
+        Cobaya provider.
+    current_state : dict
+        Dict containing current parameters and results.
 
     Methods
     ---------
@@ -188,28 +241,34 @@ class CobayaTheoryCosmoPower(cobaya.theory.Theory):
         Carry out the calculation.
     get_Cl :
         Return result of calculation (Cl and Dl).
-
-
-    Attributes
-    -------
-    emulator_filenames : dict
-        File names of emulators.
-    cp_emulators : dict
-        CosmoPower emulators.
-    cp_pars : list
-        List of parameters required by the emulators.
-    provider : Provider
-        Cobaya provider.
-    current_state : dict
-        Dict containing current parameters and results.
     """
 
     def __init__(self, emulator_filenames):
+        """
+        Initialise an instance of the class.
+
+        Parameters
+        ------------
+        emulator_filenames : dict
+            Spectrum type (TT, TE, ...) and file names of corresponding emulator models.
+
+        Returns
+        ----------
+        candl.interface.CobayaTheoryCosmoPower
+
+        Notes
+        ----------
+        TE emulators are loaded as PCA+NN, other spectra as NN-only models.
+
+        """
         self.emulator_filenames = emulator_filenames
         super().__init__()
 
     def initialize(self):
-        """called from __init__ to initialize"""
+        """
+        Called from __init__ to initialise.
+        Loads the emulator models.
+        """
 
         # Load models and unify prediction methods
         self.cp_emulators = {}
@@ -250,12 +309,22 @@ class CobayaTheoryCosmoPower(cobaya.theory.Theory):
         return {p: None for p in self.cp_pars}
 
     def must_provide(self, **requirements):
+        """
+        Return dictionary of parameters that must be provided.
+        """
         return {p: None for p in self.cp_pars}
 
     def get_can_provide(self):
+        """
+        Return list of quantities that can be provided.
+        """
         return ["Cl", "Dl"]
 
     def calculate(self, state, want_derived=True, **params_values_dict):
+        """
+        Calculate the CMB spectra.
+        Calls the CosmoPower emulator models.
+        """
         # Prepare hand-off to CosmoPower
 
         pars_for_cp = {p: [state["params"][p]] for p in self.cp_pars}
@@ -279,6 +348,7 @@ class CobayaTheoryCosmoPower(cobaya.theory.Theory):
             )
 
     def get_Cl(self, ell_factor=False, **kwargs):
+        """Get the Cls or Dls."""
         if ell_factor:
             return self.current_state["Dl"].copy()
         else:
@@ -297,6 +367,25 @@ class CobayaTheoryPyCapse(cobaya.theory.Theory):
 
     This code is taken from the Cobaya example for custom theory codes and only slightly modified.
     See https://cobaya.readthedocs.io/en/latest/theories_and_dependencies.html.
+    Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290)
+
+    Attributes
+    ------------
+    base_path : str
+        Path of the dictionary containing the emulator files.
+    specs_to_emulate : list
+        List of spectrum types (from TT, TE, EE, pp) indicating which emulators to load.
+    pc_emulators : dict
+        Pycapse emulators.
+    pc_pars : list
+        List of parameters required by the emulators. May not match expected parameter order of emulators,
+        as it can be the collection of parameters for a series of emulators requiring different inputs.
+    pc_pars_to_reg_pars : list
+        Dictionary translating the pycapse parameter names to more commonly used ones.
+    provider : Provider
+        Cobaya provider.
+    current_state : dict
+        Dict containing current parameters and results.
 
     Methods
     ---------
@@ -316,34 +405,37 @@ class CobayaTheoryPyCapse(cobaya.theory.Theory):
         Carry out the calculation.
     get_Cl :
         Return result of calculation (Dl and Cl).
-
-
-    Attributes
-    -------
-    base_path : str
-        Path of the dictionary containing the emulator files.
-    specs_to_emulate : list
-        List of spectrum types (from TT, TE, EE, pp) indicating which emulators to load.
-    pc_emulators : dict
-        Pycapse emulators.
-    pc_pars : list
-        List of parameters required by the emulators. May not match expected parameter order of emulators,
-        as it can be the collection of parameters for a series of emulators requiring different inputs.
-    pc_pars_to_reg_pars : list
-        Dictionary translating the pycapse parameter names to more commonly used ones.
-    provider : Provider
-        Cobaya provider.
-    current_state : dict
-        Dict containing current parameters and results.
     """
 
     def __init__(self, base_path, specs_to_emulate):
+        """
+        Initialise an instance of the class.
+
+        Parameters
+        ------------
+        base_path : str
+            Base path where emulator files are stored.
+        specs_to_emulate : list
+            Spectrum type (TT, TE, ...) of corresponding emulator models.
+
+        Returns
+        ----------
+        candl.interface.CobayaTheoryPyCapse
+
+        Notes
+        ----------
+        Currently only supports the LCDM emulator released with the Capse.jl paper.
+
+        """
         self.base_path = base_path
         self.specs_to_emulate = specs_to_emulate
         super().__init__()
 
     def initialize(self):
-        """called from __init__ to initialize"""
+        """
+        Called from __init__ to initialise.
+        Loads the emulator models.
+        """
 
         with open(self.base_path + "nn_setup.json") as f:
             nn_setup = json.load(f)
@@ -392,12 +484,22 @@ class CobayaTheoryPyCapse(cobaya.theory.Theory):
         return {p: None for p in self.pc_pars}
 
     def must_provide(self, **requirements):
+        """
+        Return dictionary of parameters that must be provided.
+        """
         return {p: None for p in self.pc_pars}
 
     def get_can_provide(self):
+        """
+        Return list of quantities that can be provided.
+        """
         return ["Cl", "Dl"]
 
     def calculate(self, state, want_derived=True, **params_values_dict):
+        """
+        Calculate the CMB spectra.
+        Hands off to pycapse emulators.
+        """
         # Hand-off to pycapse emulators
         state["Cl"] = {"ell": self.pc_l}
         state["Dl"] = {"ell": self.pc_l}
@@ -417,6 +519,7 @@ class CobayaTheoryPyCapse(cobaya.theory.Theory):
             )
 
     def get_Cl(self, ell_factor=False, **kwargs):
+        """Get the Cls or Dls."""
         if ell_factor:
             return self.current_state["Dl"].copy()
         else:
@@ -434,6 +537,20 @@ class CobayaTheoryBBTemplate(cobaya.theory.Theory):
 
     This code is taken from the Cobaya example for custom theory codes and only slightly modified.
     See https://cobaya.readthedocs.io/en/latest/theories_and_dependencies.html.
+    Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290)
+
+    Attributes
+    ------------
+    template_filenames : dict
+        File names of templates.
+    provider : Provider
+        Cobaya provider.
+    current_state : dict
+        Dict containing current parameters and results.
+    templates : dict
+        Dict containing cropped BB spectrum templates.
+    ells : array (int)
+        Ell range provided.
 
     Methods
     ---------
@@ -454,27 +571,30 @@ class CobayaTheoryBBTemplate(cobaya.theory.Theory):
     get_Cl :
         Return result of calculation.
 
-
-    Attributes
-    -------
-    template_filenames : dict
-        File names of templates.
-    provider : Provider
-        Cobaya provider.
-    current_state : dict
-        Dict containing current parameters and results.
-    templates : dict
-        Dict containing cropped BB spectrum templates.
-    ells : array (int)
-        Ell range provided.
     """
 
     def __init__(self, template_filenames):
+        """
+        Initialise an instance of the class.
+
+        Parameters
+        ------------
+        template_filenames : dict
+            templates for 'r' and 'lensing_B_modes' to be loaded.
+
+        Returns
+        ----------
+        candl.interface.CobayaTheoryBBTemplate
+
+        """
         self.template_filenames = template_filenames
         super().__init__()
 
     def initialize(self):
-        """called from __init__ to initialize"""
+        """
+        Called from __init__ to initialise.
+        Loads the templates requested and crops them to the right ell range.
+        """
 
         # Read in templates
         # Assumes these are CAMB outputs, such that the first column is ell and the fourth one is BB
@@ -525,12 +645,15 @@ class CobayaTheoryBBTemplate(cobaya.theory.Theory):
         return {"r": None, "A_L_BB": None}
 
     def must_provide(self, **requirements):
+        """Return dictionary of parameters that must be provided."""
         return {"r": None, "A_L_BB": None}
 
     def get_can_provide(self):
+        """Return list of quantities that can be provided."""
         return ["Cl"]
 
     def calculate(self, state, want_derived=True, **params_values_dict):
+        """Calculate the CMB spectra. Sums the two templates with their respective amplitudes."""
         # Scale templates and return sum
         BB_spec = (
             state["params"]["r"] * self.templates["r"]
@@ -543,6 +666,7 @@ class CobayaTheoryBBTemplate(cobaya.theory.Theory):
         }
 
     def get_Cl(self, ell_factor=False, **kwargs):
+        """Get the Cls or Dls."""
         if ell_factor:
             return self.current_state["Dl"].copy()
         else:
@@ -561,6 +685,24 @@ class CobayaTheoryCosmoPowerJAXLensing(cobaya.theory.Theory):
 
     This code is taken from the Cobaya example for custom theory codes and only slightly modified.
     See https://cobaya.readthedocs.io/en/latest/theories_and_dependencies.html.
+    Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290)
+
+    Attributes
+    ------------
+    emulator_filenames : dict
+        File names of emulators.
+    cp_emulators : dict
+        CosmoPower emulators.
+    cp_pars : list
+        List of parameters required by the emulators.
+    provider : Provider
+        Cobaya provider.
+    descriptor : str
+        A short descriptor.
+    par_names : list
+        Names of parameters involved in transformation.
+    current_state : dict
+        Dict containing current parameters and results.
 
     Methods
     ---------
@@ -581,32 +723,31 @@ class CobayaTheoryCosmoPowerJAXLensing(cobaya.theory.Theory):
     get_Cl :
         Return result of calculation (Cl and Dl).
 
-
-    Attributes
-    -------
-    emulator_filenames : dict
-        File names of emulators.
-    cp_emulators : dict
-        CosmoPower emulators.
-    cp_pars : list
-        List of parameters required by the emulators.
-    provider : Provider
-        Cobaya provider.
-
-    descriptor : str
-        A short descriptor.
-    par_names : list
-        Names of parameters involved in transformation.
-    current_state : dict
-        Dict containing current parameters and results.
     """
 
     def __init__(self, emulator_filenames):
+        """
+        Initialise an instance of the class.
+
+        Parameters
+        ------------
+        emulator_filenames : dict
+            Spectrum type (TT, ..., pp) and file names of corresponding emulator models.
+
+        Returns
+        ----------
+        candl.interface.CobayaTheoryCosmoPowerJAXLensing
+
+        Notes
+        ----------
+        For CosmoPower-JAX emulator models are expected to be placed in the package directory.
+        TE emulators are loaded as PCA+NN, pp as lensing models. Other spectra are loaded as NN-only models.
+        """
         self.emulator_filenames = emulator_filenames
         super().__init__()
 
     def initialize(self):
-        """called from __init__ to initialize"""
+        """Called from __init__ to initialise. Calls the CosmoPower-JAX emulator models."""
 
         self.cp_emulators = {}
         for fileType in self.emulator_filenames.keys():
@@ -656,12 +797,15 @@ class CobayaTheoryCosmoPowerJAXLensing(cobaya.theory.Theory):
         return {p: None for p in self.cp_pars}
 
     def must_provide(self, **requirements):
+        """Return dictionary of parameters that must be provided."""
         return {p: None for p in self.cp_pars}
 
     def get_can_provide(self):
+        """Return list of quantities that can be provided."""
         return ["Cl", "Dl"]
 
     def calculate(self, state, want_derived=True, **params_values_dict):
+        """Calculate the CMB spectra. Calls the CosmoPower-JAX emulator models."""
         # Prepare hand-off to CosmoPower
         # numpy array creation is faster, but need jnp to get derivs
         # This is the order expected by CosmoPower-JAX
@@ -702,6 +846,7 @@ class CobayaTheoryCosmoPowerJAXLensing(cobaya.theory.Theory):
                 state["Dl"]["ell"] = self.cp_emulators[spec_type].modes
 
     def get_Cl(self, ell_factor=False, **kwargs):
+        """Get the Cls or Dls."""
         if ell_factor:
             return self.current_state["Dl"].copy()
         else:
@@ -715,6 +860,25 @@ class CobayaTheoryCosmoPowerLensing(cobaya.theory.Theory):
 
     This code is taken from the Cobaya example for custom theory codes and only slightly modified.
     See https://cobaya.readthedocs.io/en/latest/theories_and_dependencies.html.
+    Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290)
+
+    Attributes
+    -------------
+    emulator_filenames : dict
+        File names of emulators.
+    cp_emulators : dict
+        CosmoPower emulators.
+    cp_pars : list
+        List of parameters required by the emulators.
+    provider : Provider
+        Cobaya provider.
+
+    descriptor : str
+        A short descriptor.
+    par_names : list
+        Names of parameters involved in transformation.
+    current_state : dict
+        Dict containing current parameters and results.
 
     Methods
     ---------
@@ -734,33 +898,30 @@ class CobayaTheoryCosmoPowerLensing(cobaya.theory.Theory):
         Carry out the calculation.
     get_Cl :
         Return result of calculation (Cls and Dls).
-
-
-    Attributes
-    -------
-    emulator_filenames : dict
-        File names of emulators.
-    cp_emulators : dict
-        CosmoPower emulators.
-    cp_pars : list
-        List of parameters required by the emulators.
-    provider : Provider
-        Cobaya provider.
-
-    descriptor : str
-        A short descriptor.
-    par_names : list
-        Names of parameters involved in transformation.
-    current_state : dict
-        Dict containing current parameters and results.
     """
 
     def __init__(self, emulator_filenames):
+        """
+        Initialise an instance of the class.
+
+        Parameters
+        ------------
+        emulator_filenames : dict
+            Spectrum type (TT, ..., pp) and file names of corresponding emulator models.
+
+        Returns
+        ----------
+        candl.interface.CobayaTheoryCosmoPowerLensing
+
+        Notes
+        ----------
+        TE and pp emulators are loaded as PCA+NN, other spectra are loaded as NN-only.
+        """
         self.emulator_filenames = emulator_filenames
         super().__init__()
 
     def initialize(self):
-        """called from __init__ to initialize"""
+        """Called from __init__ to initialise. Calls the CosmoPower emulator models."""
 
         self.cp_emulators = {}
         for spec_type in self.emulator_filenames.keys():
@@ -810,12 +971,15 @@ class CobayaTheoryCosmoPowerLensing(cobaya.theory.Theory):
         return {p: None for p in self.cp_pars}
 
     def must_provide(self, **requirements):
+        """Return dictionary of parameters that must be provided."""
         return {p: None for p in self.cp_pars}
 
     def get_can_provide(self):
+        """Return list of quantities that can be provided."""
         return ["Cl", "Dl"]
 
     def calculate(self, state, want_derived=True, **params_values_dict):
+        """Calculate the CMB spectra. Calls the CosmoPower emulator models."""
         # Prepare hand-off to CosmoPower
         # numpy array creation is faster, but need jnp to get derivs
         # This is the order expected by CosmoPower-JAX
@@ -856,6 +1020,7 @@ class CobayaTheoryCosmoPowerLensing(cobaya.theory.Theory):
                 state["Dl"]["ell"] = state["Cl"]["ell"]
 
     def get_Cl(self, ell_factor=False, **kwargs):
+        """Get the Cls or Dls."""
         if ell_factor:
             return self.current_state["Dl"].copy()
         else:
@@ -868,6 +1033,39 @@ class CobayaTheoryCosmoPowerLensing(cobaya.theory.Theory):
 
 
 class CandlCobayaLikelihood(cobaya.likelihood.Likelihood):
+    """
+    Wrapper for a candl likelihood into a cobaya.likelihood.Likelihood class.
+    Based on example likelihood provided by Cobaya (https://cobaya.readthedocs.io/en/latest/likelihoods.html), Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290).
+    Used under the hood, users should see get_cobaya_likelihood_class_for_like.
+
+    Attributes
+    ------------
+    data_set_file : str
+        path of the data set info yaml file.
+    clear_internal_priors : bool
+        Whether to clear internal priors.
+    lensing : bool
+        Whether to use the lensing likelihood.
+    feedback : bool
+        Whether to print feedback when initialising the likelihood.
+    data_selection : any
+        Data selection to be used. String, list of string, binary mask, or path to a mask are supported.
+    candl_like : candl.Like or candl.LensLike
+        Candl likelihood.
+
+    Methods
+    -----------
+    __init__ :
+        Initialises an instance of the class.
+    initialize :
+        Internal set-up (load candl likelihood).
+    get_requirements :
+        Returns what the likelihood needs to run.
+    logp :
+        Evaluate the likelihood, calling candl under the hood.
+
+    """
+
     data_set_file: str = "./"
     clear_internal_priors: bool = True
     lensing: bool = False
@@ -875,31 +1073,38 @@ class CandlCobayaLikelihood(cobaya.likelihood.Likelihood):
     data_selection: any = None
 
     def initialize(self):
+        """
+        Called from __init__ to initialise and complete the setup.
+        Loads the candl likelihood.
+        """
         # Grab the correct data set
         if self.data_set_file.startswith("candl.data."):
             importlib.import_module("candl.data")
             self.data_set_file = eval(self.data_set_file)
-        print("Using data set: ", self.data_set_file)
 
         # Initialise the likelihood
-        if self.lensing:
-            self.candl_like = candl.LensLike(
-                self.data_set_file,
-                feedback=self.feedback,
-                data_selection=self.data_selection,
-            )
-        else:
-            self.candl_like = candl.Like(
-                self.data_set_file,
-                feedback=self.feedback,
-                data_selection=self.data_selection,
-            )
+        try:
+            if self.lensing:
+                self.candl_like = candl.LensLike(
+                    self.data_set_file,
+                    feedback=self.feedback,
+                    data_selection=self.data_selection,
+                )
+            else:
+                self.candl_like = candl.Like(
+                    self.data_set_file,
+                    feedback=self.feedback,
+                    data_selection=self.data_selection,
+                )
+        except:
+            raise Exception("candl: likelihood could not be initialised!")
 
         # by default clear internal priors and assume these are taken care off by Cobaya
         if self.clear_internal_priors:
             self.candl_like.priors = []
 
     def get_requirements(self):
+        """Return dictionary of parameters that are needed"""
         # Cls
         required_pars = {"Cl": {}}
         for spec in np.unique(self.candl_like.spec_types):
@@ -917,6 +1122,7 @@ class CandlCobayaLikelihood(cobaya.likelihood.Likelihood):
         return required_pars
 
     def logp(self, **params):
+        """Calculate the log-likelihood by calling candl."""
         # Grab the theory spectra
         Dls = self.provider.get_Cl(
             ell_factor=True, units="muK2"
@@ -948,12 +1154,12 @@ def get_cobaya_likelihood_class_for_like(like):
     The likelihood being fed in must already be initialised.
 
     Parameters
-    ----------
+    ---------------
     like: candl.Like
         Likelihood to be used.
 
     Returns
-    -------
+    ---------------
     cobaya.likelihood.Likelihood:
         Likelihood that can be plugged into cobaya for sampling
 
@@ -1000,16 +1206,18 @@ def get_cobaya_likelihood_class_for_like(like):
 
 def get_cobaya_info_dict_for_like(like, name="candl_like"):
     """
-    Calls get_cobaya_class_for_like() and packages it into an info dictionary that can be plugged straight into cobaya.
+    Calls ``get_cobaya_class_for_like()`` to create a custom class for the likelihood in cobaya.
+    Packages the likelihood into an info dictionary that can be plugged straight into cobaya.
 
     Parameters
-    ----------
+    ---------------
     like: candl.Like
         Likelihood to be used.
     name: str (optional)
         Name to give the likelihood in Cobaya
+
     Returns
-    -------
+    ---------------
     dict:
         Dictionary to use in Cobaya's 'likelihood' entry.
     """
@@ -1044,13 +1252,13 @@ def get_montepython_nuisance_param_block_for_like(like):
     """
     Prints out info needed by Montepython .param file for nuisance parameters.
 
-    Arguments
-    -------
+    Parameters
+    ---------------
     like: candl.Like
         Likelihood to be used.
 
     Returns
-    -------
+    ---------------
     None
 
     """
@@ -1073,21 +1281,19 @@ def get_montepython_nuisance_param_block_for_like(like):
 # --------------------------------------#
 
 
-def get_cobaya_pars_to_theory_specs_func(theory_calc):
+def get_CobayaTheory_pars_to_theory_specs_func(theory_calc):
     """
     Helper that returns a simple python function that moves from parameters to spectra using a cobaya.theory.Theory instances.
 
-    Arguments
-    -------
+    Parameters
+    ---------------
     theory_calc : cobaya.theory.Theory
         Theory code to calculate theory Dls.
 
     Returns
-    -------
-    func : function with the following call signature.
-        input: pars - dictionary containing parameter values
-               ix_cut_theory: int - ell index to cut theory spectra at
-        output: dictionary of CMB spectra (Dl)
+    ---------------
+    func
+        Function that takes a dictionary of parameter values, ell_max, and ell_min (optional) as input and returns a dictionary of CMB spectra (Dl).
 
     """
 
@@ -1130,19 +1336,18 @@ def get_cobaya_pars_to_theory_specs_func(theory_calc):
 def get_CosmoPowerJAX_pars_to_theory_specs_func(emulator_filenames):
     """
     Helper that returns a simple python function that moves from parameters to spectra using CosmoPower.
-    See A. Spurio Mancini et al. 2021 for more (https://arxiv.org/abs/2106.03846).
+    See D. Piras, A. Spurio Mancini 2023 and A. Spurio Mancini et al. 2021 for more (https://arxiv.org/abs/2305.06347, https://arxiv.org/abs/2106.03846).
 
-    Arguments
-    -------
+    Parameters
+    ---------------
     emulator_filenames : dict
         Dictionary of spectrum types and emulator file names.
 
     Returns
-    -------
-    func : function with the following call signature.
-        input: pars - dictionary containing parameter values
-               ix_cut_theory: int - ell index to cut theory spectra at
-        output: dictionary of CMB spectra (Dl)
+    ---------------
+    func
+        Function that takes a dictionary of parameter values, ell_max, and ell_min (optional) as input and returns a dictionary of CMB spectra (Dl).
+
 
     """
 
@@ -1212,17 +1417,15 @@ def get_CosmoPower_pars_to_theory_specs_func(emulator_filenames):
     Helper that returns a simple python function that moves from parameters to spectra using CosmoPower.
     See A. Spurio Mancini et al. 2021 for more (https://arxiv.org/abs/2106.03846).
 
-    Arguments
-    -------
+    Parameters
+    ---------------
     emulator_filenames : dict
         Dictionary of spectrum types and emulator file names.
 
     Returns
-    -------
-    func : function with the following call signature.
-        input: pars - dictionary containing parameter values
-               ix_cut_theory: int - ell index to cut theory spectra at
-        output: dictionary of CMB spectra (Dl)
+    ---------------
+    func
+        Function that takes a dictionary of parameter values, ell_max, and ell_min (optional) as input and returns a dictionary of CMB spectra (Dl).
 
     """
 
@@ -1299,19 +1502,17 @@ def get_PyCapse_pars_to_theory_specs_func(capse_base_path, specs=["TT", "TE", "E
     Helper that returns a simple python function that moves from parameters to spectra using PyCapse.
     See Bonici, Bianchini, Ruiz-Zapatero 2023 for more (https://arxiv.org/abs/2307.14339).
 
-    Arguments
-    -------
+    Parameters
+    ---------------
     capse_base_path : str
         Path where the PyCapse is located.
     specs : list (optional)
         Which spectra (TT, TE, EE, BB) to try to load.
 
     Returns
-    -------
-    func : function with the following call signature.
-        input: pars - dictionary containing parameter values
-               ix_cut_theory: int - ell index to cut theory spectra at
-        output: dictionary of CMB spectra (Dl)
+    ---------------
+    func
+        Function that takes a dictionary of parameter values, ell_max, and ell_min (optional) as input and returns a dictionary of CMB spectra (Dl).
 
     """
 
@@ -1373,17 +1574,15 @@ def get_CAMB_pars_to_theory_specs_func(CAMB_pars):
     """
     Helper that returns a simple python function that moves from parameters to spectra using CAMB.
 
-    Arguments
-    -------
+    Parameters
+    ---------------
     CAMB_pars : camb.model.CAMBparams
         CAMBparams for the model. Defines accuracy, ell range, etc.
 
     Returns
-    -------
-    func : function with the following call signature.
-        input: pars - dictionary containing parameter values
-               ix_cut_theory: int - ell index to cut theory spectra at
-        output: dictionary of CMB spectra (Dl)
+    ---------------
+    func
+        Function that takes a dictionary of parameter values, ell_max, and ell_min (optional) as input and returns a dictionary of CMB spectra (Dl).
 
     """
 
@@ -1438,17 +1637,15 @@ def get_CLASS_pars_to_theory_specs_func(CLASS_cosmo):
     """
     Helper that returns a simple python function that moves from parameters to spectra using CLASS.
 
-    Arguments
-    -------
+    Parameters
+    ---------------
     CLASS_cosmo : classy.Class
         Class for the model to be evaluated. Need to set desired output options, accuracy settings, ell range, etc.
 
     Returns
-    -------
-    func : function with the following call signature.
-        input: pars - dictionary containing parameter values
-               ix_cut_theory: int - ell index to cut theory spectra at
-        output: dictionary of CMB spectra (Dl)
+    ---------------
+    func
+        Function that takes a dictionary of parameter values, ell_max, and ell_min (optional) as input and returns a dictionary of CMB spectra (Dl).
 
     """
 
