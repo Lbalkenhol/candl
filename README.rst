@@ -1,4 +1,4 @@
-.. image:: candl_wordmark&symbol_col_RGB.png
+.. image:: docs/logos/candl_wordmark&symbol_col_RGB.png
     :width: 800
 
 CMB Analysis With A Differentiable Likelihood
@@ -38,3 +38,13 @@ In its own words: *"JAX is Autograd and XLA, brought together for high-performan
 candl is written in a JAX-friendly way.
 That means JAX is optional and you can install and run candl without JAX and perform traditional inference tasks such as MCMC sampling with Cobaya.
 However, if JAX is installed, the likelihood is fully differentiable thanks to automatic differentiation and many functions are jitted for speed.
+
+.. image:: docs/logos/cnrs_logo.jpeg
+   :alt: CNRS
+   :height: 150px
+   :width: 150px
+
+.. image:: docs/logos/iap_logo.jpeg
+   :alt: IAP
+   :height: 150px
+   :width: 150px
