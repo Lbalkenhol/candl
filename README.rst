@@ -54,7 +54,7 @@ However, if JAX is installed, the likelihood is fully differentiable thanks to a
 .. image:: https://github.com/Lbalkenhol/candl/blob/bd99a57d43b13a6435d9e1f66e2fadc682b92829/docs/logos/neucosmos_logo.png
    :alt: NEUCosmoS
    :height: 100px
-   :width: 500px
+   :width: 104px
 
 .. image:: https://github.com/Lbalkenhol/candl/blob/7519bd69b29395f18e6721c3a940c9d1ec898f8a/docs/logos/IAP_logo.jpeg
    :alt: IAP
