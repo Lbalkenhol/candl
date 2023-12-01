@@ -49,7 +49,7 @@ However, if JAX is installed, the likelihood is fully differentiable thanks to a
    :alt: ERC
    :height: 100px
 
-.. image:: https://github.com/Lbalkenhol/candl/blob/7519bd69b29395f18e6721c3a940c9d1ec898f8a/docs/logos/neucosmos_logo.png
+.. image:: https://raw.githubusercontent.com/Lbalkenhol/candl/main/docs/logos/neucosmos_logo.png
    :alt: NEUCosmoS
    :height: 100px
 
