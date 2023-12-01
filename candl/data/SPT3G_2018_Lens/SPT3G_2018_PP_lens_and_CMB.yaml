@@ -19,11 +19,11 @@ data_model:
     template_file: "foreground_templates/spt3g_2018_lensing_foreground_template.txt"
     amp_param: "A_fg"
   - Module: "common_lensing.ResponseFunctionM"
-    M_matrices_folder: "lens_delta_windows_phionly/"
+    M_matrices_folder: "lens_delta_windows_phicmb/"
     Mmodes:
       - pp
       - TT
-    fiducial_correction_file: "spt3g_2018_pp_lensing_fiducial_correction_phionly.txt"
+    fiducial_correction_file: "spt3g_2018_pp_lensing_fiducial_correction_phicmb.txt"
 
 # GAUSSIAN PRIORS
 # Used in Pan et al. 2023 for lensing only chains
