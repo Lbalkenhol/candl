@@ -1322,12 +1322,13 @@ def get_CobayaTheory_pars_to_theory_specs_func(theory_calc):
         # Slice spectra
         Dls = {"ell": np.arange(ell_low_cut, ell_high_cut + 1)}
         for ky in new_pars["Dl"]:
-            Dls[ky] = jnp.zeros(N_ell)
-            Dls[ky] = jax_optional_set_element(
-                Dls[ky],
-                np.arange(like_start_ix, like_stop_ix),
-                new_pars["Dl"][ky][theory_start_ix:theory_stop_ix],
-            )
+            if ky != "ell":
+                Dls[ky] = jnp.zeros(N_ell)
+                Dls[ky] = jax_optional_set_element(
+                    Dls[ky],
+                    np.arange(like_start_ix, like_stop_ix),
+                    new_pars["Dl"][ky][theory_start_ix:theory_stop_ix],
+                )
         return Dls
 
     return pars_to_theory_specs
@@ -1337,6 +1338,7 @@ def get_CosmoPowerJAX_pars_to_theory_specs_func(emulator_filenames):
     """
     Helper that returns a simple python function that moves from parameters to spectra using CosmoPower.
     See D. Piras, A. Spurio Mancini 2023 and A. Spurio Mancini et al. 2021 for more (https://arxiv.org/abs/2305.06347, https://arxiv.org/abs/2106.03846).
+    Assumes that all emulators have the same input parameters in the same order.
 
     Parameters
     ---------------
@@ -1362,11 +1364,17 @@ def get_CosmoPowerJAX_pars_to_theory_specs_func(emulator_filenames):
                 probe="custom_log", filename=emulator_filenames[spec_type] + ".pkl"
             )
 
+    # Grab input parameter order
+    cp_pars = list(list(cp_emulators.values())[0].parameters)
+    if "h" in cp_pars:
+        cp_pars[cp_pars.index("h")] = "H0"
+
     def pars_to_theory_specs(pars, ell_high_cut, ell_low_cut=2):
-        # Hand-off to CosmoPower
-        pars_for_cp = {p: [pars[p]] for p in pars}
-        if "H0" in pars_for_cp and not "h" in pars_for_cp:
-            pars_for_cp["h"] = [pars_for_cp["H0"][0] / 100]
+        # Hand-off to CosmoPower-JAX
+        pars_for_cp = [pars[p] for p in cp_pars]
+        if "H0" in cp_pars:
+            pars_for_cp[cp_pars.index("H0")] /= 100
+        pars_for_cp = jnp.array(pars_for_cp)
 
         # Get CMB Dls
         Dls = {"ell": np.arange(ell_low_cut, ell_high_cut + 1)}

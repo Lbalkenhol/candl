@@ -120,6 +120,7 @@ BlackJAX
 `BlackJAX <https://github.com/blackjax-devs/blackjax>`__ gradient-based samplers for JAX.
 We show how to interface with BlackJAX and run NUTS chains in :ref:`the differentiability tutorial <Tutorials>`.
 Below is a quick example using the ACT DR4 likelihood and CosmoPower-JAX.
+Note that you need to have downloaded the CosmoPower SPT high-accuracy models (available `here <https://github.com/alessiospuriomancini/cosmopower/tree/main/cosmopower/trained_models/SPT_high_accuracy>`_) and placed them in your ``cosmopower_jax/trained_models`` folder.
 First, we initialise the likelihood and the theory code:
 
 .. code-block:: python
@@ -131,10 +132,9 @@ First, we initialise the likelihood and the theory code:
 
     candl_like = candl.Like(candl.data.ACT_DR4_TTTEEE)
     cp_emulator_filenames = {"TT": "cmb_spt_TT_NN",
-                             "TE": "cmb_spt_TE_PCAplusNN",
-                             "EE": "cmb_spt_EE_NN"}
-    theory_calc = candl.interface.CobayaTheoryCosmoPowerJAX(cp_emulator_filenames)
-    pars_to_theory_specs = candl.interface.get_CobayaTheory_pars_to_theory_specs_func(theory_calc)
+                            "TE": "cmb_spt_TE_PCAplusNN",
+                            "EE": "cmb_spt_EE_NN"}
+    pars_to_theory_specs = candl.interface.get_CosmoPowerJAX_pars_to_theory_specs_func(cp_emulator_filenames)
     like = candl.tools.get_params_to_logl_func(candl_like, pars_to_theory_specs)
 
 In the last line we obtain a function that moves from a dictionary of cosmological parameters to the log likelihood value.
@@ -144,16 +144,17 @@ So next, we define the Planck 18 best-fit point as our reference and use the Fis
 .. code-block:: python
 
     import jax
+    import numpy as np
 
     fid_pars = {'H0': 67.37, 'ombh2': 0.02233, 'omch2': 0.1198, 'logA': 3.043, 'ns': 0.9652, 'tau': 0.054, 'yp': 1.0}
-    par_cov, par_order = candl.tools.get_fisher_matrix(pars_to_theory_specs, like, fid_pars, par_order=None, return_par_order=True)
+    fid_pars_vec = np.array([fid_pars[p] for p in par_order])
+    par_cov, par_order = candl.tools.get_fisher_matrix(pars_to_theory_specs, candl_like, fid_pars, par_order=None, return_par_order=True)
 
-    fid_pars_vec = np.array([fid_pars[p]] for p in par_order)
     def norm_pars(pars):
-        return pars*np.sqrt(np.diag(newton_par_covs[-1]))+fid_pars_vec
+        return (pars-fid_pars_vec)/np.sqrt(np.diag(par_cov))
 
     def denorm_pars(pars):
-        return pars*np.sqrt(np.diag(newton_par_covs[-1]))+fid_pars_vec
+        return pars*np.sqrt(np.diag(par_cov))+fid_pars_vec
 
     @jax.jit
     def like_normed_vec(input_vec):
@@ -161,7 +162,7 @@ So next, we define the Planck 18 best-fit point as our reference and use the Fis
         return like({par_order[i]: denormed_vec[i] for i in range(len(par_order))})
 
 Now we have a function that takes a normalised parameter vector and returns the log likelihood value.
-Following the NUTS example provided by BlackJAX we define the inference loop.
+Following the NUTS example provided by BlackJAX (`here <https://blackjax-devs.github.io/blackjax/examples/quickstart.html>`_) we define the inference loop.
 
 .. code-block:: python
 
@@ -180,15 +181,16 @@ Finally we feed this into BlackJAX and run the sampler.
 .. code-block:: python
 
     import blackjax
+    from datetime import date
 
     rng_key = jax.random.key(int(date.today().strftime("%Y%m%d")))# grab random number for starting point
-    nuts = blackjax.nuts(like_normed_vec, step_size=0.1, inverse_mass_matrix=np.ones(len(pars_for_min)))
-    initial_state = nuts.init(np.zeros(len(pars_for_min)))
+    nuts = blackjax.nuts(like_normed_vec, step_size=0.1, inverse_mass_matrix=np.ones(len(par_order)))
+    initial_state = nuts.init(np.zeros(len(par_order)))
     states = inference_loop(rng_key,
                             nuts.step,
                             initial_state,
                             100)# Number of desired samples
-    NUTS_samples = jnp.apply_along_axis(denorm_pars, 1, states.position)
+    NUTS_samples = jax.numpy.apply_along_axis(denorm_pars, 1, states.position)
 
 Where in the last line we move from the normalised parameter space back to our familiar one (i.e. get the right units).
 
@@ -198,7 +200,7 @@ Optax
 `Optax <https://github.com/google-deepmind/optax>`__ is a library for gradient-based optimisation written for JAX.
 We show how to interface with Optax and run the ADAM minimiser in :ref:`the differentiability tutorial <Tutorials>`.
 Below is a quick example using the ACT DR4 likelihood and CosmoPower-JAX.
-
+Note that you need to have downloaded the CosmoPower SPT high-accuracy models (available `here <https://github.com/alessiospuriomancini/cosmopower/tree/main/cosmopower/trained_models/SPT_high_accuracy>`_) and placed them in your ``cosmopower_jax/trained_models`` folder.
 Like before, we initialise the likelihood and the theory code:
 
 .. code-block:: python
@@ -210,10 +212,9 @@ Like before, we initialise the likelihood and the theory code:
 
     candl_like = candl.Like(candl.data.ACT_DR4_TTTEEE)
     cp_emulator_filenames = {"TT": "cmb_spt_TT_NN",
-                             "TE": "cmb_spt_TE_PCAplusNN",
-                             "EE": "cmb_spt_EE_NN"}
-    theory_calc = candl.interface.CobayaTheoryCosmoPowerJAX(cp_emulator_filenames)
-    pars_to_theory_specs = candl.interface.get_CobayaTheory_pars_to_theory_specs_func(theory_calc)
+                            "TE": "cmb_spt_TE_PCAplusNN",
+                            "EE": "cmb_spt_EE_NN"}
+    pars_to_theory_specs = candl.interface.get_CosmoPowerJAX_pars_to_theory_specs_func(cp_emulator_filenames)
     like = candl.tools.get_params_to_logl_func(candl_like, pars_to_theory_specs)
 
 Optax also prefers normalised input parameters, so as before we define the Planck 18 best-fit point as our reference and use the Fisher matrix (from this point) to normalise the parameters.
@@ -221,22 +222,24 @@ Optax also prefers normalised input parameters, so as before we define the Planc
 .. code-block:: python
 
     import jax
+    import numpy as np
 
     fid_pars = {'H0': 67.37, 'ombh2': 0.02233, 'omch2': 0.1198, 'logA': 3.043, 'ns': 0.9652, 'tau': 0.054, 'yp': 1.0}
-    par_cov, par_order = candl.tools.get_fisher_matrix(pars_to_theory_specs, like, fid_pars, par_order=None, return_par_order=True)
+    par_cov, par_order = candl.tools.get_fisher_matrix(pars_to_theory_specs, candl_like, fid_pars, par_order=None, return_par_order=True)
+    par_scales = {par_order[i]: np.sqrt(par_cov[i,i]) for i in range(len(par_order))}
 
     def transform_to_zero_mean_unit_var(par_dict):
         new_par_dict = {}
         for p in par_dict:
             if p in fid_pars and p in par_order:
-                new_par_dict[p] = jnp.array((par_dict[p] - fid_pars[p])/par_cov[p], float)
+                new_par_dict[p] = (par_dict[p] - fid_pars[p])/par_scales[p]
         return new_par_dict
 
     def transform_from_zero_mean_unit_var(par_dict):
         new_par_dict = {}
         for p in par_dict:
             if p in fid_pars and p in par_order:
-                new_par_dict[p] = jnp.array(fid_pars[p] + par_dict[p]*par_cov[p], float)
+                new_par_dict[p] = fid_pars[p] + par_dict[p]*par_scales[p]
         return new_par_dict
 
     like_normed = jax.jit(lambda p: -1.0*like(transform_from_zero_mean_unit_var(p)))
@@ -248,6 +251,7 @@ We are now ready to initialise and run the ADAM minimiser.
 .. code-block:: python
 
     import optax
+    from copy import deepcopy
 
     # Initialise the ADAM minimiser and starting point
     adam_optimiser = optax.adam(learning_rate = 0.75)
@@ -268,3 +272,5 @@ We are now ready to initialise and run the ADAM minimiser.
                                                 this_pars)
         this_pars = optax.apply_updates(this_pars,
                                         updates)
+
+    bf_point = transform_from_zero_mean_unit_var(this_pars)
