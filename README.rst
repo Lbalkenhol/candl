@@ -41,22 +41,22 @@ However, if JAX is installed, the likelihood is fully differentiable thanks to a
 
 ===================
 
-.. image:: logos/cnrs_logo.jpeg
+.. image:: https://github.com/Lbalkenhol/candl/blob/44ab15b0f1c062f2881ccee9a2df259c9e5edd4b/docs/logos/IAP_logo.jpeg
    :alt: CNRS
    :height: 100px
 
-.. image:: logos/erc_logo.jpeg
+.. image:: docs/logos/erc_logo.jpeg
    :alt: ERC
    :height: 100px
 
-.. image:: logos/neucosmos_logo.png
+.. image:: docs/logos/neucosmos_logo.png
    :alt: NEUCosmoS
    :height: 100px
 
-.. image:: logos/IAP_logo.jpeg
+.. image:: docs/logos/IAP_logo.jpeg
    :alt: IAP
    :height: 100px
 
-.. image:: logos/sorbonne_logo.jpeg
+.. image:: docs/logos/sorbonne_logo.jpeg
    :alt: Sorbonne
    :height: 100px
