@@ -4,6 +4,7 @@ Data Structure
 Data sets are comprised of a set of text files and an info ``.yaml`` file.
 The info file contains information about the data set, such as its name, the location of the data files, the data model, the priors, and any restriction of the data to be used.
 If you are interested in understanding these in detail, we recommend looking at some of the released data sets as an example along with the explanations below.
+You can also find more details in the :ref:`documentation<like_api>`.
 
 Data Set Info File
 -------------------------------------------------

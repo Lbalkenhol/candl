@@ -18,12 +18,6 @@ def run_all_tests():
     """
     Runs all tests in the candl/tests directory.
     See run_test() for details.
-
-    Args:
-        None
-
-    Returns:
-        None
     """
 
     # Grab all test yaml files
@@ -40,12 +34,17 @@ def run_test(test_file):
     """
     Runs a test based on the provided test file.
     Uses the relative difference between the official likelihood and the candl implementation.
-    Tolerance is set to 1e-3.
+    Relative tolerance is 1e-3.
+    Prints results.
 
-    Args:
-        test_file (str): The path to the test .yaml file.
 
-    Returns:
+    Parameters
+    ------------
+        test_file : str
+            The path to the test .yaml file.
+
+    Returns
+    ------------
         None
     """
 

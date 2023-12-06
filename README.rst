@@ -29,6 +29,16 @@ candl can be installed with pip::
 
     pip install candl_like
 
+Installation
+------------
+
+After installation, we recommend testing by executing the following python code::
+
+    import candl.tests
+    candl.tests.run_all_tests()
+
+This well test all data sets included in candl.
+
 JAX
 ---
 
