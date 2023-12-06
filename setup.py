@@ -1,11 +1,12 @@
 from setuptools import setup
+from candl import __author__, __version__
 
 setup(
     name="candl",
-    version="0.0.1",
+    version=__version__,
     description="candl",
     url="none",
-    author="",
+    author=__author__,
     license="MIT",
     packages=["candl"],
     package_data={
