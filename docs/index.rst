@@ -51,6 +51,24 @@
 
    Plot Templates <plots/plots_overview>
 
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+   :titlesonly:
+   :caption: API
+
+   api/like_api
+   api/interface_api
+   api/tools_api
+   api/transformations_api
+   api/plots_api
+   api/tests_api
+   api/data_api
+   api/io_api
+   api/constants_api
+   api/lib_api
+
+
 .. Crop out the image used on github (using logoo on the side here)
 .. include:: ../README.rst
    :start-line: 3 

@@ -1,7 +1,13 @@
 """
-candl.constants module
-
 A series of useful constants.
+
+Overview
+-----------
+
+* :const:`T_CMB` - CMB temperature
+* :const:`PLANCK_h` - Planck's constant
+* :const:`BOLTZMANN_kB` - Boltzmann constant
+* :const:`GHz_KELVIN` - Useful shortcut for black-body related functions
 """
 
 # Physical constants

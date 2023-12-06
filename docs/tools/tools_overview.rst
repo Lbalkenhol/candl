@@ -6,8 +6,6 @@ Auxiliary Tools
    :titlesonly:
    :maxdepth: 1
 
-   Documentation <tools_docs>
-
 We provide a set of auxiliary tools in the ``tools`` module, designed to simplify common analysis tasks.
 These include among others:
 
@@ -18,4 +16,4 @@ These include among others:
 * Inter-frequency consistency tests (:func:`candl.tools.make_MV_combination`, :func:`candl.tools.make_frequency_conditional`, :func:`candl.tools.make_difference_spectra`).
 * Short-cuts to obtain model spectra (:func:`candl.tools.pars_to_model_specs`, :func:`candl.tools.get_foreground_contributions`).
 
-See the full documentation for details.
+See the :ref:`full documentation<tools_api>` for details.

@@ -1,20 +1,19 @@
 """
-candl.io module
+IO module that handles reading in data and providing feedback to the user.
 
-Designed to handle all things IO.
+Overview:
+--------------
 
-Functions:
---------
-read_meta_info_from_yaml
-load_info_yaml
-read_spectrum_info_from_yaml
-read_file_from_yaml
-read_file_from_path
-read_effective_frequencies_from_yaml
-read_window_functions_from_yaml
-read_transformation_info_from_yaml
-read_lensing_M_matrices_from_yaml
-like_init_output
+* :func:`read_meta_info_from_yaml`
+* :func:`load_info_yaml`
+* :func:`read_spectrum_info_from_yaml`
+* :func:`read_file_from_yaml`
+* :func:`read_file_from_path`
+* :func:`read_effective_frequencies_from_yaml`
+* :func:`read_window_functions_from_yaml`
+* :func:`read_transformation_info_from_yaml`
+* :func:`read_lensing_M_matrices_from_yaml`
+* :func:`like_init_output`
 """
 
 # --------------------------------------#
@@ -32,13 +31,13 @@ def read_meta_info_from_yaml(dataset_dict):
     """
     Read any meta information.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     dataset_dict : dict
         The data set dictionary containing all the information from the input yaml file.
 
     Returns
-    -------
+    --------------
     str :
         Name of the likelihood.
     """
@@ -50,13 +49,13 @@ def load_info_yaml(dataset_file):
     """
     Read the data set yaml file that contains all the information needed to instantiate the likelihood.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     dataset_file : str
         Path of the data set yaml file
 
     Returns
-    -------
+    --------------
     dict :
         Data set dictionary.
     """
@@ -73,14 +72,15 @@ def load_info_yaml(dataset_file):
 def read_spectrum_info_from_yaml(dataset_dict, lensing=False):
     """
     Read spectrum info.
+    If lensing == True only returns first, second, and fourth item from usual returns.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     dataset_dict : dict
         The data set dictionary containing all the information from the input yaml file.
 
     Returns
-    -------
+    --------------
     list :
         List of strings of spectrum identifiers.
     list :
@@ -92,7 +92,6 @@ def read_spectrum_info_from_yaml(dataset_dict, lensing=False):
     list :
         List of ints giving number of bins for each spectrum.
 
-    if lensing == True only returns first, second, and fourth item from above
     """
 
     # Extract spectrum order, number of bins, spectrum types, and spectrum frequencies
@@ -115,8 +114,8 @@ def read_file_from_yaml(dataset_dict, file_kw):
     """
     Read in a file from the data_set dict.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     dataset_dict : dict
         The data set dictionary containing all the information from the input yaml file.
     file_kw : str
@@ -124,7 +123,7 @@ def read_file_from_yaml(dataset_dict, file_kw):
         the base path.
 
     Returns
-    -------
+    --------------
     array :
         File read into array format.
     """
@@ -143,13 +142,13 @@ def read_file_from_path(full_path):
     (1) Text files. Ending must be ".txt" or ".dat".
     (2) Binary files. These must end in ".bin" and be stored as float64s. Will be turned into a square array if possible.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     full_path : str
         The absolute path of the file.
 
     Returns
-    -------
+    --------------
     array :
         File read into array format.
     """
@@ -173,16 +172,15 @@ def read_effective_frequencies_from_yaml(dataset_dict):
     """
     Read in effective frequency information from data set dictionary.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     dataset_dict : dict
         The data set dictionary containing all the information from the input yaml file.
 
     Returns
-    -------
+    --------------
     dict :
-        Dictionary containing keys for all source types given in the effective frequency yaml file.
-        Each entry is a dictionary with frequency identifiers as keys and effective frequencies as values.
+        Dictionary containing keys for all source types given in the effective frequency yaml file. Each entry is a dictionary with frequency identifiers as keys and effective frequencies as values.
     """
 
     # Check if effective_frequencies exists (might not be needed for all likelihoods depending on spectra/fg models)
@@ -215,8 +213,8 @@ def read_window_functions_from_yaml(dataset_dict, spec_order, N_bins):
         The files are arrays of (ell N_specs+1) size, where the first column gives the theory ell.
     Generally, the first format is preferred as it allows for spectra of different length.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     dataset_dict : dict
         The data set dictionary containing all the information from the input yaml file.
     spec_order : list
@@ -225,7 +223,7 @@ def read_window_functions_from_yaml(dataset_dict, spec_order, N_bins):
         Number of bins for each spectrum.
 
     Returns
-    -------
+    --------------
     list :
         Band power window functions as a list of N_spectra with (N_ell_theory, N_bins) arrays. Start at ell=2.
     """
@@ -288,19 +286,19 @@ def read_transformation_info_from_yaml(dataset_dict, i_tr):
     """
     Read in information about a specific transformation from data set yaml file.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     dataset_dict : dict
         The data set dictionary containing all the information from the input yaml file.
     i_tr : int
         Index of the transformation to be read.
 
     Returns
-    -------
+    --------------
     str :
         Name of the transformation class.
     dict :
-        Dictionary of information passed by the user, required as instantiation arguments for the specified class.
+        Dictionary of information passed by the user, required as instantiation Parameters for the specified class.
     """
 
     tr_name = f"{dataset_dict['data_model'][i_tr]['Module']}"
@@ -319,8 +317,8 @@ def read_lensing_M_matrices_from_yaml(full_path, N_bins_total, Mtype="pp"):
     This function assumes that window functions are saved in a specific format:  window{n}.dat, where n runs over the bin numbers.
     Each file specifies the response function at all L values.
 
-    Arguments
-    -------
+    Parameters
+    --------------
     full_path : str
         The absolute path of the folder.
     N_bins_total : int
@@ -329,7 +327,7 @@ def read_lensing_M_matrices_from_yaml(full_path, N_bins_total, Mtype="pp"):
         Which M matrices to load, "TT", "TE", "EE", "BB", "pp", or "kk".
 
     Returns
-    -------
+    --------------
     array :
         M matrices as a (number_of_ells, N_bins_total) array.
     """
@@ -366,12 +364,12 @@ def like_init_output(like):
     Print details after successful initialisation of the likelihood.
 
     Parameters
-    ----------
+    -----------------
     like:
         candl.Like or candl.LensLike
 
     Returns
-    -------
+    --------------
         None
 
     """

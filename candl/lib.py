@@ -1,7 +1,6 @@
 """
-candl.lib module
-
-Contains all necessary and optional imports
+Handles imports and deals with optional packages such as JAX.
+You can manually set ``USE_JAX = False`` to force numpy/scipy to be used instead of JAX even if it is installed (may be helpful for debugging).
 """
 
 # --------------------------------------#
@@ -38,27 +37,33 @@ import seaborn as sns
 # OPTIONAL
 # --------------------------------------#
 
+# Global flag that can override use of JAX even if it is installed
+# Useful for debugging to print out numpy arrays
+USE_JAX = True
+
 # Optional JAX import
 try:
-    import jax.numpy as jnp
-    import jax.scipy as jsp
-    from jax import jit, jacfwd
+    if USE_JAX:
+        import jax.numpy as jnp
+        import jax.scipy as jsp
+        from jax import jit, jacfwd
 
-    # Unify syntax for setting array elements
-    def jax_optional_set_element(arr, ix, el):
-        return arr.at[ix].set(el)
+        # Unify syntax for setting array elements
+        def jax_optional_set_element(arr, ix, el):
+            return arr.at[ix].set(el)
 
-    # Need JAX to run with 64bit for dynamic range in covmats
-    try:
-        from jax.config import config
+        # Need JAX to run with 64bit for dynamic range in covmats
+        try:
+            from jax.config import config
 
-        config.update("jax_enable_x64", True)
-    except:
-        raise Exception(
-            "candl: could not configure JAX to run in 64 bit mode - this will likely lead to wrong results!"
-        )
-
-except ImportError:
+            config.update("jax_enable_x64", True)
+        except:
+            raise Exception(
+                "candl: could not configure JAX to run in 64 bit mode - this will likely lead to wrong results!"
+            )
+    else:
+        raise ImportError()
+except:
     import numpy as jnp
     import scipy as jsp
 

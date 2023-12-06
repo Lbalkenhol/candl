@@ -54,6 +54,13 @@ CosmoPower
 
 :Paper: |cosmopower|
 
+.. note::
+   You can find trained CosmoPower models at:
+
+   * Original :math:`\Lambda\mathrm{CDM}` models released with the CosmoPower paper (`here <https://github.com/alessiospuriomancini/cosmopower/tree/main/cosmopower/trained_models/CP_paper>`_)
+   * :math:`\Lambda\mathrm{CDM}`, :math:`N_\mathrm{eff}`, :math:`A_L` models trained on high-accuracy CAMB spectra used in the `SPT-3G 2018 TT/TE/EE analysis <https://arxiv.org/abs/2212.05642>`_ (`here <https://github.com/alessiospuriomancini/cosmopower/tree/main/cosmopower/trained_models/CP_paper>`_)
+   * :math:`\Lambda\mathrm{CDM}`, :math:`N_\mathrm{eff}`, :math:`\Sigma m_\nu`, :math:`\mathrm{wCDM}` models trained on high-accuracy CLASS spectra from `Bolliet et al. 2023 <https://arxiv.org/abs/2303.01591>`_ (`here <https://github.com/cosmopower-organization>`_)
+
 .. autofunction:: candl.interface.get_CosmoPower_pars_to_theory_specs_func
 
 CosmoPower-JAX
@@ -64,6 +71,9 @@ CosmoPower-JAX
 :Description: Neural-network based emulator, JAX implementation
 
 :Paper: |cosmopower_jax|
+
+.. tip::
+   Vanilla CosmoPower models can be loaded into CosmoPower-JAX.
 
 .. autofunction:: candl.interface.get_CosmoPowerJAX_pars_to_theory_specs_func
 

@@ -1,20 +1,11 @@
 Transformations
 =================================================
 
-.. toctree::
-   :titlesonly:
-   :maxdepth: 1
-   :hidden:
-
-   like_data_structure
-   Common Transformations <transformations_common_docs>
-   Common Lensing Transformations <transformations_common_lensing_docs>
-   Abstract Base Classes <transformations_abstract_docs>
-
 Transformation make up the data model.
 They modify the theory spectra to account for foregrounds, calibration, or any other effect.
 Programmatically, transformations are their own python classes that get initialised along with the likelihood.
 Their code is in the ``transformations/`` folder, which contains abstract base classes, as well as concrete implementations.
+See the :ref:`full documentation<transformations_api>` for details.
 
 
 Adding a Transformation to the Data model

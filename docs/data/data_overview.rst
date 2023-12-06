@@ -2,6 +2,7 @@ Data Sets
 =================================================
 
 The following data sets are available. New data sets will be made available as they are released.
+Use the short cuts supplied point to each data sets ``.yaml`` file and can be used to initialise the likelihood.
 
 SPT-3G 2018 TT/TE/EE
 -------------------------------------------------
@@ -22,6 +23,9 @@ SPT-3G 2018 TT/TE/EE
 :LAMBDA:
    `NASA Archive <https://lambda.gsfc.nasa.gov/product/spt/spt3g_likelihood_v2_get.html>`__
 
+:Short cut:
+   ``candl.data.SPT3G_2018_TTTEEE``
+
 *Note:* this data set is not differentiable due to the functional form of the tSZ-CIB correlation term.
 
 SPT-3G 2018 PP
@@ -36,6 +40,9 @@ SPT-3G 2018 PP
 
 :Type:
    Lensing power spectrum measurement (:math:`\phi\phi`)
+
+:Short cut:
+   ``candl.data.SPT3G_2018_Lens``
 
 *Note*: this data set uses the lensing power spectrum in :math:`\phi\phi`.
 
@@ -60,6 +67,9 @@ ACT DR4 TT/TE/EE
 :LAMBDA:
    `NASA archive <https://lambda.gsfc.nasa.gov/product/act/act_dr4_likelihood_get.html>`__
 
+:Short cut:
+   ``candl.data.ACT_DR4_TTTEEE``
+   
 *Note*: This is the CMB-only, foreground marginalised version of the likelihood.
 The likelihood refers to the deep data as ``dxd`` and the wide data as ``wxw``.
 
@@ -82,6 +92,9 @@ ACT DR6 PP
    Lensing power spectrum measurement (:math:`\phi\phi`)
 
 :Website: `Github <https://github.com/ACTCollaboration/act_dr6_lenslike>`__
+
+:Short cut:
+   ``candl.data.ACT_DR6_Lens``
 
 *Note*: this data set uses the lensing power spectrum in :math:`\kappa\kappa`.
 For the ACT + Planck lensing combination see also `Carron, Mirmelstein, Lewis 2023 <https://arxiv.org/abs/2206.07773>`_.

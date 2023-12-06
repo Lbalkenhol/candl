@@ -7,7 +7,6 @@ Likelihood Code
    :hidden:
 
    like_data_structure
-   Documentation <like_docs>
 
 The likelihood is a function that takes a set of CMB spectra and parameter values returns a log-likelihood value.
 For the default functional form the likelihood is a multivariate Gaussian:
