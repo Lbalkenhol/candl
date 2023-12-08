@@ -29,9 +29,6 @@ candl can be installed with pip::
 
     pip install candl_like
 
-Installation
-------------
-
 After installation, we recommend testing by executing the following python code::
 
     import candl.tests
@@ -48,6 +45,18 @@ In its own words: *"JAX is Autograd and XLA, brought together for high-performan
 candl is written in a JAX-friendly way.
 That means JAX is optional and you can install and run candl without JAX and perform traditional inference tasks such as MCMC sampling with Cobaya.
 However, if JAX is installed, the likelihood is fully differentiable thanks to automatic differentiation and many functions are jitted for speed.
+
+Documentation
+--------------
+
+You can build the documentation by executing::
+
+    make html
+
+in the ``docs/`` folder.
+There may be some warnings, but there should be no errors.
+You can then access the documentation under ``docs/_build/html/index.html``.
+Once the repository is public, we can host this properly somewhere.
 
 ===================
 
