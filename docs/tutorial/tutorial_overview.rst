@@ -20,6 +20,10 @@ For example, let's say we want to work with the SPT-3G 2018 TT/TE/EE data set.
     candl_like = candl.Like(candl.data.SPT3G_2018_TTTEEE)
 
 and that's it! You can now access aspects of the data, for example the band powers ``candl_like.data_bandpowers`` and the covariance matrix ``candl_like.covariance``.
+
+.. tip::
+    Want to use only a part of the data? You can pass e.g. ``data_selection = "TT only"`` when initialising the likelihood. See :ref:`Data Selection` for more information.
+
 If you have a dictionary of parameter values and CMB spectra you can then go ahead and calculate the :math:`\chi^2`:
 
 .. code-block:: python
@@ -29,7 +33,7 @@ If you have a dictionary of parameter values and CMB spectra you can then go ahe
 
 .. note::
 
-    The likelihood operates in :math:`D_\ell` space, i.e. on :math:`C_\ell \ell (\ell + 1) / (2 \pi)`, in units of :math:`\mu K_{\mathrm{CMB}}^2`.
+    The likelihood operates in :math:`D_\ell` space, i.e. on :math:`\ell (\ell + 1) C_\ell / (2 \pi)`, in units of :math:`\mu K_{\mathrm{CMB}}^2`.
     Theory spectra start at :math:`\ell=2`.
 
 ``traditional_tutorial.ipynb``
@@ -41,6 +45,8 @@ This notebook shows how traditional inference tasks are accomplished. In particu
 * Interfacing the likelihood with CAMB and calculating the :math:`\chi^2` for a given spectrum
 * Interfacing the likelihood with Cobaya and running an MCMC chain
 
+This tutorial uses some optional packages.
+Make sure you have Cobaya, getdist, and CAMB installed in order to run the whole notebook.
 
 ``differentiable_tutorial.ipynb``
 ---------------------------------
@@ -51,3 +57,7 @@ This notebook shows different aspects relying on the differentiability of the li
 * Running gradient-based minimisers
 * Interfacing the likelihood with Optax
 * Running NUTS chains by interfacing the likelihood with BlackJAX
+
+This tutorial uses some optional packages.
+Make sure you have Optax, BlackJAX, getdist, and CosmoPower-JAX installed in order to run the whole notebook.
+You also need to have some emulator models for CosmoPower-JAX; we recommend the SPT high-accuracy models available `here <https://github.com/alessiospuriomancini/cosmopower/tree/main/cosmopower/trained_models/SPT_high_accuracy>`_.
