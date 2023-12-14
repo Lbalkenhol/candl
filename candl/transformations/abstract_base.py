@@ -431,6 +431,15 @@ class DustyForeground(Foreground):
 class Calibration(Transformation):
     """
     Abstract base class for calibration.
+    Useful to catch tool methods that identify calibration transformations.
+    """
+
+    pass
+
+
+class IndividualCalibration(Calibration):
+    """
+    Base class to calibrate individual spectra one by one.
 
     Attributes
     --------------

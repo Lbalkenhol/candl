@@ -668,7 +668,7 @@ def make_frequency_conditional(spec_str, like, best_fit_model_binned):
     for i, spec_1 in enumerate(fld_spec_order):
         full_vec_i = like.spec_order.index(spec_1)
 
-        fld_data_vec[fld_start_ix[i] : fld_stop_ix[i]] = like.data_bandpowers[
+        fld_data_vec[fld_start_ix[i] : fld_stop_ix[i]] = like._data_bandpowers[
             like.bins_start_ix[full_vec_i] : like.bins_stop_ix[full_vec_i]
         ]
         fld_bf_vec[fld_start_ix[i] : fld_stop_ix[i]] = best_fit_model_binned[
@@ -771,7 +771,7 @@ def test_statistic_conditional(spec_str, cond_dict, like):
     ix = like.spec_order.index(spec_str)
     delta_cond = (
         cond_dict["cond spec"]
-        - like.data_bandpowers[like.bins_start_ix[ix] : like.bins_stop_ix[ix]]
+        - like._data_bandpowers[like.bins_start_ix[ix] : like.bins_stop_ix[ix]]
     )
     chisq = delta_cond.T @ np.linalg.inv(cond_dict["cond cov"]) @ delta_cond
 
@@ -1073,7 +1073,7 @@ def undo_transformations(like, pars, pars_to_theory_specs):
         Data band power with all transformations undone.
     """
 
-    data_CMB_only_vec = deepcopy(like.data_bandpowers)
+    data_CMB_only_vec = deepcopy(like._data_bandpowers)
 
     # Undo transformations, one-by-one
     for i_tr, transformation in enumerate(like.data_model[::-1]):

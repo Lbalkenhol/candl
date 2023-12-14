@@ -68,7 +68,11 @@ class Like:
     crop_mask : array, bool
         A mask to be applies to the original data vector for any subselection.
     data_bandpowers : array, float
-        The data band powers.
+        The data band powers, blinded if requested.
+    _data_bandpowers : array, float
+        The unblinded data band powers - careful!
+    _blinding_function : array, float
+        ratio of blinded to unblinded band powers - careful!
     data_model : list of candl.transformations.abstract_base.Transformation
         List of transformations to be applied to the theory spectra.
     dataset_dict : dict
@@ -181,7 +185,7 @@ class Like:
         self.bins_start_ix, self.bins_stop_ix = get_start_stop_ix(self.N_bins)
 
         # Load band powers and covariance
-        self.data_bandpowers = candl.io.read_file_from_yaml(
+        self._data_bandpowers = candl.io.read_file_from_yaml(
             self.dataset_dict, "band_power_file"
         )
         self.covariance = candl.io.read_file_from_yaml(
@@ -244,6 +248,22 @@ class Like:
                     ).flatten(),
                 )
             )
+
+        # Blind the band powers if necessary
+        self.data_bandpowers = self._data_bandpowers
+        if "blinding" in list(self.dataset_dict.keys()):
+            if (
+                type(self.dataset_dict["blinding"]) == bool
+                and self.dataset_dict["blinding"]
+            ):
+                self.data_bandpowers = blind_bandpowers(
+                    self._data_bandpowers,
+                    self.effective_ells,
+                    None
+                    if type(self.dataset_dict["blinding"]) == bool
+                    else self.dataset_dict["blinding"],
+                )
+        self._blinding_function = self.data_bandpowers / self._data_bandpowers
 
         # Get a mask according to any subselection of the data
         self.crop_mask = self.generate_crop_mask()
@@ -313,7 +333,7 @@ class Like:
         binned_theory_Dls = self.bin_model_specs(modified_theory_Dls)
 
         # Calculate logl
-        logl = self.logl_function(self.data_bandpowers, binned_theory_Dls)
+        logl = self.logl_function(self._data_bandpowers, binned_theory_Dls)
 
         # Apply priors
         prior_logl = self.prior_logl(params)
@@ -466,7 +486,7 @@ class Like:
         binned_theory_Dls = self.bin_model_specs(modified_theory_Dls)
 
         # Calculate difference between model and data
-        delta_bdp = self.data_bandpowers - binned_theory_Dls
+        delta_bdp = self._data_bandpowers - binned_theory_Dls
 
         # Add beam covariance contribution if necessary
         if not self.beam_correlation is None:
@@ -742,6 +762,9 @@ class Like:
         self.spec_freqs = [s.split(" ")[1].split("x") for s in self.spec_order]
 
         # Crop band powers, covariance matrix, window functions, and beam covariance (if present)
+        self._data_bandpowers = jnp.delete(
+            self._data_bandpowers, jnp.invert(self.crop_mask)
+        )
         self.data_bandpowers = jnp.delete(
             self.data_bandpowers, jnp.invert(self.crop_mask)
         )
@@ -979,7 +1002,11 @@ class LensLike:
     crop_mask : array, bool
         A mask to be applies to the original data vector for any subselection.
     data_bandpowers : array, float
-        The data band powers.
+        The data band powers, blinded if requested.
+    _data_bandpowers : array, float
+        The unblinded data band powers - careful!
+    _blinding_function : array, float
+        ratio of blinded to unblinded band powers - careful!
     data_model : list of candl.transformations.abstract_base.Transformation
         List of transformations to be applied to the theory spectra.
     dataset_dict : dict
@@ -1087,7 +1114,7 @@ class LensLike:
         self.bins_start_ix, self.bins_stop_ix = get_start_stop_ix(self.N_bins)
 
         # Load band powers and covariance
-        self.data_bandpowers = candl.io.read_file_from_yaml(
+        self._data_bandpowers = candl.io.read_file_from_yaml(
             self.dataset_dict, "band_power_file"
         )
         self.covariance = candl.io.read_file_from_yaml(
@@ -1116,6 +1143,22 @@ class LensLike:
                     ).flatten(),
                 )
             )
+
+        # Blind the band powers if necessary
+        self.data_bandpowers = self._data_bandpowers
+        if "blinding" in list(self.dataset_dict.keys()):
+            if (
+                type(self.dataset_dict["blinding"]) == bool
+                and self.dataset_dict["blinding"]
+            ):
+                self.data_bandpowers = blind_bandpowers(
+                    self._data_bandpowers,
+                    self.effective_ells,
+                    None
+                    if type(self.dataset_dict["blinding"]) == bool
+                    else self.dataset_dict["blinding"],
+                )
+        self._blinding_function = self.data_bandpowers / self._data_bandpowers
 
         # Get a mask according to any subselection of the data
         self.crop_mask = self.generate_crop_mask()
@@ -1183,7 +1226,7 @@ class LensLike:
         binned_theory_Dls = self.get_model_specs(params)
 
         # Calculate difference between model and data
-        delta_bdp = self.data_bandpowers - binned_theory_Dls
+        delta_bdp = self._data_bandpowers - binned_theory_Dls
 
         # Calculate logl
         logl = self.gaussian_logl(delta_bdp)
@@ -1294,7 +1337,7 @@ class LensLike:
         binned_theory_Dls = self.get_model_specs(params)
 
         # Calculate difference between model and data
-        delta_bdp = self.data_bandpowers - binned_theory_Dls
+        delta_bdp = self._data_bandpowers - binned_theory_Dls
 
         # Calculate chisq
         chol_fac = jsp.linalg.solve(self.covariance_chol_dec, delta_bdp)
@@ -1519,6 +1562,9 @@ class LensLike:
         self.N_bins_total = jnp.sum(self.crop_mask)
 
         # Crop band powers, covariance matrix, window functions
+        self._data_bandpowers = jnp.delete(
+            self._data_bandpowers, jnp.invert(self.crop_mask)
+        )
         self.data_bandpowers = jnp.delete(
             self.data_bandpowers, jnp.invert(self.crop_mask)
         )
@@ -1793,6 +1839,38 @@ class GaussianPrior:
 # --------------------------------------#
 # HELPER FUNCTIONS
 # --------------------------------------#
+
+
+def blind_bandpowers(bdp, ells, seed=None):
+    """
+    Applies blinding function to bandpowers by multiplying by a random sinusoid function and a slope.
+
+    Parameters
+    ----------
+    bdp : array (float)
+        band powers
+    seed : int, optional
+        random seed to use
+
+    Returns
+    -------
+    array
+        blinded band powers
+    """
+
+    rng = np.random.default_rng(seed)
+
+    blind_func = 1.0
+    blind_func += rng.uniform(low=-0.9, high=0.9) * (
+        (rng.integers(0, np.amax(ells)) - ells) / np.amax(ells)
+    ) + rng.uniform(
+        low=-0.1, high=0.1
+    )  # tilt
+    blind_func += rng.uniform(low=-0.5, high=0.5) * np.sin(
+        ells / rng.integers(50, 100) + rng.integers(-100, 100)
+    )  # acoustic peaks
+
+    return jnp.array(bdp * blind_func)
 
 
 def get_start_stop_ix(N_bins):

@@ -196,6 +196,7 @@ def triangle_plot_from_cov(
     alpha=1.0,
     set_axlims=True,
     return_handle=False,
+    show_ticks=True,
     **kwargs,
 ):
     """
@@ -236,6 +237,8 @@ def triangle_plot_from_cov(
         ax instance.
     return_handle : bool
         Whether to return a handle to create a legend with.
+    show_ticks : bool
+        Whether to show ticks (switch off to blind results).
     kwargs:
         Other arguments to be passed through to matplotlib.patches.Ellipse.
     """
@@ -371,6 +374,8 @@ def triangle_plot_from_cov(
                 if p2 in list(PAR_LABEL_DICT.keys()):
                     par_lbl = rf"${PAR_LABEL_DICT[p2]}$"
                 ax[i, j].set_xlabel(par_lbl)
+                if not show_ticks:
+                    ax[i, j].set_xticklabels([])
             else:
                 ax[i, j].set_xticklabels([])
 
@@ -380,6 +385,9 @@ def triangle_plot_from_cov(
                     par_lbl = rf"${PAR_LABEL_DICT[p1]}$"
                 ax[i, j].set_ylabel(par_lbl)
                 ax[i, j].yaxis.set_label_coords(-0.45, 0.5)
+                if not show_ticks:
+                    ax[i, j].set_yticklabels([])
+                    ax[i, j].yaxis.set_label_coords(-0.3, 0.5)
             else:
                 ax[i, j].set_yticklabels([])
 
