@@ -51,6 +51,7 @@ Data Selection
 
 In order to run the likelihood with only a subset of the data (e.g., :math:`TT` spectra only) use the ``data_selection`` block in the info file.
 Acceptable inputs are:
+
 * A string hint
 * A boolean list of which bins to use
 * The path to a boolean list of which bins to use
@@ -85,6 +86,11 @@ Along with the entries described above, the info file can contain the following 
 * ``likelihood_form: <gaussian/gaussian_beam_detcov>``: alternative form of the likelihood if correction for beam covariance matrix is required (default: ``gaussian``).
 * ``bandpasses: <dictionary of frequency identifiers and band pass file names>``: needed if integrals over band passes are required for any transformations (typically only for :math:`BB`).
 * ``blinding: <True/False/int>``: whether to blind the band powers (through multiplication by a random oscillatory function). Integers are used as seeds.
+
+.. note::
+
+    Instead of modifying the ``.yaml`` file to tweak these options, you can also pass these keywords when initialising the likelihood object.
+    Anything passed during initialisation will override the options in the yaml file.
 
 Data Files
 -------------------------------------------------

@@ -539,7 +539,7 @@ def get_foreground_contributions(
 # --------------------------------------#
 
 
-def make_MV_combination(like, data_CMB_only, design_matrix):
+def make_MV_combination(like, data_CMB_only, design_matrix, blinded=False):
     """
     Combine multifrequency band powers into MV estimate.
     See Appendix C4 here https://arxiv.org/pdf/1507.02704.pdf for details.
@@ -552,6 +552,8 @@ def make_MV_combination(like, data_CMB_only, design_matrix):
         The data bandpowers with all transformations undone.
     design_matrix : array (int)
         The design matrix.
+    blinded : bool
+        Whether operations are carried out in blinded or unblinded space (applies additional factor of the blinding function to the covariance).
 
     Returns
     --------------
@@ -563,7 +565,13 @@ def make_MV_combination(like, data_CMB_only, design_matrix):
     """
 
     # Assemble MV band powers and covariance
-    cov_inv = np.linalg.inv(like.covariance)
+    if blinded:
+        cov_inv = np.linalg.inv(
+            like.covariance * np.outer(like._blinding_function, like._blinding_function)
+        )  # adjust covariance for blinding on the fly
+    else:
+        cov_inv = np.linalg.inv(like.covariance)
+
     weighting_fac = np.matmul(design_matrix.T, np.matmul(cov_inv, design_matrix))
     bdp_fac = np.matmul(design_matrix.T, np.matmul(cov_inv, data_CMB_only))
 
@@ -585,7 +593,9 @@ def make_MV_combination(like, data_CMB_only, design_matrix):
     }
 
 
-def test_statistic_MV_consistency(like, MV_dict, data_CMB_only, design_matrix):
+def test_statistic_MV_consistency(
+    like, MV_dict, data_CMB_only, design_matrix, blinded=False
+):
     """
     Test consistency by comparing multifrequency band powers to MV combination
 
@@ -599,6 +609,8 @@ def test_statistic_MV_consistency(like, MV_dict, data_CMB_only, design_matrix):
         The data bandpowers with all transformations undone.
     design_matrix : array (int)
         The design matrix.
+    blinded : bool
+        Whether operations are carried out in blinded or unblinded space (applies additional factor of the blinding function to the covariance).
 
     Returns
     --------------
@@ -609,7 +621,17 @@ def test_statistic_MV_consistency(like, MV_dict, data_CMB_only, design_matrix):
     """
 
     delta = (design_matrix @ MV_dict["MV spec"]) - data_CMB_only
-    chol_fac = np.linalg.solve(like.covariance_chol_dec, delta)
+
+    if blinded:
+        chol_fac = np.linalg.solve(
+            np.linalg.cholesky(
+                like.covariance
+                * np.outer(like._blinding_function, like._blinding_function)
+            ),
+            delta,
+        )  # adjust cov for blinding function
+    else:
+        chol_fac = np.linalg.solve(like.covariance_chol_dec, delta)
     chisq = np.dot(chol_fac.T, chol_fac)
 
     ndof = like.N_bins_total - len(MV_dict["MV spec"])
@@ -623,7 +645,7 @@ def test_statistic_MV_consistency(like, MV_dict, data_CMB_only, design_matrix):
 # --------------------------------------#
 
 
-def make_frequency_conditional(spec_str, like, best_fit_model_binned):
+def make_frequency_conditional(spec_str, like, best_fit_model_binned, blinded=False):
     """
     Generate frequency conditional prediction.
     See Section 6.3.6 here https://arxiv.org/pdf/1907.12875.pdf for details.
@@ -636,6 +658,8 @@ def make_frequency_conditional(spec_str, like, best_fit_model_binned):
         The likelihood.
     best_fit_model_binned : array (float)
         The binned best fit spectrum.
+    blinded : bool
+        Whether to operate in blinded space or not.
 
     Returns
     --------------
@@ -668,9 +692,17 @@ def make_frequency_conditional(spec_str, like, best_fit_model_binned):
     for i, spec_1 in enumerate(fld_spec_order):
         full_vec_i = like.spec_order.index(spec_1)
 
-        fld_data_vec[fld_start_ix[i] : fld_stop_ix[i]] = like._data_bandpowers[
-            like.bins_start_ix[full_vec_i] : like.bins_stop_ix[full_vec_i]
-        ]
+        # data band powers
+        if blinded:
+            fld_data_vec[fld_start_ix[i] : fld_stop_ix[i]] = like.data_bandpowers[
+                like.bins_start_ix[full_vec_i] : like.bins_stop_ix[full_vec_i]
+            ]
+        else:
+            fld_data_vec[fld_start_ix[i] : fld_stop_ix[i]] = like._data_bandpowers[
+                like.bins_start_ix[full_vec_i] : like.bins_stop_ix[full_vec_i]
+            ]
+
+        # model
         fld_bf_vec[fld_start_ix[i] : fld_stop_ix[i]] = best_fit_model_binned[
             like.bins_start_ix[full_vec_i] : like.bins_stop_ix[full_vec_i]
         ]
@@ -678,6 +710,7 @@ def make_frequency_conditional(spec_str, like, best_fit_model_binned):
         if freq_combo == "x".join(like.spec_freqs[full_vec_i]):
             spec_msk[fld_start_ix[i] : fld_stop_ix[i]] = 1
 
+        # covariance
         for j, spec_2 in enumerate(fld_spec_order):
             full_vec_j = like.spec_order.index(spec_2)
 
@@ -685,6 +718,15 @@ def make_frequency_conditional(spec_str, like, best_fit_model_binned):
                 like.bins_start_ix[full_vec_i] : like.bins_stop_ix[full_vec_i],
                 like.bins_start_ix[full_vec_j] : like.bins_stop_ix[full_vec_j],
             ]
+
+            if blinded:
+                this_cov_slice *= np.outer(
+                    like._blinding_function, like._blinding_function
+                )[
+                    like.bins_start_ix[full_vec_i] : like.bins_stop_ix[full_vec_i],
+                    like.bins_start_ix[full_vec_j] : like.bins_stop_ix[full_vec_j],
+                ]
+
             fld_cov[
                 fld_start_ix[i] : fld_stop_ix[i], fld_start_ix[j] : fld_stop_ix[j]
             ] = this_cov_slice
@@ -786,7 +828,7 @@ def test_statistic_conditional(spec_str, cond_dict, like):
 # --------------------------------------#
 
 
-def make_difference_spectra(spec_str_1, spec_str_2, data_CMB_only, like):
+def make_difference_spectra(spec_str_1, spec_str_2, data_CMB_only, like, blinded=False):
     """
     Generate frequency conditional prediction.
     See Section 6.3.6 here https://arxiv.org/pdf/1907.12875.pdf for details.
@@ -801,6 +843,8 @@ def make_difference_spectra(spec_str_1, spec_str_2, data_CMB_only, like):
         The data bandpowers with all transformations undone.
     like : candl.Like
         The likelihood.
+    blinded : bool
+        Whether to operate in blinded space.
 
     Returns
     --------------
@@ -835,19 +879,23 @@ def make_difference_spectra(spec_str_1, spec_str_2, data_CMB_only, like):
     diff = spec_1_fg_sub - spec_2_fg_sub
 
     # Grab cov
-    spec_1_cov = like.covariance[
+    cov_to_use = deepcopy(like.covariance)
+    if blinded:
+        cov_to_use *= np.outer(like._blinding_function, like._blinding_function)
+
+    spec_1_cov = cov_to_use[
         like.bins_start_ix[i] : like.bins_stop_ix[i],
         like.bins_start_ix[i] : like.bins_stop_ix[i],
     ]
-    spec_2_cov = like.covariance[
+    spec_2_cov = cov_to_use[
         like.bins_start_ix[j] : like.bins_stop_ix[j],
         like.bins_start_ix[j] : like.bins_stop_ix[j],
     ]
-    spec_12_cov = like.covariance[
+    spec_12_cov = cov_to_use[
         like.bins_start_ix[i] : like.bins_stop_ix[i],
         like.bins_start_ix[j] : like.bins_stop_ix[j],
     ]
-    spec_21_cov = like.covariance[
+    spec_21_cov = cov_to_use[
         like.bins_start_ix[j] : like.bins_stop_ix[j],
         like.bins_start_ix[i] : like.bins_stop_ix[i],
     ]
