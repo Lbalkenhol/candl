@@ -84,7 +84,7 @@ Along with the entries described above, the info file can contain the following 
 * ``beam_correlation_file: <relative path to beam correlation matrix>``: beam correlation matrix (if needed).
 * ``likelihood_form: <gaussian/gaussian_beam_detcov>``: alternative form of the likelihood if correction for beam covariance matrix is required (default: ``gaussian``).
 * ``bandpasses: <dictionary of frequency identifiers and band pass file names>``: needed if integrals over band passes are required for any transformations (typically only for :math:`BB`).
-* ``blinded: <True/False/int>``: whether to blind the band powers (through multiplication by a random oscillatory function). Integers are used as seeds.
+* ``blinding: <True/False/int>``: whether to blind the band powers (through multiplication by a random oscillatory function). Integers are used as seeds.
 
 Data Files
 -------------------------------------------------
