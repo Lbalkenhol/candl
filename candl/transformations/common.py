@@ -1743,7 +1743,7 @@ class FGSpectraInterfaceFactorizedCrossSpectrum(
 # --------------------------------------#
 
 
-class CalibrationSingleScalar(candl.transformations.abstract_base.Transformation):
+class CalibrationSingleScalar(candl.transformations.abstract_base.Calibration):
     """
     Simple calibration model for spectra.
     Scales all model spectra by :math:`1/X`, where :math:`X` is specified in the spec_param_dict.
@@ -1790,7 +1790,7 @@ class CalibrationSingleScalar(candl.transformations.abstract_base.Transformation
         return Dls / sample_params[self.cal_param]
 
 
-class CalibrationCross(candl.transformations.abstract_base.Calibration):
+class CalibrationCross(candl.transformations.abstract_base.IndividualCalibration):
     """
     Calibration model for summed spectra, e.g. for TE_90x150: :math:` 0.5 * ( T_{90}xE_{150} + E_{90}xT_{150} )`.
     Scales model spectra by :math:`1/[0.5*(X*Y+WV)]`, where :math:`X,Y,W,V` are specified in the spec_param_dict (most likely want Tcal and/or Ecal in there).
@@ -1905,7 +1905,7 @@ class CalibrationCross(candl.transformations.abstract_base.Calibration):
         return cal_vals
 
 
-class PolarisationCalibration(candl.transformations.abstract_base.Transformation):
+class PolarisationCalibration(candl.transformations.abstract_base.Calibration):
     """
     Simple calibration model for spectra.
     Scales all TE by :math:`X` and all EE by :math:`X^2`, where :math:`X` is specified in spec_param_dict.
