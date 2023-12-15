@@ -790,7 +790,7 @@ def conditional_prediction(x, x_bar, sigma, mask=None):
     return x_tilde, sigma_tilde
 
 
-def test_statistic_conditional(spec_str, cond_dict, like):
+def test_statistic_conditional(spec_str, cond_dict, like, blinded=False):
     """
     Test conditional prediction against measured band powers.
 
@@ -802,6 +802,8 @@ def test_statistic_conditional(spec_str, cond_dict, like):
         Dictionary containing information about the conditional prediction (intended is output from make_frequency_conditional).
     like : candl.Like
         The likelihood.
+    blinded : bool
+        Whether to operate on blinded band powers or not.
 
     Returns
     --------------
@@ -811,10 +813,17 @@ def test_statistic_conditional(spec_str, cond_dict, like):
         PTE
     """
     ix = like.spec_order.index(spec_str)
-    delta_cond = (
-        cond_dict["cond spec"]
-        - like._data_bandpowers[like.bins_start_ix[ix] : like.bins_stop_ix[ix]]
-    )
+    if blinded:
+        delta_cond = (
+            cond_dict["cond spec"]
+            - like.data_bandpowers[like.bins_start_ix[ix] : like.bins_stop_ix[ix]]
+        )
+    else:
+        delta_cond = (
+            cond_dict["cond spec"]
+            - like._data_bandpowers[like.bins_start_ix[ix] : like.bins_stop_ix[ix]]
+        )
+
     chisq = delta_cond.T @ np.linalg.inv(cond_dict["cond cov"]) @ delta_cond
 
     ndof = len(delta_cond)
@@ -1142,7 +1151,10 @@ def undo_transformations(like, pars, pars_to_theory_specs):
             if req_args_req == ["sample_params"]:
                 tr_vec_unbinned = transformation.output(pars)
                 data_CMB_only_vec -= like.bin_model_specs(tr_vec_unbinned)
-            elif req_args_req == ["Dl", "sample_params"]:
+            elif req_args_req == ["Dls", "sample_params"] or req_args_req == [
+                "Dl",
+                "sample_params",
+            ]:
                 # For the Dls we require the unbinned best-fit model Dls with all transformations up until now applied!
                 unbinned_Dls, binned_Dls = pars_to_model_specs_partial_transformation(
                     like, pars, pars_to_theory_specs, len(like.data_model) - i_tr - 1

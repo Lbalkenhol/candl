@@ -255,7 +255,7 @@ class Like:
             if (
                 type(self.dataset_dict["blinding"]) == bool
                 and self.dataset_dict["blinding"]
-            ):
+            ) or type(self.dataset_dict["blinding"]) == int:
                 self.data_bandpowers = blind_bandpowers(
                     self._data_bandpowers,
                     self.effective_ells,
@@ -1150,7 +1150,7 @@ class LensLike:
             if (
                 type(self.dataset_dict["blinding"]) == bool
                 and self.dataset_dict["blinding"]
-            ):
+            ) or type(self.dataset_dict["blinding"]) == int:
                 self.data_bandpowers = blind_bandpowers(
                     self._data_bandpowers,
                     self.effective_ells,
