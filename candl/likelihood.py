@@ -133,6 +133,8 @@ class Like:
         Interpret a string hint to generate a crop mask.
     get_ell_helpers :
         Returns useful variables surrounding the ells.
+    blind_bandpowers :
+        Blinds bandpowers.
 
     """
 
@@ -256,14 +258,11 @@ class Like:
                 type(self.dataset_dict["blinding"]) == bool
                 and self.dataset_dict["blinding"]
             ) or type(self.dataset_dict["blinding"]) == int:
-                self.data_bandpowers = blind_bandpowers(
-                    self._data_bandpowers,
-                    self.effective_ells,
+                self.data_bandpowers, self._blinding_function = self.blind_bandpowers(
                     None
                     if type(self.dataset_dict["blinding"]) == bool
                     else self.dataset_dict["blinding"],
                 )
-        self._blinding_function = self.data_bandpowers / self._data_bandpowers
 
         # Get a mask according to any subselection of the data
         self.crop_mask = self.generate_crop_mask()
@@ -971,6 +970,53 @@ class Like:
 
         return ells, tiled_ells, long_ells, effective_ells
 
+    def blind_bandpowers(self, seed=None):
+        """
+        Applies blinding function to bandpowers by multiplying by a random sinusoid function and a slope.
+        It's important that the same spectrum types get hit by the same blinding function, i.e. e.g. the same for all TT spectra regardless of frequency.
+
+        Parameters
+        ----------
+        seed : int, optional
+            random seed to use
+
+        Returns
+        -------
+        array
+            blinded band powers
+        array
+            blinding function
+        """
+
+        rng = np.random.default_rng(seed)
+
+        blind_func_by_spec = {}
+        for spec_type in np.unique(self.spec_types):
+            ells = None
+            for i, spec in enumerate(self.spec_order):
+                if spec[:2] == spec_type:
+                    ells = self.effective_ells[
+                        self.bins_start_ix[i] : self.bins_stop_ix[i]
+                    ]
+                    break
+
+            blind_func = 1.0
+            blind_func += rng.uniform(low=-0.9, high=0.9) * (
+                (rng.integers(0, np.amax(ells)) - ells) / np.amax(ells)
+            ) + rng.uniform(
+                low=-0.1, high=0.1
+            )  # tilt
+            blind_func += rng.uniform(low=-0.5, high=0.5) * np.sin(
+                ells / rng.integers(50, 100) + rng.integers(-100, 100)
+            )  # acoustic peaks
+
+            blind_func_by_spec[spec_type] = blind_func
+        blind_func = np.block(
+            [blind_func_by_spec[spec[:2]] for spec in self.spec_order]
+        )
+
+        return jnp.array(self._data_bandpowers * blind_func), jnp.array(blind_func)
+
 
 # --------------------------------------#
 # LENSING LIKELIHOOD
@@ -1064,6 +1110,8 @@ class LensLike:
         Interpret a string hint to generate a crop mask.
     get_ell_helpers :
         Returns useful variables surrounding the ells.
+    blind_bandpowers :
+        Blinds bandpowers.
 
     """
 
@@ -1151,14 +1199,11 @@ class LensLike:
                 type(self.dataset_dict["blinding"]) == bool
                 and self.dataset_dict["blinding"]
             ) or type(self.dataset_dict["blinding"]) == int:
-                self.data_bandpowers = blind_bandpowers(
-                    self._data_bandpowers,
-                    self.effective_ells,
+                self.data_bandpowers, self._blinding_function = self.blind_bandpowers(
                     None
                     if type(self.dataset_dict["blinding"]) == bool
                     else self.dataset_dict["blinding"],
                 )
-        self._blinding_function = self.data_bandpowers / self._data_bandpowers
 
         # Get a mask according to any subselection of the data
         self.crop_mask = self.generate_crop_mask()
@@ -1745,6 +1790,53 @@ class LensLike:
 
         return ells, tiled_ells, long_ells, effective_ells
 
+    def blind_bandpowers(self, seed=None):
+        """
+        Applies blinding function to bandpowers by multiplying by a random sinusoid function and a slope.
+        It's important that the same spectrum types get hit by the same blinding function, i.e. e.g. the same for all TT spectra regardless of frequency.
+
+        Parameters
+        ----------
+        seed : int, optional
+            random seed to use
+
+        Returns
+        -------
+        array
+            blinded band powers
+        array
+            blinding function
+        """
+
+        rng = np.random.default_rng(seed)
+
+        blind_func_by_spec = {}
+        for spec_type in np.unique(self.spec_types):
+            ells = None
+            for i, spec in enumerate(self.spec_order):
+                if spec[:2] == spec_type:
+                    ells = self.effective_ells[
+                        self.bins_start_ix[i] : self.bins_stop_ix[i]
+                    ]
+                    break
+
+            blind_func = 1.0
+            blind_func += rng.uniform(low=-0.9, high=0.9) * (
+                (rng.integers(0, np.amax(ells)) - ells) / np.amax(ells)
+            ) + rng.uniform(
+                low=-0.1, high=0.1
+            )  # tilt
+            blind_func += rng.uniform(low=-0.5, high=0.5) * np.sin(
+                ells / rng.integers(50, 100) + rng.integers(-100, 100)
+            )  # acoustic peaks
+
+            blind_func_by_spec[spec_type] = blind_func
+        blind_func = np.block(
+            [blind_func_by_spec[spec[:2]] for spec in self.spec_order]
+        )
+
+        return jnp.array(self._data_bandpowers * blind_func), jnp.array(blind_func)
+
 
 # --------------------------------------#
 # PRIORS
@@ -1839,38 +1931,6 @@ class GaussianPrior:
 # --------------------------------------#
 # HELPER FUNCTIONS
 # --------------------------------------#
-
-
-def blind_bandpowers(bdp, ells, seed=None):
-    """
-    Applies blinding function to bandpowers by multiplying by a random sinusoid function and a slope.
-
-    Parameters
-    ----------
-    bdp : array (float)
-        band powers
-    seed : int, optional
-        random seed to use
-
-    Returns
-    -------
-    array
-        blinded band powers
-    """
-
-    rng = np.random.default_rng(seed)
-
-    blind_func = 1.0
-    blind_func += rng.uniform(low=-0.9, high=0.9) * (
-        (rng.integers(0, np.amax(ells)) - ells) / np.amax(ells)
-    ) + rng.uniform(
-        low=-0.1, high=0.1
-    )  # tilt
-    blind_func += rng.uniform(low=-0.5, high=0.5) * np.sin(
-        ells / rng.integers(50, 100) + rng.integers(-100, 100)
-    )  # acoustic peaks
-
-    return jnp.array(bdp * blind_func)
 
 
 def get_start_stop_ix(N_bins):
