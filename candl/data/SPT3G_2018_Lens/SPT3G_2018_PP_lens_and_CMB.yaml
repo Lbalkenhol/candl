@@ -2,7 +2,7 @@
 # Pan, Bianchini, Wu et al. 2023, https://arxiv.org/abs/2308.11608
 
 # BASE INFORMATION
-name: "SPT-3G 2018 PP (Pan et al. 2023)"
+name: "SPT-3G 2018 PP, CMB corr. (Pan et al. 2023)"
 
 # KEY FILES
 band_power_file: "spt3g_2018_pp_bdp.txt"# Band power file name
