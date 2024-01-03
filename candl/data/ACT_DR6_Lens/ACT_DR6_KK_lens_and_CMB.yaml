@@ -5,7 +5,7 @@
 # Carron, Mirmelstein, Lewis (2022), arxiv:2206.07773, JCAP09(2022)039
 
 # BASE INFORMATION
-name: "ACT DR6 PP (Madhavacheril et al. 2023, Qu et al. 2023, Carron et al. 2023)"
+name: "ACT DR6 PP, CMB corr. (Madhavacheril et al. 2023, Qu et al. 2023, Carron et al. 2023)"
 
 # KEY FILES
 band_power_file: "ACT_DR6_kk_bdp.txt"# Band power file name

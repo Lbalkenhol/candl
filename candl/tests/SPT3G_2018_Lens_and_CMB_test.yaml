@@ -1,0 +1,5 @@
+data_set_file: "data/SPT3G_2018_Lens/SPT3G_2018_PP_lens_and_CMB.yaml"
+lensing: True
+test_spectrum: "tests/SPT3G_2018_Lens_and_CMB_test_spec.txt"
+param_values: {"A_fg": 1.678816599701749}
+test_chisq: 20.773461296282896
