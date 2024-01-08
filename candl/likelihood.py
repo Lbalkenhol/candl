@@ -865,11 +865,12 @@ class Like:
         The intended format is: "(data) (action)", where "(data)" specifies which part of the data is selected and
         "(action)" declares what to do with this selection.
         Understood options for "(data)" are:
+        * a specific spectrum as specified in the input .yaml file, e.g. "EE 90x90"
         * spectrum types, e.g. "TT"
         * frequencies and frequency combinations, e.g. "90" or "150x220"
         * ell range, e.g. "ell<650" or "ell>1500"
         Understood options for "(action)" are:
-        * "cut" remove this part
+        * "remove" remove this part
         * "only" only keep this part, removing all the rest
 
         Returns
@@ -879,11 +880,23 @@ class Like:
         """
 
         # Split hint into data and action part
-        data_hint, action_hint = crop_hint.split(" ")
+        hint_list = crop_hint.split(" ")
+        action_hint = hint_list[-1]
+        data_hint = " ".join(hint_list[:-1])
 
         affected_specs = []
         base_msk = np.ones(self.N_bins_total) == 0
-        if data_hint in self.spec_types:
+
+        if data_hint in self.spec_order:
+            # Specific spectrum targeted
+            for i_spec, spec in enumerate(self.spec_order):
+                if data_hint == spec:
+                    base_msk[
+                        self.bins_start_ix[i_spec] : self.bins_stop_ix[i_spec]
+                    ] = True
+                    affected_specs.append(self.spec_order[i_spec])
+
+        elif data_hint in self.spec_types:
             # Probably concerns spectra
             for i_spec, st in enumerate(self.spec_types):
                 if data_hint == st:

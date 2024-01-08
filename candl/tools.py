@@ -1161,6 +1161,13 @@ def undo_transformations(like, pars, pars_to_theory_specs):
                 )
                 tr_vec_unbinned = transformation.output(unbinned_Dls, pars)
                 data_CMB_only_vec -= like.bin_model_specs(tr_vec_unbinned)
+            elif req_args_req == ["Dls"]:
+                # Catches aberration
+                unbinned_Dls, binned_Dls = pars_to_model_specs_partial_transformation(
+                    like, pars, pars_to_theory_specs, len(like.data_model) - i_tr - 1
+                )
+                tr_vec_unbinned = transformation.output(unbinned_Dls)
+                data_CMB_only_vec -= like.bin_model_specs(tr_vec_unbinned)
             else:
                 print("candl: not clear how to undo this transformation!")
 
