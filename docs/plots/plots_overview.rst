@@ -1,7 +1,6 @@
 Plots
 =================================================
 
-
 We provide a set of plotting templates in the ``plots`` module.
 These include among others:
 

@@ -1,11 +1,6 @@
 Auxiliary Tools
 =================================================
 
-.. toctree::
-   :hidden:
-   :titlesonly:
-   :maxdepth: 1
-
 We provide a set of auxiliary tools in the ``tools`` module, designed to simplify common analysis tasks.
 These include among others:
 

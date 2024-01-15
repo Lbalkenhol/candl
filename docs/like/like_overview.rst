@@ -47,7 +47,6 @@ The likelihood for primary CMB data proceeds in the following steps:
 #. Calculate and add the prior contribution.
 
 
-
 Lensing CMB Likelihood
 -----------------------------
 
@@ -64,3 +63,12 @@ The order is:
 #. Take the difference between data and model band powers and calculate the log likelihood value.
 
 #. Calculate and add the prior contribution.
+
+
+.. warning::
+
+   You can combine multiple likelihoods by defining a function that returns the sum of the individual likelihoods.
+   However, for this approach the data sets in question need to be independent of one another.
+   Consult the literature and in particular the relevant release papers to verify that this is true.
+   If this is not the case, you need to create a new data set, with a long data vector comprising of the individual data sets and account for the correlation between the data sets in the covariance matrix.
+   See :ref:`Data Structure` for more details on the structure of data sets.

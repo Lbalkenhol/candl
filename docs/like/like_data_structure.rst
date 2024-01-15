@@ -102,7 +102,7 @@ The covariance is in 'spectrum-major' order, i.e. all bins of spectrum #1, all b
 The window functions start at :math:`\ell=2` and can be stored in the ``window_functions_folder`` in two ways:
 
 #. As ``[spec]_window_functions.txt`` files, where ``spec`` is the spectrum identifier with underscores replacing spaces, e.g. ``TT_150x150_window_functions.txt``. The files are arrays of (ell, N_bins+1) size, where the first column gives the theory ell.
-#. As ``window_[i].txt`` starting at ``i=0``. The files are arrays of (ell N_specs+1) size, where the first column gives the theory ell.
+#. As ``window_[i].txt`` starting at ``i=0``. The files are arrays of (ell, N_specs+1) size, where the first column gives the theory ell.
 
 The first format is preferred as it allows for spectra of different length.
 
