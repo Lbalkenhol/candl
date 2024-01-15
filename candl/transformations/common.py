@@ -37,7 +37,7 @@ Frequency scaling functions:
 * :func:`dust_frequency_scaling`
 * :func:`dust_frequency_scaling_bandpass`
 * :func:`tSZ_frequency_scaling`
-* :func:`block_body`
+* :func:`black_body`
 * :func:`black_body_deriv`
 """
 

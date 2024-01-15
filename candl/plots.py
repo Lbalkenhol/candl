@@ -26,7 +26,7 @@ Analysing minimisers:
 
 Other:
 
-* :func:`plot_mock_band_powers`
+* :func:`plot_band_powers`
 * :func:`plot_mcmc_chain_steps`
 * :func:`plot_foreground_components`
 """
@@ -41,7 +41,6 @@ from candl.lib import *
 # CONSTANTS AND HELPERS
 # --------------------------------------#
 
-# Common cosmological parameters and pretty nice LaTeX labels
 PAR_LABEL_DICT = {
     "ombh2": "\\Omega_{\\mathrm{b}}h^2",
     "omch2": "\\Omega_{\\mathrm{c}}h^2",
@@ -61,6 +60,10 @@ PAR_LABEL_DICT = {
     "n_s": "n_{\\mathrm{s}}",
     "tau_reio": "\\tau",
 }
+"""
+Dictionary of common names of and abbreviations for cosmological parameters and corresponding pretty latex strings.
+"""
+
 
 # --------------------------------------#
 # PLOT STYLE

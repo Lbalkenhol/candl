@@ -210,7 +210,7 @@ def read_window_functions_from_yaml(dataset_dict, spec_order, N_bins):
     (1) Window functions are saved by spectrum as "{spec}_window_functions.txt"
         The files are arrays of (ell, N_bins+1) size, where the first column gives the theory ell.
     (2) Window functions are saved by bin as "window_{i}.txt" starting at i=0.
-        The files are arrays of (ell N_specs+1) size, where the first column gives the theory ell.
+        The files are arrays of (ell, N_specs+1) size, where the first column gives the theory ell.
     Generally, the first format is preferred as it allows for spectra of different length.
 
     Parameters
