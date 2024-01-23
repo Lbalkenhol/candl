@@ -176,6 +176,7 @@ def newton_raphson_minimiser(
     # Prepare for Newton steps
     eval_points = [starting_pars]
     eval_par_cov = []
+    has_failed = False
     for i_newton in range(N_newton + 1):
         # Calculate Hessian
         this_hess_dict = like_hess(eval_points[-1])
@@ -206,7 +207,14 @@ def newton_raphson_minimiser(
         # Back into dict form for next step
         new_pars = deepcopy(eval_points[i_newton])
         for j, p in enumerate(pars_for_min):
+            if step[j] is jnp.nan:# stop if nan is encountered
+                has_failed = True
+                break
             new_pars[p] += step_size * step[j]
+        
+        # If step failed break out of loop
+        if has_failed:
+            break
 
         # Add any fixed parameter values
         for p in list(starting_pars.keys()):
@@ -220,6 +228,13 @@ def newton_raphson_minimiser(
 
     if show_progress:
         pbar.close()
+    
+    # If minimiser has failed let the user know
+    if has_failed:
+        raise Exception(
+            f"Minimiser failed (encountered nan in proposed step). Try a better initial point and smaller step size for better stability."
+        )
+    
 
     return eval_points, eval_par_cov
 
@@ -251,6 +266,7 @@ def newton_raphson_minimiser_bdp(
     # Prepare for Newton steps
     eval_points = [starting_pars]
     eval_par_cov = []
+    has_failed = False
     for i_newton in range(N_newton + 1):
         # Calculate Hessian
         this_hess_dict = like_hess(eval_points[-1], bdp)
@@ -285,7 +301,14 @@ def newton_raphson_minimiser_bdp(
         # Back into dict form for next step
         new_pars = deepcopy(eval_points[i_newton])
         for j, p in enumerate(pars_for_min):
+            if step[j] is jnp.nan:# stop if nan is encountered
+                has_failed = True
+                break
             new_pars[p] += step_size * step[j]
+        
+        # If step failed break out of loop
+        if has_failed:
+            break
 
         # Add any fixed parameter values
         for p in list(starting_pars.keys()):
@@ -299,6 +322,12 @@ def newton_raphson_minimiser_bdp(
 
     if show_progress:
         pbar.close()
+    
+    # If minimiser has failed let the user know
+    if has_failed:
+        raise Exception(
+            f"Minimiser failed (encountered nan in proposed step). Try a better initial point and smaller step size for better stability."
+        )
 
     return eval_points, eval_par_cov
 
