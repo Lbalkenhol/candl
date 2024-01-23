@@ -4,7 +4,7 @@
 CMB Analysis With A Differentiable Likelihood
 ===============================================================
 
-:Authors: Different people
+:Authors: L. Balkenhol
 
 :Paper: ``arxiv shield goes here``
 
