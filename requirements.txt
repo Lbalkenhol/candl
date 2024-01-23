@@ -1,8 +1,0 @@
-# Requirements
-pyyaml
-numpy
-scipy
-sigfig
-tqdm
-matplotlib
-seaborn
