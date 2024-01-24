@@ -34,7 +34,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-doc = [
+docs = [
 "sphinx==6.2.1",
 "sphinx-collapse==0.1.2",
 "sphinx-book-theme==1.0.1",
