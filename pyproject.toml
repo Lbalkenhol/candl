@@ -42,7 +42,6 @@ docs = [
 "myst-parser==2.0.0",
 "numpy",
 "cobaya==3.3.2",
-"camb==1.5.2",
 ]
 
 [tool.flit.module]
