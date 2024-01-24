@@ -1,7 +1,7 @@
 .. image:: docs/logos/candl_wordmark&symbol_col_RGB.png
     :width: 800
 
-.. |docsshield| image:: https://img.shields.io/readthedocs/:candl
+.. |docsshield| image:: https://img.shields.io/readthedocs/candl
    :target: http://candl.readthedocs.io
 
 CMB Analysis With A Differentiable Likelihood
