@@ -33,6 +33,15 @@ dependencies = [
 "seaborn >= 0.12.2"
 ]
 
+[project.optional-dependencies]
+doc = [
+"sphinx==6.2.1",
+"sphinx-collapse==0.1.2",
+"sphinx-book-theme==1.0.1",
+"numpydoc==1.6.0",
+"myst-parser==2.0.0",
+]
+
 [tool.flit.module]
 name = "candl"
 
