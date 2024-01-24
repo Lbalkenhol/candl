@@ -27,7 +27,7 @@ Installation
 
 candl can be installed with pip::
 
-    pip install candl_like
+    pip install candl-like
 
 After installation, we recommend testing by executing the following python code::
 

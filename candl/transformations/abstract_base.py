@@ -487,8 +487,6 @@ class IndividualCalibration(Calibration):
         spec_param_dict : dict
             A dictionary with keys that are spectrum identifiers and values that are lists of the nuisance parameter names
             that are used to transform this spectrum.
-        spec_order : list
-            Order of the spectra in the long data vector.
 
         Returns
         --------------
