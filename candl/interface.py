@@ -1585,7 +1585,7 @@ def get_CAMB_pars_to_theory_specs_func(CAMB_pars):
     Parameters
     ---------------
     CAMB_pars : camb.model.CAMBparams
-        CAMBparams for the model. Defines accuracy, ell range, etc.
+        CAMBparams for the model. Defines accuracy, ell range, etc!
 
     Returns
     ---------------
