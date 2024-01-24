@@ -43,7 +43,6 @@ docs = [
 "numpy",
 "cobaya==3.3.2",
 "camb==1.5.2",
-"pycapse==0.2.0",
 "cosmopower==0.1.3",
 "cosmopower-jax==0.4.0",
 ]
