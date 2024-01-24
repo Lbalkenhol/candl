@@ -5,15 +5,19 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('./../..'))
-sys.path.insert(0, os.path.abspath('./..'))
-sys.path.insert(0, os.path.abspath('./../candl'))
-sys.path.insert(0, os.path.abspath('./candl'))
-sys.path.insert(0, os.path.abspath("."))
-sys.path.insert(0, '/home/docs/checkouts/readthedocs.org/user_builds/candl')
+sys.path.insert(-1, os.path.abspath(f'../candl'))
 
-print("WHAT EVEN IS THE PATH")
-print(sys.path)
+#import os
+#import sys
+#sys.path.insert(0, os.path.abspath('./../..'))
+#sys.path.insert(0, os.path.abspath('./..'))
+#sys.path.insert(0, os.path.abspath('./../candl'))
+#sys.path.insert(0, os.path.abspath('./candl'))
+#sys.path.insert(0, os.path.abspath("."))
+#sys.path.insert(0, '/home/docs/checkouts/readthedocs.org/user_builds/candl')
+
+#print("WHAT EVEN IS THE PATH")
+#print(sys.path)
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
