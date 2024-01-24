@@ -42,7 +42,7 @@ extensions = [
     "numpydoc",
 ]
 
-autodoc_mock_imports = ["ifort"]
+autodoc_mock_imports = ["camb"]
 
 intersphinx_mapping = {
     "rtd": ("https://docs.readthedocs.io/en/stable/", None),

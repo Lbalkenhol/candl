@@ -45,7 +45,6 @@ docs = [
 "scipy>=1.0",
 "packaging",
 "cobaya",
-"camb",
 ]
 
 [tool.flit.module]
