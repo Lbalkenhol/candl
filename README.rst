@@ -1,4 +1,4 @@
-.. image:: docs/logos/candl_wordmark&symbol_col_RGB.png
+.. image:: https://github.com/Lbalkenhol/candl/raw/main/docs/logos/candl_wordmark&symbol_col_RGB.png
     :width: 800
 
 .. |docsshield| image:: https://img.shields.io/readthedocs/candl
@@ -56,27 +56,27 @@ You can find the documentation `here <http://candl.readthedocs.io>`_.
 
 ===================
 
-.. |cnrs| image:: logos/cnrs_logo.jpeg
+.. |cnrs| image:: https://github.com/Lbalkenhol/candl/raw/main/logos/cnrs_logo.jpeg
    :alt: CNRS
    :height: 100px
    :width: 100px
 
-.. |erc| image:: logos/erc_logo.jpeg
+.. |erc| image:: https://github.com/Lbalkenhol/candl/raw/main/logos/erc_logo.jpeg
    :alt: ERC
    :height: 100px
    :width: 100px
 
-.. |NEUCosmoS| image:: logos/neucosmos_logo.png
+.. |NEUCosmoS| image:: https://github.com/Lbalkenhol/candl/raw/main/logos/neucosmos_logo.png
    :alt: NEUCosmoS
    :height: 100px
    :width: 159px
 
-.. |IAP| image:: logos/IAP_logo.jpeg
+.. |IAP| image:: https://github.com/Lbalkenhol/candl/raw/main/logos/IAP_logo.jpeg
    :alt: IAP
    :height: 100px
    :width: 104px
 
-.. |Sorbonne| image:: logos/sorbonne_logo.jpeg
+.. |Sorbonne| image:: https://github.com/Lbalkenhol/candl/blob/main/logos/sorbonne_logo.jpeg
    :alt: Sorbonne
    :height: 100px
    :width: 248px
