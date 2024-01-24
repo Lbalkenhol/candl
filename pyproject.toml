@@ -41,7 +41,11 @@ docs = [
 "numpydoc==1.6.0",
 "myst-parser==2.0.0",
 "numpy",
-"cobaya==3.3.2",
+"sympy>=1.0",
+"scipy>=1.0",
+"packaging",
+"cobaya",
+"camb",
 ]
 
 [tool.flit.module]
