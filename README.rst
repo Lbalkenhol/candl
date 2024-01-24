@@ -76,7 +76,7 @@ You can find the documentation `here <http://candl.readthedocs.io>`_.
    :height: 100px
    :width: 104px
 
-.. |Sorbonne| image:: https://github.com/Lbalkenhol/candl/blob/main/logos/sorbonne_logo.jpeg
+.. |Sorbonne| image:: https://github.com/Lbalkenhol/candl/raw/main/logos/sorbonne_logo.jpeg
    :alt: Sorbonne
    :height: 100px
    :width: 248px
