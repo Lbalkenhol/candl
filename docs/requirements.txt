@@ -3,3 +3,4 @@ sphinx-collapse==0.1.2
 sphinx-book-theme==1.0.1
 numpydoc==1.6.0
 myst-parser==2.0.0
+candl==1.0.0
