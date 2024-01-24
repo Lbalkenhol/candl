@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.abspath('./..'))
 sys.path.insert(0, os.path.abspath('./../candl'))
 sys.path.insert(0, os.path.abspath('./candl'))
 sys.path.insert(0, os.path.abspath("."))
+sys.path.insert(0, '/home/docs/checkouts/readthedocs.org/user_builds/candl')
 
 print("WHAT EVEN IS THE PATH")
 print(sys.path)
