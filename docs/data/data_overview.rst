@@ -23,7 +23,7 @@ SPT-3G 2018 TT/TE/EE
 :LAMBDA:
    `NASA Archive <https://lambda.gsfc.nasa.gov/product/spt/spt3g_likelihood_v2_get.html>`__
 
-:Short cut:
+:Short cut(s):
    ``candl.data.SPT3G_2018_TTTEEE``
 
 *Note:* this data set is not differentiable due to the functional form of the tSZ-CIB correlation term.
@@ -41,10 +41,11 @@ SPT-3G 2018 PP
 :Type:
    Lensing power spectrum measurement (:math:`\phi\phi`)
 
-:Short cut:
-   ``candl.data.SPT3G_2018_Lens``
+:Short cut(s):
+   ``candl.data.SPT3G_2018_Lens``, ``candl.data.SPT3G_2018_Lens_and_CMB``
 
 *Note*: this data set uses the lensing power spectrum in :math:`\phi\phi`.
+Use ``candl.data.SPT3G_2018_Lens`` when only working with lensing data, use ``candl.data.SPT3G_2018_Lens_and_CMB`` when combining lensing and primary CMB data.
 
 ACT DR4 TT/TE/EE
 -------------------------------------------------
@@ -67,7 +68,7 @@ ACT DR4 TT/TE/EE
 :LAMBDA:
    `NASA archive <https://lambda.gsfc.nasa.gov/product/act/act_dr4_likelihood_get.html>`__
 
-:Short cut:
+:Short cut(s):
    ``candl.data.ACT_DR4_TTTEEE``
    
 *Note*: This is the CMB-only, foreground marginalised version of the likelihood.
@@ -93,8 +94,9 @@ ACT DR6 PP
 
 :Website: `Github <https://github.com/ACTCollaboration/act_dr6_lenslike>`__
 
-:Short cut:
-   ``candl.data.ACT_DR6_Lens``
+:Short cut(s):
+   ``candl.data.ACT_DR6_Lens``, ``candl.data.ACT_DR6_Lens_and_CMB``
 
 *Note*: this data set uses the lensing power spectrum in :math:`\kappa\kappa`.
 For the ACT + Planck lensing combination see also `Carron, Mirmelstein, Lewis 2023 <https://arxiv.org/abs/2206.07773>`_.
+Use ``candl.data.ACT_DR6_Lens`` when only working with lensing data, use ``candl.data.ACT_DR6_Lens_and_CMB`` when combining lensing and primary CMB data.

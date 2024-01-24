@@ -1,6 +1,9 @@
 .. image:: docs/logos/candl_wordmark&symbol_col_RGB.png
     :width: 800
 
+.. |docsshield| image:: https://img.shields.io/readthedocs/:candl
+   :target: http://candl.readthedocs.io
+
 CMB Analysis With A Differentiable Likelihood
 ===============================================================
 
@@ -10,7 +13,7 @@ CMB Analysis With A Differentiable Likelihood
 
 :Source: `<https://github.com/Lbalkenhol/candl>`__
 
-:Documentation: ``right here``
+:Documentation: |docsshield|
 
 candl is a differentiable likelihood framework for analysing CMB power spectrum measurements.
 Key features are:
@@ -49,14 +52,7 @@ However, if JAX is installed, the likelihood is fully differentiable thanks to a
 Documentation
 --------------
 
-You can build the documentation by executing::
-
-    make html
-
-in the ``docs/`` folder.
-There may be some warnings, but there should be no errors.
-You can then access the documentation under ``docs/_build/html/index.html``.
-Once the repository is public, we can host this properly somewhere.
+You can find the documentation `here <http://candl.readthedocs.io>`_.
 
 ===================
 
