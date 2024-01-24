@@ -6,8 +6,10 @@ Overview:
 
 * :const:`SPT3G_2018_TTTEEE`: SPT3G 2018 TTTEEE data set.
 * :const:`SPT3G_2018_Lens`: SPT3G 2018 Lensing data set.
+* :const:`SPT3G_2018_Lens_and_CMB`: SPT3G 2018 Lensing data set, with transformations for combined constraints with primary CMB.
 * :const:`ACT_DR4_TTTEEE`: ACT DR4 TTTEEE data set.
 * :const:`ACT_DR6_Lens`: ACT DR6 Lensing data set.
+* :const:`ACT_DR6_Lens_and_CMB`: ACT DR6 Lensing data set, with transformations for combined constraints with primary CMB.
 """
 
 # Grab Data Path

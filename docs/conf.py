@@ -42,6 +42,7 @@ extensions = [
     "numpydoc",
 ]
 
+# Things we need for the docs to render, but don't actually need to import
 autodoc_mock_imports = ["camb", "cobaya"]
 
 intersphinx_mapping = {
