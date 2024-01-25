@@ -31,7 +31,7 @@ candl supports the analysis of primary CMB and lensing power spectrum data (:mat
 Installation
 ------------
 
-candl can be installed with pip::
+candl can be installed with pip:
 
 ```sh
 pip install candl-like
