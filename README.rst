@@ -33,8 +33,10 @@ Installation
 
 candl can be installed with pip:
 
-``` sh
-pip install candl-like
+```ruby
+require 'redcarpet'
+markdown = Redcarpet.new("Hello World!")
+puts markdown.to_html
 ```
 
 After installation, we recommend testing by executing the following python code::
