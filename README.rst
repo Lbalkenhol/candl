@@ -4,12 +4,15 @@
 .. |docsshield| image:: https://img.shields.io/readthedocs/candl
    :target: http://candl.readthedocs.io
 
+.. |arxivshield| image:: https://img.shields.io/badge/arXiv-2401.13433-b31b1b.svg
+   :target: https://arxiv.org/abs/2401.13433
+
 CMB Analysis With A Differentiable Likelihood
 ===============================================================
 
 :Authors: L\. Balkenhol, C\. Trendafilova, K\. Benabed, S\. Galli
 
-:Paper: ``arxiv shield goes here``
+:Paper: |arxivshield|
 
 :Source: `<https://github.com/Lbalkenhol/candl>`__
 
@@ -53,6 +56,11 @@ Documentation
 --------------
 
 You can find the documentation `here <http://candl.readthedocs.io>`_.
+
+Acknowledgment
+--------------
+
+If you use candl please cite the `release paper <https://arxiv.org/abs/2401.13433>`_. Be sure to also cite the relevant papers for any samplers, theory codes, and data sets you use.
 
 ===================
 
