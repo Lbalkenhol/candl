@@ -33,13 +33,11 @@ Installation
 
 candl can be installed with pip::
 
-.. code-block:: bash
-   
-    pip install candl-like
+```sh
+pip install candl-like
+```
 
 After installation, we recommend testing by executing the following python code::
-
-.. code-block:: python
 
    import candl.tests
    candl.tests.run_all_tests()
