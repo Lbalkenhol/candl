@@ -31,18 +31,14 @@ candl supports the analysis of primary CMB and lensing power spectrum data (:mat
 Installation
 ------------
 
-candl can be installed with pip:
+candl can be installed with pip::
 
-```ruby
-require 'redcarpet'
-markdown = Redcarpet.new("Hello World!")
-puts markdown.to_html
-```
+    pip install candl-like
 
 After installation, we recommend testing by executing the following python code::
 
-   import candl.tests
-   candl.tests.run_all_tests()
+    import candl.tests
+    candl.tests.run_all_tests()
 
 This well test all data sets included in candl.
 
