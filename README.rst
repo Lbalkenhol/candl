@@ -33,7 +33,7 @@ Installation
 
 candl can be installed with pip:
 
-```sh
+``` sh
 pip install candl-like
 ```
 
