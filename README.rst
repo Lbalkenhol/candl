@@ -37,9 +37,10 @@ candl can be installed with pip::
 
 After installation, we recommend testing by executing the following python code::
 
-    import candl.tests
-    candl.tests.run_all_tests()
-
+```python
+import candl.tests
+candl.tests.run_all_tests()
+```
 This well test all data sets included in candl.
 
 JAX
@@ -57,7 +58,7 @@ Documentation
 
 You can find the documentation `here <http://candl.readthedocs.io>`_.
 
-Acknowledgment
+Citing candl
 --------------
 
 If you use candl please cite the `release paper <https://arxiv.org/abs/2401.13433>`_. Be sure to also cite the relevant papers for any samplers, theory codes, and data sets you use.
