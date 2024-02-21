@@ -42,6 +42,18 @@ After installation, we recommend testing by executing the following python code:
 
 This well test all data sets included in candl.
 
+Data Sets
+------------
+
+The pip installation of candl currently ships with the following data sets:
+
+* SPT-3G 2018 TT/TE/EE (`Balkenhol et al. 2023 <https://arxiv.org/abs/2212.05642>`__)
+* SPT-3G 2018 Lensing (`Pan et al. 2023 <https://arxiv.org/abs/2308.11608>`__)
+* ACT DR4 TT/TE/EE (`Aiola et al. 2020 <https://arxiv.org/abs/2007.07288>`__, `Choi et al. 2020 <https://arxiv.org/abs/2007.07289>`__)
+* ACT DR6 Lensing (`Madhavacheril et al. 2023 <https://arxiv.org/abs/2304.05203>`__, `Qu et al. 2023 <https://arxiv.org/abs/2304.05202>`__)
+
+Detailed information on these data sets, how to install data sets separately from the likelihood code, and instructions on how you can add your own data sets can be found `in the docs <https://candl.readthedocs.io/en/latest/data/data_overview.html>`__.
+
 JAX
 ---
 
