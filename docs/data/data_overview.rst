@@ -10,7 +10,7 @@ Default Data Sets
 -------------------------------------------------
 
 The pip installation of candl ships with the data sets below.
-These are by default in your python `site-packages/` folder along with the code.
+These are by default in your python :code:`site-packages/` folder along with the code.
 You may choose to move them to a more convenient location (this will break the default short cuts, though you can override them).
 
 SPT-3G 2018 TT/TE/EE
