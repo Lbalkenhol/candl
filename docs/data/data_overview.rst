@@ -1,11 +1,20 @@
 Data Sets
 =================================================
 
-The following data sets are available. New data sets will be made available as they are released.
-Use the short cuts supplied point to each data sets ``.yaml`` file and can be used to initialise the likelihood.
+The following data sets are available for use with candl.
+For the default data sets that ship with the release there are shortcuts available to access them easily (see below).
+You can also use :func:`candl.data.print_all_shortcuts` to list all available shortcuts.
+New data sets will be uploaded as they become available.
+
+Default Data Sets
+-------------------------------------------------
+
+The pip installation of candl ships with the data sets below.
+These are by default in your python `site-packages/` folder along with the code.
+You may choose to move them to a more convenient location (this will break the default short cuts, though you can override them).
 
 SPT-3G 2018 TT/TE/EE
--------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. |spt3g18ttteee| image:: https://img.shields.io/badge/arXiv-2212.05642-b31b1b.svg
    :target: https://arxiv.org/abs/2212.05642
@@ -29,7 +38,7 @@ SPT-3G 2018 TT/TE/EE
 *Note:* this data set is not differentiable due to the functional form of the tSZ-CIB correlation term.
 
 SPT-3G 2018 PP
--------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. |spt3g18pp| image:: https://img.shields.io/badge/arXiv-2308.11608-b31b1b.svg
    :target: https://arxiv.org/abs/2308.11608
@@ -48,7 +57,7 @@ SPT-3G 2018 PP
 Use ``candl.data.SPT3G_2018_Lens`` when only working with lensing data, use ``candl.data.SPT3G_2018_Lens_and_CMB`` when combining lensing and primary CMB data.
 
 ACT DR4 TT/TE/EE
--------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. |actdr4ttteee_aiola| image:: https://img.shields.io/badge/arXiv-2007.07288-b31b1b.svg
    :target: https://arxiv.org/abs/2007.07288
@@ -75,7 +84,7 @@ ACT DR4 TT/TE/EE
 The likelihood refers to the deep data as ``dxd`` and the wide data as ``wxw``.
 
 ACT DR6 PP
--------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. |actdr4pp_madhavacheril| image:: https://img.shields.io/badge/arXiv-2304.05203-b31b1b.svg
    :target: https://arxiv.org/abs/2304.05203
@@ -100,3 +109,11 @@ ACT DR6 PP
 *Note*: this data set uses the lensing power spectrum in :math:`\kappa\kappa`.
 For the ACT + Planck lensing combination see also `Carron, Mirmelstein, Lewis 2023 <https://arxiv.org/abs/2206.07773>`_.
 Use ``candl.data.ACT_DR6_Lens`` when only working with lensing data, use ``candl.data.ACT_DR6_Lens_and_CMB`` when combining lensing and primary CMB data.
+
+Adding Data Sets
+-------------------------------------------------
+
+If you wish to install data sets separately from the code, please download the desired folders individually from the GitHub repo.
+You can place these wherever you like.
+It simply suffices to point to the ``.yaml`` file of a likelihood to initialise it.
+If you wish to build your own data sets, please consult the information :ref:`here<Data Structure>`.
