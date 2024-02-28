@@ -41,6 +41,8 @@ class Transformation:
         A short descriptor.
     par_names : list
         Names of parameters involved in transformation.
+    operation_hint : str
+        Type of the 'transform' operation, i.e. 'additive', 'multiplicative', or other (anything else). Non-binding, used as a hint for helper functions in tools module.
 
     Methods
     ---------
@@ -54,7 +56,7 @@ class Transformation:
     On making subclasses: initialisation arguments can either correspond the names of attributes of the likelihood, supplied by the user, or one of the few special keywords that the likelihood understands.
     """
 
-    def __init__(self, ells, descriptor="", param_names=[]):
+    def __init__(self, ells, descriptor="", param_names=[], operation_hint=""):
         """
         Initialise the Transformation.
         Intended to be expanded upon by subclasses.
@@ -67,6 +69,8 @@ class Transformation:
             A short descriptor.
         par_names : list
             Names of parameters involved in transformation.
+        operation_hint : str
+            Type of the 'transform' operation, i.e. 'additive', 'multiplicative', or other (anything else). Non-binding, used as a hint for helper functions in tools module.
 
         Returns
         --------------
@@ -77,6 +81,7 @@ class Transformation:
         self.ells = ells
         self.descriptor = descriptor
         self.param_names = param_names
+        self.operation_hint = operation_hint
 
     def transform(self, Dls, sample_params):
         """
@@ -120,6 +125,8 @@ class Foreground(Transformation):
         Reference ell.
     nu_ref : float
         Reference frequency.
+    operation_hint : str
+        Type of the 'transform' operation, i.e. 'additive' (default), 'multiplicative', or other (anything else). Non-binding, used as a hint for helper functions in tools module.
 
     Methods
     ---------
@@ -131,7 +138,15 @@ class Foreground(Transformation):
         transforms an input spectrum.
     """
 
-    def __init__(self, ells, ell_ref=None, nu_ref=None, descriptor="", param_names=[]):
+    def __init__(
+        self,
+        ells,
+        ell_ref=None,
+        nu_ref=None,
+        descriptor="",
+        param_names=[],
+        operation_hint="additive",
+    ):
         """
         Initialise a new instance of the Foreground class.
         Intended to be expanded upon by subclasses.
@@ -148,6 +163,8 @@ class Foreground(Transformation):
             Reference frequency.
         ell_ref : float
             Reference ell.
+        operation_hint : str
+            Type of the 'transform' operation, i.e. 'additive' (default), 'multiplicative', or other (anything else). Non-binding, used as a hint for helper functions in tools module.
 
 
         Returns
@@ -156,7 +173,12 @@ class Foreground(Transformation):
             A new instance of the foreground class.
         """
 
-        super().__init__(ells=ells, descriptor=descriptor, param_names=param_names)
+        super().__init__(
+            ells=ells,
+            descriptor=descriptor,
+            param_names=param_names,
+            operation_hint=operation_hint,
+        )
 
         self.nu_ref = nu_ref
         self.ell_ref = ell_ref
@@ -223,6 +245,8 @@ class TemplateForeground(Foreground):
         Names of parameters involved in transformation.
     nu_ref : float
         Reference frequency.
+    operation_hint : str
+        Type of the 'transform' operation, i.e. 'additive' (default), 'multiplicative', or other (anything else). Non-binding, used as a hint for helper functions in tools module.
 
     Methods
     ---------
@@ -234,7 +258,15 @@ class TemplateForeground(Foreground):
         transforms an input spectrum.
     """
 
-    def __init__(self, ells, template_arr, ell_ref, descriptor="", param_names=[]):
+    def __init__(
+        self,
+        ells,
+        template_arr,
+        ell_ref,
+        descriptor="",
+        param_names=[],
+        operation_hint="additive",
+    ):
         """
         Initialise a new instance of the TemplateForeground class.
         Intended to be expanded upon by subclasses.
@@ -252,6 +284,8 @@ class TemplateForeground(Foreground):
             Array with two columns, the first for ell values, the second for values of the template spectrum.
         ell_ref : float
             Reference ell to normalise the template at (amplitude = 1).
+        operation_hint : str
+            Type of the 'transform' operation, i.e. 'additive' (default), 'multiplicative', or other (anything else). Non-binding, used as a hint for helper functions in tools module.
 
         Returns
         --------------
@@ -259,7 +293,12 @@ class TemplateForeground(Foreground):
             A new instance of the TemplateForeground class.
         """
 
-        super().__init__(ells=ells, descriptor=descriptor, param_names=param_names)
+        super().__init__(
+            ells=ells,
+            descriptor=descriptor,
+            param_names=param_names,
+            operation_hint=operation_hint,
+        )
 
         # Read in template
         self.template_arr = template_arr  # jnp.asarray(np.loadtxt(template_file))
@@ -351,6 +390,8 @@ class DustyForeground(Foreground):
         Masks which elements of the long data vector are affected by the transformation.
     N_spec : int
         The total number of spectra in the long data vector.
+    operation_hint : str
+        Type of the 'transform' operation, i.e. 'additive' (default), 'multiplicative', or other (anything else). Non-binding, used as a hint for helper functions in tools module.
 
     Methods
     ---------
@@ -373,6 +414,7 @@ class DustyForeground(Foreground):
         T_dust,
         descriptor="",
         param_names=[],
+        operation_hint="additive",
     ):
         """
         Initialise a new instance of the DustyForeground class.
@@ -398,6 +440,8 @@ class DustyForeground(Foreground):
             Reference frequency.
         T_dust : float
             Temperature of the dust.
+        operation_hint : str
+            Type of the 'transform' operation, i.e. 'additive' (default), 'multiplicative', or other (anything else). Non-binding, used as a hint for helper functions in tools module.
 
         Returns
         --------------
@@ -411,6 +455,7 @@ class DustyForeground(Foreground):
             nu_ref=nu_ref,
             descriptor=descriptor,
             param_names=param_names,
+            operation_hint=operation_hint,
         )
 
         self.spec_order = spec_order
@@ -434,7 +479,41 @@ class Calibration(Transformation):
     Useful to catch tool methods that identify calibration transformations.
     """
 
-    pass
+    def __init__(
+        self,
+        ells,
+        descriptor="",
+        param_names=[],
+        operation_hint="multiplicative",
+    ):
+        """
+        Initialise a new instance of the Calibration class.
+        Intended to be expanded upon by subclasses.
+
+        Parameters
+        --------------
+        ells : array (float)
+            The ell range the transformation acts on.
+        descriptor : str
+            A short descriptor.
+        par_names : list
+            Names of parameters involved in transformation.
+        operation_hint : str
+            Type of the 'transform' operation, i.e. 'additive', 'multiplicative' (default), or other (anything else). Non-binding, used as a hint for helper functions in tools module.
+
+
+        Returns
+        -------
+        Calibration
+            A new instance of the calibration class.
+        """
+
+        super().__init__(
+            ells=ells,
+            descriptor=descriptor,
+            param_names=param_names,
+            operation_hint=operation_hint,
+        )
 
 
 class IndividualCalibration(Calibration):
@@ -462,6 +541,8 @@ class IndividualCalibration(Calibration):
         Masks which parts of the long data vector are affected by the transformation.
     affected_specs_ix : list (int)
         Indices in spectra_order of spectra the transformation is applied to.
+    operation_hint : str
+        Type of the 'transform' operation, i.e. 'additive', 'multiplicative' (default), or other (anything else). Non-binding, used as a hint for helper functions in tools module.
 
     Methods
     ---------
@@ -471,7 +552,14 @@ class IndividualCalibration(Calibration):
         transforms an input spectrum.
     """
 
-    def __init__(self, ells, spec_order, spec_param_dict, descriptor="Calibration"):
+    def __init__(
+        self,
+        ells,
+        spec_order,
+        spec_param_dict,
+        descriptor="Calibration",
+        operation_hint="multiplicative",
+    ):
         """
         Initialise a new instance of the Calibration class.
         Intended to be expanded upon by subclasses.
@@ -487,6 +575,8 @@ class IndividualCalibration(Calibration):
         spec_param_dict : dict
             A dictionary with keys that are spectrum identifiers and values that are lists of the nuisance parameter names
             that are used to transform this spectrum.
+        operation_hint : str
+            Type of the 'transform' operation, i.e. 'additive', 'multiplicative' (default), or other (anything else). Non-binding, used as a hint for helper functions in tools module.
 
         Returns
         --------------
@@ -569,6 +659,8 @@ class ForegroundBandPass(Foreground):
         Reference frequency.
     N_spec : int
         The total number of spectra in the long data vector.
+    operation_hint : str
+        Type of the 'transform' operation, i.e. 'additive' (default), 'multiplicative', or other (anything else). Non-binding, used as a hint for helper functions in tools module.
 
     Methods
     ---------
@@ -589,6 +681,7 @@ class ForegroundBandPass(Foreground):
         nu_ref,
         descriptor="",
         param_names=[],
+        operation_hint="additive",
     ):
         """
         Initialise a new instance of the DustyForeground class.
@@ -611,6 +704,8 @@ class ForegroundBandPass(Foreground):
             Reference ell for normalisation.
         nu_ref : float
             Reference frequency.
+        operation_hint : str
+            Type of the 'transform' operation, i.e. 'additive' (default), 'multiplicative', or other (anything else). Non-binding, used as a hint for helper functions in tools module.
 
         Returns
         --------------
@@ -625,6 +720,7 @@ class ForegroundBandPass(Foreground):
             nu_ref=nu_ref,
             descriptor=descriptor,
             param_names=param_names,
+            operation_hint=operation_hint,
         )
 
         self.spec_order = spec_order

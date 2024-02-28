@@ -1,5 +1,5 @@
 """
-SPT3G_JAX_transformations_low_ell_BB module
+Galactic Foreground transformations with band pass integrals intended for BB analysis.
 
 Foreground Classes:
 --------
@@ -11,19 +11,20 @@ SynchrotronFixedAlphaBandPass
 GalacticDustSynchrotronCorrelationFixedAlphaBandPass
 """
 
-#--------------------------------------#
+# --------------------------------------#
 # IMPORTS
-#--------------------------------------#
+# --------------------------------------#
 
-from SPT3G_JAX_Likelihood.lib import *
-import SPT3G_JAX_Likelihood.transformations.abstract_base as SPT3G_JAX_transformations_abstract_base
-import SPT3G_JAX_Likelihood.transformations.common as SPT3G_JAX_transformations_common
+from candl.lib import *
+import candl.transformations.abstract_base
+import candl.transformations.common
 
-#--------------------------------------#
+# --------------------------------------#
 # DUST AND SYNCHROTRON WITH BAND PASS INTEGRALS
-#--------------------------------------#
+# --------------------------------------#
 
-class GalacticDustBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBandPass):
+
+class GalacticDustBandPass(candl.transformations.abstract_base.ForegroundBandPass):
     """
     Dusty foreground with modified black-body frequency scaling with integral over band pass with a power law ell
     power spectrum.
@@ -54,7 +55,7 @@ class GalacticDustBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBan
         List of spectrum identifiers the transformation is applied to.
 
     Example yaml block to add polarised galactic dust to all EE spectra:
-    - Module: "SPT3G_JAX_transformations_common.GalacticDustBandPass"
+    - Module: "candl.transformations.common.GalacticDustBandPass"
       amp_param: "BB_GalDust_BDP_Amp"
       alpha_param: "BB_GalDust_BDP_Alpha"
       beta_param: "BB_GalDust_BDP_Beta"
@@ -84,7 +85,7 @@ class GalacticDustBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBan
     spec_order : array (str)
         Identifiers of spectra in the order in which spectra are handled in the long data vector.
     bandpass_info : list
-        List of lists, where each sublist contains the two SPT3G_JAX_transformations_abstract_base.BandPass instances for the two
+        List of lists, where each sublist contains the two candl.transformations.abstract_base.BandPass instances for the two
         frequencies involved.
     ell_ref : int
         Reference ell for normalisation.
@@ -112,18 +113,20 @@ class GalacticDustBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBan
     dust_frequency_scaling_bandpass
     """
 
-    def __init__(self,
-                 ells,
-                 spec_order,
-                 bandpass_info,
-                 affected_specs,
-                 amp_param,
-                 alpha_param,
-                 beta_param,
-                 ell_ref,
-                 nu_ref,
-                 T_GALDUST,
-                 descriptor="Galactic Dust (Band pass)"):
+    def __init__(
+        self,
+        ells,
+        spec_order,
+        bandpass_info,
+        affected_specs,
+        amp_param,
+        alpha_param,
+        beta_param,
+        ell_ref,
+        nu_ref,
+        T_GALDUST,
+        descriptor="Galactic Dust (Band pass)",
+    ):
         """
         Initialise a new instance of the GalacticDustBandPass class.
 
@@ -134,7 +137,7 @@ class GalacticDustBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBan
         descriptor : str
             A short descriptor.
         bandpass_info : list
-            List of lists, where each sublist contains the two SPT3G_JAX_transformations_abstract_base.BandPass instances for the two
+            List of lists, where each sublist contains the two candl.transformations.abstract_base.BandPass instances for the two
             frequencies involved.
         spec_order : array (str)
             Identifiers of spectra in the order in which spectra are handled in the long data vector.
@@ -159,13 +162,15 @@ class GalacticDustBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBan
             A new instance of the class.
         """
 
-        super().__init__(ells=ells,
-                         spec_order=spec_order,
-                         bandpass_info=bandpass_info,
-                         ell_ref=ell_ref,
-                         nu_ref=nu_ref,
-                         descriptor=descriptor,
-                         param_names=[amp_param, alpha_param, beta_param])
+        super().__init__(
+            ells=ells,
+            spec_order=spec_order,
+            bandpass_info=bandpass_info,
+            ell_ref=ell_ref,
+            nu_ref=nu_ref,
+            descriptor=descriptor,
+            param_names=[amp_param, alpha_param, beta_param],
+        )
 
         self.T_dust = T_GALDUST
         self.amp_param = amp_param
@@ -173,14 +178,17 @@ class GalacticDustBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBan
         self.beta_param = beta_param
 
         self.affected_specs = affected_specs
-        self.spec_mask = jnp.asarray([spec in self.affected_specs for spec in self.spec_order])
+        self.spec_mask = jnp.asarray(
+            [spec in self.affected_specs for spec in self.spec_order]
+        )
 
         # Turn spectrum mask into a full mask
-        self.full_mask = jnp.asarray(jnp.repeat(self.spec_mask, len(self.ells)), dtype=float)
+        self.full_mask = jnp.asarray(
+            jnp.repeat(self.spec_mask, len(self.ells)), dtype=float
+        )
 
     @partial(jit, static_argnums=(0,))
-    def output(self,
-               sample_params):
+    def output(self, sample_params):
         """
         Return foreground spectrum.
 
@@ -196,37 +204,47 @@ class GalacticDustBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBan
         """
 
         # amplitude part (frequency scaling)
-        amp_vals = jnp.array([SPT3G_JAX_transformations_common.dust_frequency_scaling_bandpass(sample_params[self.beta_param],
-                                                              self.T_dust,
-                                                              self.nu_ref,
-                                                              self.bandpass_info[i][0].nu_spacing,
-                                                              self.bandpass_info[i][0].nu_vals,
-                                                              self.bandpass_info[i][0].bandpass_vals,
-                                                              self.bandpass_info[i][0].thermo_conv[self.nu_ref])
-                              * SPT3G_JAX_transformations_common.dust_frequency_scaling_bandpass(sample_params[self.beta_param],
-                                                                self.T_dust,
-                                                                self.nu_ref,
-                                                                self.bandpass_info[i][1].nu_spacing,
-                                                                self.bandpass_info[i][1].nu_vals,
-                                                                self.bandpass_info[i][1].bandpass_vals,
-                                                                self.bandpass_info[i][1].thermo_conv[self.nu_ref])
-                              for i in range(self.N_spec)])
+        amp_vals = jnp.array(
+            [
+                candl.transformations.common.dust_frequency_scaling_bandpass(
+                    sample_params[self.beta_param],
+                    self.T_dust,
+                    self.nu_ref,
+                    self.bandpass_info[i][0].nu_spacing,
+                    self.bandpass_info[i][0].nu_vals,
+                    self.bandpass_info[i][0].bandpass_vals,
+                    self.bandpass_info[i][0].thermo_conv[self.nu_ref],
+                )
+                * candl.transformations.common.dust_frequency_scaling_bandpass(
+                    sample_params[self.beta_param],
+                    self.T_dust,
+                    self.nu_ref,
+                    self.bandpass_info[i][1].nu_spacing,
+                    self.bandpass_info[i][1].nu_vals,
+                    self.bandpass_info[i][1].bandpass_vals,
+                    self.bandpass_info[i][1].thermo_conv[self.nu_ref],
+                )
+                for i in range(self.N_spec)
+            ]
+        )
 
         amp_vals *= sample_params[self.amp_param]
         tiled_amp_vals = jnp.repeat(amp_vals, len(self.ells))
 
         # ell part
-        ell_dependence = (self.ells / self.ell_ref) ** (sample_params[self.alpha_param] + 2)
-        tiled_ell_dependence = jnp.tile(ell_dependence, self.N_spec)  # tiled ell dependence
+        ell_dependence = (self.ells / self.ell_ref) ** (
+            sample_params[self.alpha_param] + 2
+        )
+        tiled_ell_dependence = jnp.tile(
+            ell_dependence, self.N_spec
+        )  # tiled ell dependence
 
         # Complete foreground contribution and mask down
         fg_pow = self.full_mask * tiled_amp_vals * tiled_ell_dependence
         return fg_pow
 
     @partial(jit, static_argnums=(0,))
-    def transform(self,
-                  Dls,
-                  sample_params):
+    def transform(self, Dls, sample_params):
         """
         Transform spectrum by adding foreground component (result of output method).
 
@@ -245,7 +263,8 @@ class GalacticDustBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBan
 
         return Dls + self.output(sample_params)
 
-class SynchrotronBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBandPass):
+
+class SynchrotronBandPass(candl.transformations.abstract_base.ForegroundBandPass):
     """
     Synchrotron foreground with modified power law frequency scaling with integral over band pass with a power law ell
     power spectrum.
@@ -273,7 +292,7 @@ class SynchrotronBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBand
         List of spectrum identifiers the transformation is applied to.
 
     Example yaml block to add synchrotron power to all BB spectra:
-    - Module: "SPT3G_JAX_transformations_common.SynchrotronBandPass"
+    - Module: "candl.transformations.common.SynchrotronBandPass"
       amp_param: "BB_Sync_BDP_Amp"
       alpha_param : "BB_Sunc_BDP_Alpha"
       beta_param: "BB_Sync_BDP_Beta"
@@ -302,7 +321,7 @@ class SynchrotronBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBand
     spec_order : array (str)
         Identifiers of spectra in the order in which spectra are handled in the long data vector.
     bandpass_info : list
-        List of lists, where each sublist contains the two SPT3G_JAX_transformations_abstract_base.BandPass instances for the two
+        List of lists, where each sublist contains the two candl.transformations.abstract_base.BandPass instances for the two
         frequencies involved.
     ell_ref : int
         Reference ell for normalisation.
@@ -328,17 +347,19 @@ class SynchrotronBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBand
     sync_frequency_scaling_bandpass
     """
 
-    def __init__(self,
-                 ells,
-                 spec_order,
-                 bandpass_info,
-                 affected_specs,
-                 amp_param,
-                 alpha_param,
-                 beta_param,
-                 ell_ref,
-                 nu_ref,
-                 descriptor="Synchrotron (Band pass)"):
+    def __init__(
+        self,
+        ells,
+        spec_order,
+        bandpass_info,
+        affected_specs,
+        amp_param,
+        alpha_param,
+        beta_param,
+        ell_ref,
+        nu_ref,
+        descriptor="Synchrotron (Band pass)",
+    ):
         """
         Initialise a new instance of the SynchrotronBandPass class.
 
@@ -349,7 +370,7 @@ class SynchrotronBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBand
         descriptor : str
             A short descriptor.
         bandpass_info : list
-            List of lists, where each sublist contains the two SPT3G_JAX_transformations_abstract_base.BandPass instances for the two
+            List of lists, where each sublist contains the two candl.transformations.abstract_base.BandPass instances for the two
             frequencies involved.
         spec_order : array (str)
             Identifiers of spectra in the order in which spectra are handled in the long data vector.
@@ -372,27 +393,32 @@ class SynchrotronBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBand
             A new instance of the class.
         """
 
-        super().__init__(ells=ells,
-                         spec_order=spec_order,
-                         bandpass_info=bandpass_info,
-                         ell_ref=ell_ref,
-                         nu_ref=nu_ref,
-                         descriptor=descriptor,
-                         param_names=[amp_param, alpha_param, beta_param])
+        super().__init__(
+            ells=ells,
+            spec_order=spec_order,
+            bandpass_info=bandpass_info,
+            ell_ref=ell_ref,
+            nu_ref=nu_ref,
+            descriptor=descriptor,
+            param_names=[amp_param, alpha_param, beta_param],
+        )
 
         self.amp_param = amp_param
         self.beta_param = beta_param
         self.alpha_param = alpha_param
 
         self.affected_specs = affected_specs
-        self.spec_mask = jnp.asarray([spec in self.affected_specs for spec in self.spec_order])
+        self.spec_mask = jnp.asarray(
+            [spec in self.affected_specs for spec in self.spec_order]
+        )
 
         # Turn spectrum mask into a full mask
-        self.full_mask = jnp.asarray(jnp.repeat(self.spec_mask, len(self.ells)), dtype=float)
+        self.full_mask = jnp.asarray(
+            jnp.repeat(self.spec_mask, len(self.ells)), dtype=float
+        )
 
     @partial(jit, static_argnums=(0,))
-    def output(self,
-               sample_params):
+    def output(self, sample_params):
         """
         Return foreground spectrum.
 
@@ -408,35 +434,43 @@ class SynchrotronBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBand
         """
 
         # amplitude part (frequency scaling)
-        amp_vals = jnp.array([SPT3G_JAX_transformations_common.sync_frequency_scaling_bandpass(sample_params[self.beta_param],
-                                                              self.nu_ref,
-                                                              self.bandpass_info[i][0].nu_spacing,
-                                                              self.bandpass_info[i][0].nu_vals,
-                                                              self.bandpass_info[i][0].bandpass_vals,
-                                                              self.bandpass_info[i][0].thermo_conv[self.nu_ref])
-                              * SPT3G_JAX_transformations_common.sync_frequency_scaling_bandpass(sample_params[self.beta_param],
-                                                                self.nu_ref,
-                                                                self.bandpass_info[i][1].nu_spacing,
-                                                                self.bandpass_info[i][1].nu_vals,
-                                                                self.bandpass_info[i][1].bandpass_vals,
-                                                                self.bandpass_info[i][1].thermo_conv[self.nu_ref])
-                              for i in range(self.N_spec)])
+        amp_vals = jnp.array(
+            [
+                candl.transformations.common.sync_frequency_scaling_bandpass(
+                    sample_params[self.beta_param],
+                    self.nu_ref,
+                    self.bandpass_info[i][0].nu_spacing,
+                    self.bandpass_info[i][0].nu_vals,
+                    self.bandpass_info[i][0].bandpass_vals,
+                    self.bandpass_info[i][0].thermo_conv[self.nu_ref],
+                )
+                * candl.transformations.common.sync_frequency_scaling_bandpass(
+                    sample_params[self.beta_param],
+                    self.nu_ref,
+                    self.bandpass_info[i][1].nu_spacing,
+                    self.bandpass_info[i][1].nu_vals,
+                    self.bandpass_info[i][1].bandpass_vals,
+                    self.bandpass_info[i][1].thermo_conv[self.nu_ref],
+                )
+                for i in range(self.N_spec)
+            ]
+        )
 
         amp_vals *= sample_params[self.amp_param]
         tiled_amp_vals = jnp.repeat(amp_vals, len(self.ells))
 
         # ell part
         ell_dependence = (self.ells / self.ell_ref) ** (sample_params[self.alpha_param])
-        tiled_ell_dependence = jnp.tile(ell_dependence, self.N_spec)  # tiled ell dependence
+        tiled_ell_dependence = jnp.tile(
+            ell_dependence, self.N_spec
+        )  # tiled ell dependence
 
         # Complete foreground contribution and mask down
         fg_pow = self.full_mask * tiled_amp_vals * tiled_ell_dependence
         return fg_pow
 
     @partial(jit, static_argnums=(0,))
-    def transform(self,
-                  Dls,
-                  sample_params):
+    def transform(self, Dls, sample_params):
         """
         Transform spectrum by adding foreground component (result of output method).
 
@@ -455,11 +489,15 @@ class SynchrotronBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBand
 
         return Dls + self.output(sample_params)
 
-#--------------------------------------#
-# DUST AND SYNCHROTRON WITH BAND PASS INTEGRALS - FIXED ALPHA
-#--------------------------------------#
 
-class GalacticDustSynchrotronCorrelationBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBandPass):
+# --------------------------------------#
+# DUST AND SYNCHROTRON WITH BAND PASS INTEGRALS - FIXED ALPHA
+# --------------------------------------#
+
+
+class GalacticDustSynchrotronCorrelationBandPass(
+    candl.transformations.abstract_base.ForegroundBandPass
+):
     """
     Correlation between galactic dust and synchrotron.
     Uses geometric mean of GalacticDustBandPass and SynchrotronBandPass, intended to be used in conjunction with these
@@ -495,7 +533,7 @@ class GalacticDustSynchrotronCorrelationBandPass(SPT3G_JAX_transformations_abstr
 
 
     Example yaml block to add correlation to BB spectra:
-    - Module: "SPT3G_JAX_transformations_low_ell_BB.GalacticDustSynchrotronCorrelationBandPass"
+    - Module: "candl.transformations.low_ell_BB.GalacticDustSynchrotronCorrelationBandPass"
       correlation_param: "BB_rho_dust_sync"
       dust_amp_param: "BB_GalDust_BDP_Amp"
       dust_alpha_param: "BB_GalDust_BDP_Alpha"
@@ -530,7 +568,7 @@ class GalacticDustSynchrotronCorrelationBandPass(SPT3G_JAX_transformations_abstr
     spec_order : array (str)
         Identifiers of spectra in the order in which spectra are handled in the long data vector.
     bandpass_info : list
-        List of lists, where each sublist contains the two SPT3G_JAX_transformations_abstract_base.BandPass instances for the two
+        List of lists, where each sublist contains the two candl.transformations.abstract_base.BandPass instances for the two
         frequencies involved.
     ell_ref : int
         Reference ell for normalisation.
@@ -568,23 +606,25 @@ class GalacticDustSynchrotronCorrelationBandPass(SPT3G_JAX_transformations_abstr
     dust_frequency_scaling_bandpass
     """
 
-    def __init__(self,
-                 ells,
-                 spec_order,
-                 bandpass_info,
-                 affected_specs,
-                 correlation_param,
-                 dust_amp_param,
-                 dust_alpha_param,
-                 dust_beta_param,
-                 sync_amp_param,
-                 sync_alpha_param,
-                 sync_beta_param,
-                 ell_ref,
-                 nu_ref_dust,
-                 nu_ref_sync,
-                 T_GALDUST,
-                 descriptor="Dust Synchrotron Correlation (Band pass)"):
+    def __init__(
+        self,
+        ells,
+        spec_order,
+        bandpass_info,
+        affected_specs,
+        correlation_param,
+        dust_amp_param,
+        dust_alpha_param,
+        dust_beta_param,
+        sync_amp_param,
+        sync_alpha_param,
+        sync_beta_param,
+        ell_ref,
+        nu_ref_dust,
+        nu_ref_sync,
+        T_GALDUST,
+        descriptor="Dust Synchrotron Correlation (Band pass)",
+    ):
         """
         Initialise a new instance of the GalacticDustSynchrotronCorrelationBandPass class.
 
@@ -595,7 +635,7 @@ class GalacticDustSynchrotronCorrelationBandPass(SPT3G_JAX_transformations_abstr
         descriptor : str
             A short descriptor.
         bandpass_info : list
-            List of lists, where each sublist contains the two SPT3G_JAX_transformations_abstract_base.BandPass instances for the two
+            List of lists, where each sublist contains the two candl.transformations.abstract_base.BandPass instances for the two
             frequencies involved.
         spec_order : array (str)
             Identifiers of spectra in the order in which spectra are handled in the long data vector.
@@ -630,13 +670,23 @@ class GalacticDustSynchrotronCorrelationBandPass(SPT3G_JAX_transformations_abstr
             A new instance of the class.
         """
 
-        super().__init__(ells=ells,
-                         spec_order=spec_order,
-                         bandpass_info=bandpass_info,
-                         ell_ref=ell_ref,
-                         nu_ref={"dust": nu_ref_dust, "sync": nu_ref_sync},
-                         descriptor=descriptor,
-                         param_names=[correlation_param, dust_amp_param, dust_alpha_param, dust_beta_param, sync_amp_param, sync_alpha_param, sync_beta_param])
+        super().__init__(
+            ells=ells,
+            spec_order=spec_order,
+            bandpass_info=bandpass_info,
+            ell_ref=ell_ref,
+            nu_ref={"dust": nu_ref_dust, "sync": nu_ref_sync},
+            descriptor=descriptor,
+            param_names=[
+                correlation_param,
+                dust_amp_param,
+                dust_alpha_param,
+                dust_beta_param,
+                sync_amp_param,
+                sync_alpha_param,
+                sync_beta_param,
+            ],
+        )
 
         self.T_dust = T_GALDUST
         self.dust_amp_param = dust_amp_param
@@ -650,15 +700,17 @@ class GalacticDustSynchrotronCorrelationBandPass(SPT3G_JAX_transformations_abstr
         self.correlation_param = correlation_param
 
         self.affected_specs = affected_specs
-        self.spec_mask = jnp.asarray([spec in self.affected_specs for spec in self.spec_order])
+        self.spec_mask = jnp.asarray(
+            [spec in self.affected_specs for spec in self.spec_order]
+        )
 
         # Turn spectrum mask into a full mask
-        self.full_mask = jnp.asarray(jnp.repeat(self.spec_mask, len(self.ells)), dtype=float)
-
+        self.full_mask = jnp.asarray(
+            jnp.repeat(self.spec_mask, len(self.ells)), dtype=float
+        )
 
     @partial(jit, static_argnums=(0,))
-    def output(self,
-               sample_params):
+    def output(self, sample_params):
         """
         Return foreground spectrum.
 
@@ -674,57 +726,78 @@ class GalacticDustSynchrotronCorrelationBandPass(SPT3G_JAX_transformations_abstr
         """
 
         # amplitude part (frequency scaling)
-        amp_vals_1 = jnp.array([SPT3G_JAX_transformations_common.dust_frequency_scaling_bandpass(sample_params[self.dust_beta_param],
-                                                              self.T_dust,
-                                                              self.nu_ref["dust"],
-                                                              self.bandpass_info[i][0].nu_spacing,
-                                                              self.bandpass_info[i][0].nu_vals,
-                                                              self.bandpass_info[i][0].bandpass_vals,
-                                                              self.bandpass_info[i][0].thermo_conv[self.nu_ref["dust"]])
-                                * SPT3G_JAX_transformations_common.sync_frequency_scaling_bandpass(
-            sample_params[self.sync_beta_param],
-            self.nu_ref["sync"],
-            self.bandpass_info[i][1].nu_spacing,
-            self.bandpass_info[i][1].nu_vals,
-            self.bandpass_info[i][1].bandpass_vals,
-            self.bandpass_info[i][1].thermo_conv[self.nu_ref["sync"]])
-                              for i in range(self.N_spec)])
+        amp_vals_1 = jnp.array(
+            [
+                candl.transformations.common.dust_frequency_scaling_bandpass(
+                    sample_params[self.dust_beta_param],
+                    self.T_dust,
+                    self.nu_ref["dust"],
+                    self.bandpass_info[i][0].nu_spacing,
+                    self.bandpass_info[i][0].nu_vals,
+                    self.bandpass_info[i][0].bandpass_vals,
+                    self.bandpass_info[i][0].thermo_conv[self.nu_ref["dust"]],
+                )
+                * candl.transformations.common.sync_frequency_scaling_bandpass(
+                    sample_params[self.sync_beta_param],
+                    self.nu_ref["sync"],
+                    self.bandpass_info[i][1].nu_spacing,
+                    self.bandpass_info[i][1].nu_vals,
+                    self.bandpass_info[i][1].bandpass_vals,
+                    self.bandpass_info[i][1].thermo_conv[self.nu_ref["sync"]],
+                )
+                for i in range(self.N_spec)
+            ]
+        )
 
         amp_vals_2 = jnp.array(
-            [SPT3G_JAX_transformations_common.dust_frequency_scaling_bandpass(sample_params[self.dust_beta_param],
-                                                                              self.T_dust,
-                                                                              self.nu_ref["dust"],
-                                                                              self.bandpass_info[i][1].nu_spacing,
-                                                                              self.bandpass_info[i][1].nu_vals,
-                                                                              self.bandpass_info[i][1].bandpass_vals,
-                                                                              self.bandpass_info[i][1].thermo_conv[
-                                                                                  self.nu_ref["dust"]])
-             * SPT3G_JAX_transformations_common.sync_frequency_scaling_bandpass(
-                sample_params[self.sync_beta_param],
-                self.nu_ref["sync"],
-                self.bandpass_info[i][0].nu_spacing,
-                self.bandpass_info[i][0].nu_vals,
-                self.bandpass_info[i][0].bandpass_vals,
-                self.bandpass_info[i][0].thermo_conv[self.nu_ref["sync"]])
-             for i in range(self.N_spec)])
+            [
+                candl.transformations.common.dust_frequency_scaling_bandpass(
+                    sample_params[self.dust_beta_param],
+                    self.T_dust,
+                    self.nu_ref["dust"],
+                    self.bandpass_info[i][1].nu_spacing,
+                    self.bandpass_info[i][1].nu_vals,
+                    self.bandpass_info[i][1].bandpass_vals,
+                    self.bandpass_info[i][1].thermo_conv[self.nu_ref["dust"]],
+                )
+                * candl.transformations.common.sync_frequency_scaling_bandpass(
+                    sample_params[self.sync_beta_param],
+                    self.nu_ref["sync"],
+                    self.bandpass_info[i][0].nu_spacing,
+                    self.bandpass_info[i][0].nu_vals,
+                    self.bandpass_info[i][0].bandpass_vals,
+                    self.bandpass_info[i][0].thermo_conv[self.nu_ref["sync"]],
+                )
+                for i in range(self.N_spec)
+            ]
+        )
 
         amp_vals = amp_vals_1 + amp_vals_2
 
-        amp_vals *= sample_params[self.correlation_param] * jnp.sqrt(sample_params[self.dust_amp_param]*sample_params[self.sync_amp_param])
+        amp_vals *= sample_params[self.correlation_param] * jnp.sqrt(
+            sample_params[self.dust_amp_param] * sample_params[self.sync_amp_param]
+        )
         tiled_amp_vals = jnp.repeat(amp_vals, len(self.ells))
 
         # ell part
-        ell_dependence = (self.ells / self.ell_ref) ** ((sample_params[self.dust_alpha_param] + 2.0 + sample_params[self.sync_alpha_param]) / 2.0)
-        tiled_ell_dependence = jnp.tile(ell_dependence, self.N_spec)  # tiled ell dependence
+        ell_dependence = (self.ells / self.ell_ref) ** (
+            (
+                sample_params[self.dust_alpha_param]
+                + 2.0
+                + sample_params[self.sync_alpha_param]
+            )
+            / 2.0
+        )
+        tiled_ell_dependence = jnp.tile(
+            ell_dependence, self.N_spec
+        )  # tiled ell dependence
 
         # Complete foreground contribution and mask down
         fg_pow = self.full_mask * tiled_amp_vals * tiled_ell_dependence
         return fg_pow
 
     @partial(jit, static_argnums=(0,))
-    def transform(self,
-                  Dls,
-                  sample_params):
+    def transform(self, Dls, sample_params):
         """
         Transform spectrum by adding foreground component (result of output method).
 
@@ -744,7 +817,9 @@ class GalacticDustSynchrotronCorrelationBandPass(SPT3G_JAX_transformations_abstr
         return Dls + self.output(sample_params)
 
 
-class GalacticDustFixedAlphaBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBandPass):
+class GalacticDustFixedAlphaBandPass(
+    candl.transformations.abstract_base.ForegroundBandPass
+):
     """
     Dusty foreground with modified black-body frequency scaling with integral over band pass with a power law ell
     power spectrum.
@@ -771,7 +846,7 @@ class GalacticDustFixedAlphaBandPass(SPT3G_JAX_transformations_abstract_base.For
         List of spectrum identifiers the transformation is applied to.
 
     Example yaml block to add polarised galactic dust to all BB spectra:
-    - Module: "SPT3G_JAX_transformations_common.GalacticDustBandPass"
+    - Module: "candl.transformations.common.GalacticDustBandPass"
       amp_param: "BB_GalDust_BDP_Amp"
       beta_param: "BB_GalDust_BDP_Beta"
       nu_ref: 353
@@ -800,7 +875,7 @@ class GalacticDustFixedAlphaBandPass(SPT3G_JAX_transformations_abstract_base.For
     spec_order : array (str)
         Identifiers of spectra in the order in which spectra are handled in the long data vector.
     bandpass_info : list
-        List of lists, where each sublist contains the two SPT3G_JAX_transformations_abstract_base.BandPass instances for the two
+        List of lists, where each sublist contains the two candl.transformations.abstract_base.BandPass instances for the two
         frequencies involved.
     ell_ref : int
         Reference ell for normalisation.
@@ -826,17 +901,19 @@ class GalacticDustFixedAlphaBandPass(SPT3G_JAX_transformations_abstract_base.For
     dust_frequency_scaling_bandpass
     """
 
-    def __init__(self,
-                 ells,
-                 spec_order,
-                 bandpass_info,
-                 affected_specs,
-                 amp_param,
-                 beta_param,
-                 ell_ref,
-                 nu_ref,
-                 T_GALDUST,
-                 descriptor="Galactic Dust (Band pass)"):
+    def __init__(
+        self,
+        ells,
+        spec_order,
+        bandpass_info,
+        affected_specs,
+        amp_param,
+        beta_param,
+        ell_ref,
+        nu_ref,
+        T_GALDUST,
+        descriptor="Galactic Dust (Band pass)",
+    ):
         """
         Initialise a new instance of the GalacticDustBandPass class.
 
@@ -847,7 +924,7 @@ class GalacticDustFixedAlphaBandPass(SPT3G_JAX_transformations_abstract_base.For
         descriptor : str
             A short descriptor.
         bandpass_info : list
-            List of lists, where each sublist contains the two SPT3G_JAX_transformations_abstract_base.BandPass instances for the two
+            List of lists, where each sublist contains the two candl.transformations.abstract_base.BandPass instances for the two
             frequencies involved.
         spec_order : array (str)
             Identifiers of spectra in the order in which spectra are handled in the long data vector.
@@ -870,27 +947,32 @@ class GalacticDustFixedAlphaBandPass(SPT3G_JAX_transformations_abstract_base.For
             A new instance of the class.
         """
 
-        super().__init__(ells=ells,
-                         spec_order=spec_order,
-                         bandpass_info=bandpass_info,
-                         ell_ref=ell_ref,
-                         nu_ref=nu_ref,
-                         descriptor=descriptor,
-                         param_names=[amp_param, beta_param])
+        super().__init__(
+            ells=ells,
+            spec_order=spec_order,
+            bandpass_info=bandpass_info,
+            ell_ref=ell_ref,
+            nu_ref=nu_ref,
+            descriptor=descriptor,
+            param_names=[amp_param, beta_param],
+        )
 
         self.T_dust = T_GALDUST
         self.amp_param = amp_param
         self.beta_param = beta_param
 
         self.affected_specs = affected_specs
-        self.spec_mask = jnp.asarray([spec in self.affected_specs for spec in self.spec_order])
+        self.spec_mask = jnp.asarray(
+            [spec in self.affected_specs for spec in self.spec_order]
+        )
 
         # Turn spectrum mask into a full mask
-        self.full_mask = jnp.asarray(jnp.repeat(self.spec_mask, len(self.ells)), dtype=float)
+        self.full_mask = jnp.asarray(
+            jnp.repeat(self.spec_mask, len(self.ells)), dtype=float
+        )
 
     @partial(jit, static_argnums=(0,))
-    def output(self,
-               sample_params):
+    def output(self, sample_params):
         """
         Return foreground spectrum.
 
@@ -906,37 +988,45 @@ class GalacticDustFixedAlphaBandPass(SPT3G_JAX_transformations_abstract_base.For
         """
 
         # amplitude part (frequency scaling)
-        amp_vals = jnp.array([SPT3G_JAX_transformations_common.dust_frequency_scaling_bandpass(sample_params[self.beta_param],
-                                                              self.T_dust,
-                                                              self.nu_ref,
-                                                              self.bandpass_info[i][0].nu_spacing,
-                                                              self.bandpass_info[i][0].nu_vals,
-                                                              self.bandpass_info[i][0].bandpass_vals,
-                                                              self.bandpass_info[i][0].thermo_conv[self.nu_ref])
-                              * SPT3G_JAX_transformations_common.dust_frequency_scaling_bandpass(sample_params[self.beta_param],
-                                                                self.T_dust,
-                                                                self.nu_ref,
-                                                                self.bandpass_info[i][1].nu_spacing,
-                                                                self.bandpass_info[i][1].nu_vals,
-                                                                self.bandpass_info[i][1].bandpass_vals,
-                                                                self.bandpass_info[i][1].thermo_conv[self.nu_ref])
-                              for i in range(self.N_spec)])
+        amp_vals = jnp.array(
+            [
+                candl.transformations.common.dust_frequency_scaling_bandpass(
+                    sample_params[self.beta_param],
+                    self.T_dust,
+                    self.nu_ref,
+                    self.bandpass_info[i][0].nu_spacing,
+                    self.bandpass_info[i][0].nu_vals,
+                    self.bandpass_info[i][0].bandpass_vals,
+                    self.bandpass_info[i][0].thermo_conv[self.nu_ref],
+                )
+                * candl.transformations.common.dust_frequency_scaling_bandpass(
+                    sample_params[self.beta_param],
+                    self.T_dust,
+                    self.nu_ref,
+                    self.bandpass_info[i][1].nu_spacing,
+                    self.bandpass_info[i][1].nu_vals,
+                    self.bandpass_info[i][1].bandpass_vals,
+                    self.bandpass_info[i][1].thermo_conv[self.nu_ref],
+                )
+                for i in range(self.N_spec)
+            ]
+        )
 
         amp_vals *= sample_params[self.amp_param]
         tiled_amp_vals = jnp.repeat(amp_vals, len(self.ells))
 
         # ell part
         ell_dependence = (self.ells / self.ell_ref) ** (-0.4)
-        tiled_ell_dependence = jnp.tile(ell_dependence, self.N_spec)  # tiled ell dependence
+        tiled_ell_dependence = jnp.tile(
+            ell_dependence, self.N_spec
+        )  # tiled ell dependence
 
         # Complete foreground contribution and mask down
         fg_pow = self.full_mask * tiled_amp_vals * tiled_ell_dependence
         return fg_pow
 
     @partial(jit, static_argnums=(0,))
-    def transform(self,
-                  Dls,
-                  sample_params):
+    def transform(self, Dls, sample_params):
         """
         Transform spectrum by adding foreground component (result of output method).
 
@@ -955,7 +1045,10 @@ class GalacticDustFixedAlphaBandPass(SPT3G_JAX_transformations_abstract_base.For
 
         return Dls + self.output(sample_params)
 
-class SynchrotronFixedAlphaBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBandPass):
+
+class SynchrotronFixedAlphaBandPass(
+    candl.transformations.abstract_base.ForegroundBandPass
+):
     """
     Synchrotron foreground with modified power law frequency scaling with integral over band pass with a power law ell
     power spectrum.
@@ -980,7 +1073,7 @@ class SynchrotronFixedAlphaBandPass(SPT3G_JAX_transformations_abstract_base.Fore
         List of spectrum identifiers the transformation is applied to.
 
     Example yaml block to add synchrotron power to all BB spectra:
-    - Module: "SPT3G_JAX_transformations_common.SynchrotronBandPass"
+    - Module: "candl.transformations.common.SynchrotronBandPass"
       amp_param: "BB_Sync_BDP_Amp"
       beta_param: "BB_Sync_BDP_Beta"
       nu_ref: 150
@@ -1008,7 +1101,7 @@ class SynchrotronFixedAlphaBandPass(SPT3G_JAX_transformations_abstract_base.Fore
     spec_order : array (str)
         Identifiers of spectra in the order in which spectra are handled in the long data vector.
     bandpass_info : list
-        List of lists, where each sublist contains the two SPT3G_JAX_transformations_abstract_base.BandPass instances for the two
+        List of lists, where each sublist contains the two candl.transformations.abstract_base.BandPass instances for the two
         frequencies involved.
     ell_ref : int
         Reference ell for normalisation.
@@ -1032,16 +1125,18 @@ class SynchrotronFixedAlphaBandPass(SPT3G_JAX_transformations_abstract_base.Fore
     sync_frequency_scaling_bandpass
     """
 
-    def __init__(self,
-                 ells,
-                 spec_order,
-                 bandpass_info,
-                 affected_specs,
-                 amp_param,
-                 beta_param,
-                 ell_ref,
-                 nu_ref,
-                 descriptor="Synchrotron (Band pass)"):
+    def __init__(
+        self,
+        ells,
+        spec_order,
+        bandpass_info,
+        affected_specs,
+        amp_param,
+        beta_param,
+        ell_ref,
+        nu_ref,
+        descriptor="Synchrotron (Band pass)",
+    ):
         """
         Initialise a new instance of the SynchrotronBandPass class.
 
@@ -1052,7 +1147,7 @@ class SynchrotronFixedAlphaBandPass(SPT3G_JAX_transformations_abstract_base.Fore
         descriptor : str
             A short descriptor.
         bandpass_info : list
-            List of lists, where each sublist contains the two SPT3G_JAX_transformations_abstract_base.BandPass instances for the two
+            List of lists, where each sublist contains the two candl.transformations.abstract_base.BandPass instances for the two
             frequencies involved.
         spec_order : array (str)
             Identifiers of spectra in the order in which spectra are handled in the long data vector.
@@ -1073,26 +1168,31 @@ class SynchrotronFixedAlphaBandPass(SPT3G_JAX_transformations_abstract_base.Fore
             A new instance of the class.
         """
 
-        super().__init__(ells=ells,
-                         spec_order=spec_order,
-                         bandpass_info=bandpass_info,
-                         ell_ref=ell_ref,
-                         nu_ref=nu_ref,
-                         descriptor=descriptor,
-                         param_names=[amp_param, beta_param])
+        super().__init__(
+            ells=ells,
+            spec_order=spec_order,
+            bandpass_info=bandpass_info,
+            ell_ref=ell_ref,
+            nu_ref=nu_ref,
+            descriptor=descriptor,
+            param_names=[amp_param, beta_param],
+        )
 
         self.amp_param = amp_param
         self.beta_param = beta_param
 
         self.affected_specs = affected_specs
-        self.spec_mask = jnp.asarray([spec in self.affected_specs for spec in self.spec_order])
+        self.spec_mask = jnp.asarray(
+            [spec in self.affected_specs for spec in self.spec_order]
+        )
 
         # Turn spectrum mask into a full mask
-        self.full_mask = jnp.asarray(jnp.repeat(self.spec_mask, len(self.ells)), dtype=float)
+        self.full_mask = jnp.asarray(
+            jnp.repeat(self.spec_mask, len(self.ells)), dtype=float
+        )
 
     @partial(jit, static_argnums=(0,))
-    def output(self,
-               sample_params):
+    def output(self, sample_params):
         """
         Return foreground spectrum.
 
@@ -1108,35 +1208,43 @@ class SynchrotronFixedAlphaBandPass(SPT3G_JAX_transformations_abstract_base.Fore
         """
 
         # amplitude part (frequency scaling)
-        amp_vals = jnp.array([SPT3G_JAX_transformations_common.sync_frequency_scaling_bandpass(sample_params[self.beta_param],
-                                                              self.nu_ref,
-                                                              self.bandpass_info[i][0].nu_spacing,
-                                                              self.bandpass_info[i][0].nu_vals,
-                                                              self.bandpass_info[i][0].bandpass_vals,
-                                                              self.bandpass_info[i][0].thermo_conv[self.nu_ref])
-                              * SPT3G_JAX_transformations_common.sync_frequency_scaling_bandpass(sample_params[self.beta_param],
-                                                                self.nu_ref,
-                                                                self.bandpass_info[i][1].nu_spacing,
-                                                                self.bandpass_info[i][1].nu_vals,
-                                                                self.bandpass_info[i][1].bandpass_vals,
-                                                                self.bandpass_info[i][1].thermo_conv[self.nu_ref])
-                              for i in range(self.N_spec)])
+        amp_vals = jnp.array(
+            [
+                candl.transformations.common.sync_frequency_scaling_bandpass(
+                    sample_params[self.beta_param],
+                    self.nu_ref,
+                    self.bandpass_info[i][0].nu_spacing,
+                    self.bandpass_info[i][0].nu_vals,
+                    self.bandpass_info[i][0].bandpass_vals,
+                    self.bandpass_info[i][0].thermo_conv[self.nu_ref],
+                )
+                * candl.transformations.common.sync_frequency_scaling_bandpass(
+                    sample_params[self.beta_param],
+                    self.nu_ref,
+                    self.bandpass_info[i][1].nu_spacing,
+                    self.bandpass_info[i][1].nu_vals,
+                    self.bandpass_info[i][1].bandpass_vals,
+                    self.bandpass_info[i][1].thermo_conv[self.nu_ref],
+                )
+                for i in range(self.N_spec)
+            ]
+        )
 
         amp_vals *= sample_params[self.amp_param]
         tiled_amp_vals = jnp.repeat(amp_vals, len(self.ells))
 
         # ell part
         ell_dependence = (self.ells / self.ell_ref) ** (-0.6)
-        tiled_ell_dependence = jnp.tile(ell_dependence, self.N_spec)  # tiled ell dependence
+        tiled_ell_dependence = jnp.tile(
+            ell_dependence, self.N_spec
+        )  # tiled ell dependence
 
         # Complete foreground contribution and mask down
         fg_pow = self.full_mask * tiled_amp_vals * tiled_ell_dependence
         return fg_pow
 
     @partial(jit, static_argnums=(0,))
-    def transform(self,
-                  Dls,
-                  sample_params):
+    def transform(self, Dls, sample_params):
         """
         Transform spectrum by adding foreground component (result of output method).
 
@@ -1156,7 +1264,9 @@ class SynchrotronFixedAlphaBandPass(SPT3G_JAX_transformations_abstract_base.Fore
         return Dls + self.output(sample_params)
 
 
-class GalacticDustSynchrotronCorrelationFixedAlphaBandPass(SPT3G_JAX_transformations_abstract_base.ForegroundBandPass):
+class GalacticDustSynchrotronCorrelationFixedAlphaBandPass(
+    candl.transformations.abstract_base.ForegroundBandPass
+):
     """
     Correlation between galactic dust and synchrotron.
     Uses geometric mean of GalacticDustFixedAlphaBandPass and SynchrotronFixedAlphaBandPass, intended to be used in conjunction with these
@@ -1188,7 +1298,7 @@ class GalacticDustSynchrotronCorrelationFixedAlphaBandPass(SPT3G_JAX_transformat
 
 
     Example yaml block to add correlation to BB spectra:
-    - Module: "SPT3G_JAX_transformations_low_ell_BB.GalacticDustSynchrotronCorrelationFixedAlphaBandPass"
+    - Module: "candl.transformations.low_ell_BB.GalacticDustSynchrotronCorrelationFixedAlphaBandPass"
       correlation_param: "BB_rho_dust_sync"
       dust_amp_param: "BB_GalDust_BDP_Amp"
       dust_beta_param: "BB_GalDust_BDP_Beta"
@@ -1221,7 +1331,7 @@ class GalacticDustSynchrotronCorrelationFixedAlphaBandPass(SPT3G_JAX_transformat
     spec_order : array (str)
         Identifiers of spectra in the order in which spectra are handled in the long data vector.
     bandpass_info : list
-        List of lists, where each sublist contains the two SPT3G_JAX_transformations_abstract_base.BandPass instances for the two
+        List of lists, where each sublist contains the two candl.transformations.abstract_base.BandPass instances for the two
         frequencies involved.
     ell_ref : int
         Reference ell for normalisation.
@@ -1255,21 +1365,23 @@ class GalacticDustSynchrotronCorrelationFixedAlphaBandPass(SPT3G_JAX_transformat
     dust_frequency_scaling_bandpass
     """
 
-    def __init__(self,
-                 ells,
-                 spec_order,
-                 bandpass_info,
-                 affected_specs,
-                 correlation_param,
-                 dust_amp_param,
-                 dust_beta_param,
-                 sync_amp_param,
-                 sync_beta_param,
-                 ell_ref,
-                 nu_ref_dust,
-                 nu_ref_sync,
-                 T_GALDUST,
-                 descriptor="Dust Synchrotron Correlation (Band pass)"):
+    def __init__(
+        self,
+        ells,
+        spec_order,
+        bandpass_info,
+        affected_specs,
+        correlation_param,
+        dust_amp_param,
+        dust_beta_param,
+        sync_amp_param,
+        sync_beta_param,
+        ell_ref,
+        nu_ref_dust,
+        nu_ref_sync,
+        T_GALDUST,
+        descriptor="Dust Synchrotron Correlation (Band pass)",
+    ):
         """
         Initialise a new instance of the GalacticDustSynchrotronCorrelationFixedAlphaBandPass class.
 
@@ -1280,7 +1392,7 @@ class GalacticDustSynchrotronCorrelationFixedAlphaBandPass(SPT3G_JAX_transformat
         descriptor : str
             A short descriptor.
         bandpass_info : list
-            List of lists, where each sublist contains the two SPT3G_JAX_transformations_abstract_base.BandPass instances for the two
+            List of lists, where each sublist contains the two candl.transformations.abstract_base.BandPass instances for the two
             frequencies involved.
         spec_order : array (str)
             Identifiers of spectra in the order in which spectra are handled in the long data vector.
@@ -1311,13 +1423,21 @@ class GalacticDustSynchrotronCorrelationFixedAlphaBandPass(SPT3G_JAX_transformat
             A new instance of the class.
         """
 
-        super().__init__(ells=ells,
-                         spec_order=spec_order,
-                         bandpass_info=bandpass_info,
-                         ell_ref=ell_ref,
-                         nu_ref={"dust": nu_ref_dust, "sync": nu_ref_sync},
-                         descriptor=descriptor,
-                         param_names=[correlation_param, dust_amp_param, dust_beta_param, sync_amp_param, sync_beta_param])
+        super().__init__(
+            ells=ells,
+            spec_order=spec_order,
+            bandpass_info=bandpass_info,
+            ell_ref=ell_ref,
+            nu_ref={"dust": nu_ref_dust, "sync": nu_ref_sync},
+            descriptor=descriptor,
+            param_names=[
+                correlation_param,
+                dust_amp_param,
+                dust_beta_param,
+                sync_amp_param,
+                sync_beta_param,
+            ],
+        )
 
         self.T_dust = T_GALDUST
         self.dust_amp_param = dust_amp_param
@@ -1329,15 +1449,17 @@ class GalacticDustSynchrotronCorrelationFixedAlphaBandPass(SPT3G_JAX_transformat
         self.correlation_param = correlation_param
 
         self.affected_specs = affected_specs
-        self.spec_mask = jnp.asarray([spec in self.affected_specs for spec in self.spec_order])
+        self.spec_mask = jnp.asarray(
+            [spec in self.affected_specs for spec in self.spec_order]
+        )
 
         # Turn spectrum mask into a full mask
-        self.full_mask = jnp.asarray(jnp.repeat(self.spec_mask, len(self.ells)), dtype=float)
-
+        self.full_mask = jnp.asarray(
+            jnp.repeat(self.spec_mask, len(self.ells)), dtype=float
+        )
 
     @partial(jit, static_argnums=(0,))
-    def output(self,
-               sample_params):
+    def output(self, sample_params):
         """
         Return foreground spectrum.
 
@@ -1353,57 +1475,71 @@ class GalacticDustSynchrotronCorrelationFixedAlphaBandPass(SPT3G_JAX_transformat
         """
 
         # amplitude part (frequency scaling)
-        amp_vals_1 = jnp.array([SPT3G_JAX_transformations_common.dust_frequency_scaling_bandpass(sample_params[self.dust_beta_param],
-                                                              self.T_dust,
-                                                              self.nu_ref["dust"],
-                                                              self.bandpass_info[i][0].nu_spacing,
-                                                              self.bandpass_info[i][0].nu_vals,
-                                                              self.bandpass_info[i][0].bandpass_vals,
-                                                              self.bandpass_info[i][0].thermo_conv[self.nu_ref["dust"]])
-                                * SPT3G_JAX_transformations_common.sync_frequency_scaling_bandpass(
-            sample_params[self.sync_beta_param],
-            self.nu_ref["sync"],
-            self.bandpass_info[i][1].nu_spacing,
-            self.bandpass_info[i][1].nu_vals,
-            self.bandpass_info[i][1].bandpass_vals,
-            self.bandpass_info[i][1].thermo_conv[self.nu_ref["sync"]])
-                              for i in range(self.N_spec)])
+        amp_vals_1 = jnp.array(
+            [
+                candl.transformations.common.dust_frequency_scaling_bandpass(
+                    sample_params[self.dust_beta_param],
+                    self.T_dust,
+                    self.nu_ref["dust"],
+                    self.bandpass_info[i][0].nu_spacing,
+                    self.bandpass_info[i][0].nu_vals,
+                    self.bandpass_info[i][0].bandpass_vals,
+                    self.bandpass_info[i][0].thermo_conv[self.nu_ref["dust"]],
+                )
+                * candl.transformations.common.sync_frequency_scaling_bandpass(
+                    sample_params[self.sync_beta_param],
+                    self.nu_ref["sync"],
+                    self.bandpass_info[i][1].nu_spacing,
+                    self.bandpass_info[i][1].nu_vals,
+                    self.bandpass_info[i][1].bandpass_vals,
+                    self.bandpass_info[i][1].thermo_conv[self.nu_ref["sync"]],
+                )
+                for i in range(self.N_spec)
+            ]
+        )
 
         amp_vals_2 = jnp.array(
-            [SPT3G_JAX_transformations_common.dust_frequency_scaling_bandpass(sample_params[self.dust_beta_param],
-                                                                              self.T_dust,
-                                                                              self.nu_ref["dust"],
-                                                                              self.bandpass_info[i][1].nu_spacing,
-                                                                              self.bandpass_info[i][1].nu_vals,
-                                                                              self.bandpass_info[i][1].bandpass_vals,
-                                                                              self.bandpass_info[i][1].thermo_conv[
-                                                                                  self.nu_ref["dust"]])
-             * SPT3G_JAX_transformations_common.sync_frequency_scaling_bandpass(
-                sample_params[self.sync_beta_param],
-                self.nu_ref["sync"],
-                self.bandpass_info[i][0].nu_spacing,
-                self.bandpass_info[i][0].nu_vals,
-                self.bandpass_info[i][0].bandpass_vals,
-                self.bandpass_info[i][0].thermo_conv[self.nu_ref["sync"]])
-             for i in range(self.N_spec)])
+            [
+                candl.transformations.common.dust_frequency_scaling_bandpass(
+                    sample_params[self.dust_beta_param],
+                    self.T_dust,
+                    self.nu_ref["dust"],
+                    self.bandpass_info[i][1].nu_spacing,
+                    self.bandpass_info[i][1].nu_vals,
+                    self.bandpass_info[i][1].bandpass_vals,
+                    self.bandpass_info[i][1].thermo_conv[self.nu_ref["dust"]],
+                )
+                * candl.transformations.common.sync_frequency_scaling_bandpass(
+                    sample_params[self.sync_beta_param],
+                    self.nu_ref["sync"],
+                    self.bandpass_info[i][0].nu_spacing,
+                    self.bandpass_info[i][0].nu_vals,
+                    self.bandpass_info[i][0].bandpass_vals,
+                    self.bandpass_info[i][0].thermo_conv[self.nu_ref["sync"]],
+                )
+                for i in range(self.N_spec)
+            ]
+        )
 
         amp_vals = amp_vals_1 + amp_vals_2
 
-        amp_vals *= sample_params[self.correlation_param] * jnp.sqrt(sample_params[self.dust_amp_param]*sample_params[self.sync_amp_param])
+        amp_vals *= sample_params[self.correlation_param] * jnp.sqrt(
+            sample_params[self.dust_amp_param] * sample_params[self.sync_amp_param]
+        )
         tiled_amp_vals = jnp.repeat(amp_vals, len(self.ells))
 
         # ell part
         ell_dependence = (self.ells / self.ell_ref) ** (-0.5)
-        tiled_ell_dependence = jnp.tile(ell_dependence, self.N_spec)  # tiled ell dependence
+        tiled_ell_dependence = jnp.tile(
+            ell_dependence, self.N_spec
+        )  # tiled ell dependence
 
         # Complete foreground contribution and mask down
         fg_pow = self.full_mask * tiled_amp_vals * tiled_ell_dependence
         return fg_pow
 
     @partial(jit, static_argnums=(0,))
-    def transform(self,
-                  Dls,
-                  sample_params):
+    def transform(self, Dls, sample_params):
         """
         Transform spectrum by adding foreground component (result of output method).
 
@@ -1423,9 +1559,10 @@ class GalacticDustSynchrotronCorrelationFixedAlphaBandPass(SPT3G_JAX_transformat
         return Dls + self.output(sample_params)
 
 
-#--------------------------------------#
+# --------------------------------------#
 # DUST AND SYNCHROTRON WITH BAND PASS INTEGRALS - DECORRELATION ACROSS FREQUENCIES
-#--------------------------------------#
+# --------------------------------------#
+
 
 class GalacticDustDecorrelationBandPass(GalacticDustBandPass):
     """
@@ -1435,7 +1572,7 @@ class GalacticDustDecorrelationBandPass(GalacticDustBandPass):
     Argument "ell_scaling" is optional: default is flat ell-scaling, other options are "linear" and "quadratic".
 
     Example yaml block to add polarised galactic dust to all BB spectra:
-    - Module: "SPT3G_JAX_transformations_low_ell_BB.GalacticDustDecorrelationBandPass"
+    - Module: "candl.transformations.low_ell_BB.GalacticDustDecorrelationBandPass"
       decorr_param: "BB_GalDust_BDP_Decorr"
       amp_param: "BB_GalDust_BDP_Amp"
       alpha_param: "BB_GalDust_BDP_Alpha"
@@ -1451,33 +1588,37 @@ class GalacticDustDecorrelationBandPass(GalacticDustBandPass):
     Not extended for unphysical values of decorr_param.
     """
 
-    def __init__(self,
-                 ells,
-                 spec_order,
-                 bandpass_info,
-                 affected_specs,
-                 decorr_param,
-                 amp_param,
-                 alpha_param,
-                 beta_param,
-                 ell_ref,
-                 nu_ref,
-                 nu_pivot,
-                 T_GALDUST,
-                 ell_scaling=None,
-                 descriptor="Galactic Dust (Decorrelation, Band pass)"):
+    def __init__(
+        self,
+        ells,
+        spec_order,
+        bandpass_info,
+        affected_specs,
+        decorr_param,
+        amp_param,
+        alpha_param,
+        beta_param,
+        ell_ref,
+        nu_ref,
+        nu_pivot,
+        T_GALDUST,
+        ell_scaling=None,
+        descriptor="Galactic Dust (Decorrelation, Band pass)",
+    ):
 
-        super().__init__(ells=ells,
-                         spec_order=spec_order,
-                         bandpass_info=bandpass_info,
-                         affected_specs=affected_specs,
-                         amp_param=amp_param,
-                         alpha_param=alpha_param,
-                         beta_param=beta_param,
-                         ell_ref=ell_ref,
-                         nu_ref=nu_ref,
-                         T_GALDUST=T_GALDUST,
-                         descriptor=descriptor)
+        super().__init__(
+            ells=ells,
+            spec_order=spec_order,
+            bandpass_info=bandpass_info,
+            affected_specs=affected_specs,
+            amp_param=amp_param,
+            alpha_param=alpha_param,
+            beta_param=beta_param,
+            ell_ref=ell_ref,
+            nu_ref=nu_ref,
+            T_GALDUST=T_GALDUST,
+            descriptor=descriptor,
+        )
 
         self.decorr_param = decorr_param
 
@@ -1491,21 +1632,32 @@ class GalacticDustDecorrelationBandPass(GalacticDustBandPass):
             self.ell_part = jnp.tile(self.ells**2, self.N_spec)
 
         # Make mask of auto-frequency spectra (decorrelation does not apply to them)
-        self.auto_spec_mask = jnp.asarray([len(set(s[3:].split("x"))) == 1 for s in self.spec_order])
+        self.auto_spec_mask = jnp.asarray(
+            [len(set(s[3:].split("x"))) == 1 for s in self.spec_order]
+        )
         self.full_auto_mask = jnp.repeat(self.auto_spec_mask, len(self.ells))
 
-    def output(self,
-               sample_params):
+    def output(self, sample_params):
 
         # Get regular dust power
         fg_pow = super().output(sample_params)
 
         # Calculate decorrelation
-        amp_vals = jnp.array([jnp.log(self.bandpass_info[i][0].central_nu/self.bandpass_info[i][1].central_nu)**2
-                              / jnp.log(self.nu_pivot[0]/self.nu_pivot[1])**2
-                              for i in range(self.N_spec)])
+        amp_vals = jnp.array(
+            [
+                jnp.log(
+                    self.bandpass_info[i][0].central_nu
+                    / self.bandpass_info[i][1].central_nu
+                )
+                ** 2
+                / jnp.log(self.nu_pivot[0] / self.nu_pivot[1]) ** 2
+                for i in range(self.N_spec)
+            ]
+        )
         amp_vals_tiled = jnp.repeat(amp_vals, len(self.ells))
-        delta_prime = jnp.exp(jnp.log(sample_params[self.decorr_param]) * amp_vals_tiled * self.ell_part)
+        delta_prime = jnp.exp(
+            jnp.log(sample_params[self.decorr_param]) * amp_vals_tiled * self.ell_part
+        )
         delta_prime = jax_optional_set_element(delta_prime, self.full_auto_mask, 1.0)
 
         return delta_prime * fg_pow
@@ -1516,31 +1668,35 @@ class GalacticDustFixedAlphaDecorrelationBandPass(GalacticDustFixedAlphaBandPass
     Slightly modified version of GalacticDustDecorrelationBandPass to fix the power law index (as in GalacticDustFixedAlphaBandPass).
     """
 
-    def __init__(self,
-                 ells,
-                 spec_order,
-                 bandpass_info,
-                 affected_specs,
-                 decorr_param,
-                 amp_param,
-                 beta_param,
-                 ell_ref,
-                 nu_ref,
-                 nu_pivot,
-                 T_GALDUST,
-                 ell_scaling=None,
-                 descriptor="Galactic Dust (Decorrelation, Band pass)"):
+    def __init__(
+        self,
+        ells,
+        spec_order,
+        bandpass_info,
+        affected_specs,
+        decorr_param,
+        amp_param,
+        beta_param,
+        ell_ref,
+        nu_ref,
+        nu_pivot,
+        T_GALDUST,
+        ell_scaling=None,
+        descriptor="Galactic Dust (Decorrelation, Band pass)",
+    ):
 
-        super().__init__(ells=ells,
-                         spec_order=spec_order,
-                         bandpass_info=bandpass_info,
-                         affected_specs=affected_specs,
-                         amp_param=amp_param,
-                         beta_param=beta_param,
-                         ell_ref=ell_ref,
-                         nu_ref=nu_ref,
-                         T_GALDUST=T_GALDUST,
-                         descriptor=descriptor)
+        super().__init__(
+            ells=ells,
+            spec_order=spec_order,
+            bandpass_info=bandpass_info,
+            affected_specs=affected_specs,
+            amp_param=amp_param,
+            beta_param=beta_param,
+            ell_ref=ell_ref,
+            nu_ref=nu_ref,
+            T_GALDUST=T_GALDUST,
+            descriptor=descriptor,
+        )
 
         self.decorr_param = decorr_param
 
@@ -1554,22 +1710,32 @@ class GalacticDustFixedAlphaDecorrelationBandPass(GalacticDustFixedAlphaBandPass
             self.ell_part = jnp.tile(self.ells**2, self.N_spec)
 
         # Make mask of auto-frequency spectra (decorrelation does not apply to them)
-        self.auto_spec_mask = jnp.asarray([len(set(s[3:].split("x"))) == 1 for s in self.spec_order])
+        self.auto_spec_mask = jnp.asarray(
+            [len(set(s[3:].split("x"))) == 1 for s in self.spec_order]
+        )
         self.full_auto_mask = jnp.repeat(self.auto_spec_mask, len(self.ells))
 
-    def output(self,
-               sample_params):
+    def output(self, sample_params):
 
         # Get regular dust power
         fg_pow = super().output(sample_params)
 
         # Calculate decorrelation
-        amp_vals = jnp.array([jnp.log(self.bandpass_info[i][0].central_nu/self.bandpass_info[i][1].central_nu)**2
-                              / jnp.log(self.nu_pivot[0]/self.nu_pivot[1])**2
-                              for i in range(self.N_spec)])
+        amp_vals = jnp.array(
+            [
+                jnp.log(
+                    self.bandpass_info[i][0].central_nu
+                    / self.bandpass_info[i][1].central_nu
+                )
+                ** 2
+                / jnp.log(self.nu_pivot[0] / self.nu_pivot[1]) ** 2
+                for i in range(self.N_spec)
+            ]
+        )
         amp_vals_tiled = jnp.repeat(amp_vals, len(self.ells))
-        delta_prime = jnp.exp(jnp.log(sample_params[self.decorr_param]) * amp_vals_tiled * self.ell_part)
+        delta_prime = jnp.exp(
+            jnp.log(sample_params[self.decorr_param]) * amp_vals_tiled * self.ell_part
+        )
         delta_prime = jax_optional_set_element(delta_prime, self.full_auto_mask, 1.0)
 
         return delta_prime * fg_pow
-

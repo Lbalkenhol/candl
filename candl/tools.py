@@ -207,11 +207,11 @@ def newton_raphson_minimiser(
         # Back into dict form for next step
         new_pars = deepcopy(eval_points[i_newton])
         for j, p in enumerate(pars_for_min):
-            if step[j] is jnp.nan:# stop if nan is encountered
+            if step[j] is jnp.nan:  # stop if nan is encountered
                 has_failed = True
                 break
             new_pars[p] += step_size * step[j]
-        
+
         # If step failed break out of loop
         if has_failed:
             break
@@ -228,13 +228,12 @@ def newton_raphson_minimiser(
 
     if show_progress:
         pbar.close()
-    
+
     # If minimiser has failed let the user know
     if has_failed:
         raise Exception(
             f"Minimiser failed (encountered nan in proposed step). Try a better initial point and smaller step size for better stability."
         )
-    
 
     return eval_points, eval_par_cov
 
@@ -301,11 +300,11 @@ def newton_raphson_minimiser_bdp(
         # Back into dict form for next step
         new_pars = deepcopy(eval_points[i_newton])
         for j, p in enumerate(pars_for_min):
-            if step[j] is jnp.nan:# stop if nan is encountered
+            if step[j] is jnp.nan:  # stop if nan is encountered
                 has_failed = True
                 break
             new_pars[p] += step_size * step[j]
-        
+
         # If step failed break out of loop
         if has_failed:
             break
@@ -322,7 +321,7 @@ def newton_raphson_minimiser_bdp(
 
     if show_progress:
         pbar.close()
-    
+
     # If minimiser has failed let the user know
     if has_failed:
         raise Exception(
@@ -677,7 +676,7 @@ def test_statistic_MV_consistency(
 def make_frequency_conditional(spec_str, like, best_fit_model_binned, blinded=False):
     """
     Generate frequency conditional prediction.
-    See Section 6.3.6 here https://arxiv.org/pdf/1907.12875.pdf for details.
+    See Section 3.6.3 here https://arxiv.org/pdf/1907.12875.pdf for details.
 
     Parameters
     --------------
@@ -869,7 +868,7 @@ def test_statistic_conditional(spec_str, cond_dict, like, blinded=False):
 def make_difference_spectra(spec_str_1, spec_str_2, data_CMB_only, like, blinded=False):
     """
     Generate frequency conditional prediction.
-    See Section 6.3.6 here https://arxiv.org/pdf/1907.12875.pdf for details.
+    See Section 3.6.3 here https://arxiv.org/pdf/1907.12875.pdf for details.
 
     Parameters
     --------------
@@ -1140,7 +1139,8 @@ def undo_transformations(like, pars, pars_to_theory_specs):
     Undo (best-fit) transformations from data vector.
     The order of the operations in the transformation matters - they do not commute.
     Hence, when undoing them, we must be careful to proceed in the correct order.
-    Specifically, we need to undo calibration first, and then subtract the additive foregrounds.
+    The attribute 'operation_hint' of Transformation is used in order, if this attribute is not properly set this function will not return the correct results.
+    In general, we need to undo calibration first, and then subtract the additive foregrounds.
     Special care needs to be taken for transformations that take Dls as their input too
     (e.g. super-sample lensing).
 
@@ -1163,8 +1163,9 @@ def undo_transformations(like, pars, pars_to_theory_specs):
 
     # Undo transformations, one-by-one
     for i_tr, transformation in enumerate(like.data_model[::-1]):
-        # Calibration is multiplicative
-        if isinstance(transformation, candl.transformations.abstract_base.Calibration):
+
+        if transformation.operation_hint == "multiplicative":
+            # This is most likely a calibration-like transformation
             calibration_vec = transformation.transform(
                 np.ones(like.N_ell_bins_theory * like.N_spectra_total), pars
             )
@@ -1173,8 +1174,8 @@ def undo_transformations(like, pars, pars_to_theory_specs):
             )
             data_CMB_only_vec *= calibration_vec
 
-        # Other transformations are additive
-        else:
+        elif transformation.operation_hint == "additive":
+
             # Check if only sample parameters are required, or Dls too
             req_args_req = list(inspect.signature(transformation.output).parameters)
             if req_args_req == ["sample_params"]:
@@ -1198,6 +1199,11 @@ def undo_transformations(like, pars, pars_to_theory_specs):
                 tr_vec_unbinned = transformation.output(unbinned_Dls)
                 data_CMB_only_vec -= like.bin_model_specs(tr_vec_unbinned)
             else:
-                print("candl: not clear how to undo this transformation!")
+                print(
+                    f"candl: not clear how to undo this transformation: {transformation}"
+                )
+
+        else:
+            print(f"candl: not clear how to undo this transformation: {transformation}")
 
     return data_CMB_only_vec
