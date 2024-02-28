@@ -1446,7 +1446,8 @@ class CIBtSZCorrelationGeometricMean(candl.transformations.abstract_base.Foregro
             self.tSZ[0].freq_info[i] = [tSZ_freq_pair[0], tSZ_freq_pair[0]]
             self.tSZ[1].freq_info[i] = [tSZ_freq_pair[1], tSZ_freq_pair[1]]
 
-    @partial(jit, static_argnums=(0,))
+    # @partial(jit, static_argnums=(0,))
+    @custom_jvp
     def output(self, sample_params):
         """
         Return foreground spectrum.
@@ -1477,6 +1478,15 @@ class CIBtSZCorrelationGeometricMean(candl.transformations.abstract_base.Foregro
         fg_pow = -1.0 * self.full_mask * sample_params[self.amp_param] * CIB_x_tSZ
         return fg_pow
 
+    @output.defjvp
+    def output_jvp(primals, tangents):
+
+        print("ACCESSING THE CUSTOM DERIV")
+        print(primals)
+        print(tangents)
+
+        return None
+
     @partial(jit, static_argnums=(0,))
     def transform(self, Dls, sample_params):
         """
@@ -1501,7 +1511,6 @@ class CIBtSZCorrelationGeometricMean(candl.transformations.abstract_base.Foregro
 class FGSpectraInterfaceFactorizedCrossSpectrum(
     candl.transformations.abstract_base.Foreground
 ):
-
     """
     Wrapper for SO's FGSpectra FactorizedCrossSpectrum (https://github.com/simonsobs/fgspectra/tree/main) with a free amplitude.
 
@@ -1635,9 +1644,11 @@ class FGSpectraInterfaceFactorizedCrossSpectrum(
 
         super().__init__(
             ells=ells,
-            ell_ref=fgspectra_cl_args_fixed["ell_0"]
-            if "ell_0" in fgspectra_cl_args_fixed
-            else None,
+            ell_ref=(
+                fgspectra_cl_args_fixed["ell_0"]
+                if "ell_0" in fgspectra_cl_args_fixed
+                else None
+            ),
             descriptor=descriptor,
             param_names=list(
                 np.unique([amp_param] + fgspectra_sed_args + fgspectra_cl_args)
@@ -2041,6 +2052,8 @@ class SuperSampleLensing(candl.transformations.abstract_base.Transformation):
         Name of the kappa parameter to be used (i.e. the mean lensing covergence across the field).
     long_ells : array (float)
         Long vector of concatenated theory ells.
+    operation_hint : str
+        Type of the 'transform' operation: 'additive'.
 
     Methods
     ----------------
@@ -2050,7 +2063,7 @@ class SuperSampleLensing(candl.transformations.abstract_base.Transformation):
         gives the additive SSL contribution.
     transform :
         Returns a transformed spectrum.
-
+    
     Notes
     ----------------
 
@@ -2067,7 +2080,7 @@ class SuperSampleLensing(candl.transformations.abstract_base.Transformation):
           kappa_param: "Kappa"
     """
 
-    def __init__(self, ells, long_ells, kappa_param, descriptor="Super-Sample Lensing"):
+    def __init__(self, ells, long_ells, kappa_param, descriptor="Super-Sample Lensing",):
         """
         Initialise the SuperSamleLensing transformation.
 
@@ -2088,7 +2101,7 @@ class SuperSampleLensing(candl.transformations.abstract_base.Transformation):
             A new instance of the SuperSampleLensing class.
         """
 
-        super().__init__(ells=ells, descriptor=descriptor, param_names=[kappa_param])
+        super().__init__(ells=ells, descriptor=descriptor, param_names=[kappa_param], operation_hint="additive")
 
         self.kappa_param = kappa_param
         self.long_ells = long_ells
@@ -2190,6 +2203,8 @@ class AberrationCorrection(candl.transformations.abstract_base.Transformation):
         Names of parameters involved in transformation.
     long_ells : array (float)
         Long vector of concatenated theory ells.
+    operation_hint : str
+        Type of the 'transform' operation: 'additive'.
 
     Methods
     ----------------
@@ -2236,7 +2251,7 @@ class AberrationCorrection(candl.transformations.abstract_base.Transformation):
             A new instance of the AberrationCorrection class.
         """
 
-        super().__init__(ells=ells, descriptor=descriptor)
+        super().__init__(ells=ells, descriptor=descriptor, operation_hint="additive")
         self.aberration_coefficient = aberration_coefficient
         self.long_ells = long_ells
 

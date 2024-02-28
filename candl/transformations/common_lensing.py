@@ -162,6 +162,8 @@ class ResponseFunctionM(candl.transformations.abstract_base.Transformation):
         A short descriptor.
     M_matrix : array (float)
         The matrix of the transformation.
+    operation_hint : str
+        Type of the 'transform' operation: 'additive'.
 
     Methods
     ---------
@@ -215,7 +217,7 @@ class ResponseFunctionM(candl.transformations.abstract_base.Transformation):
             A new instance of the ResponseFunctionM class.
         """
 
-        super().__init__(ells=ells, descriptor=descriptor)
+        super().__init__(ells=ells, descriptor=descriptor, operation_hint="additive")
         self.M_matrices = M_matrices
         self.fiducial_correction = fiducial_correction
 
@@ -311,6 +313,8 @@ class LensingAmplitude(candl.transformations.abstract_base.Transformation):
         Names of parameters involved in transformation.
     amp_param : str
         The name of the amplitude parameter.
+    operation_hint : str
+        Type of the 'transform' operation: 'additive'.
     """
 
     def __init__(self, ells, amp_param, descriptor=""):
@@ -332,7 +336,12 @@ class LensingAmplitude(candl.transformations.abstract_base.Transformation):
             A new instance of the LensingAmplitude class.
         """
 
-        super().__init__(ells=ells, descriptor=descriptor, param_names=[amp_param])
+        super().__init__(
+            ells=ells,
+            descriptor=descriptor,
+            param_names=[amp_param],
+            operation_hint="additive",
+        )
 
         # Grab other args
         self.ells = ells
