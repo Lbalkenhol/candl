@@ -1446,8 +1446,8 @@ class CIBtSZCorrelationGeometricMean(candl.transformations.abstract_base.Foregro
             self.tSZ[0].freq_info[i] = [tSZ_freq_pair[0], tSZ_freq_pair[0]]
             self.tSZ[1].freq_info[i] = [tSZ_freq_pair[1], tSZ_freq_pair[1]]
 
-    # @partial(jit, static_argnums=(0,))
-    @custom_jvp
+    # @custom_jvp
+    @partial(jit, static_argnums=(0,))
     def output(self, sample_params):
         """
         Return foreground spectrum.
@@ -1478,14 +1478,14 @@ class CIBtSZCorrelationGeometricMean(candl.transformations.abstract_base.Foregro
         fg_pow = -1.0 * self.full_mask * sample_params[self.amp_param] * CIB_x_tSZ
         return fg_pow
 
-    @output.defjvp
-    def output_jvp(primals, tangents):
-
-        print("ACCESSING THE CUSTOM DERIV")
-        print(primals)
-        print(tangents)
-
-        return None
+    # @output.defjvp
+    # def output_jvp(primals, tangents):
+    #
+    #    print("ACCESSING THE CUSTOM DERIV")
+    #    print(primals)
+    #    print(tangents)
+    #
+    #    return None
 
     @partial(jit, static_argnums=(0,))
     def transform(self, Dls, sample_params):
@@ -2063,7 +2063,7 @@ class SuperSampleLensing(candl.transformations.abstract_base.Transformation):
         gives the additive SSL contribution.
     transform :
         Returns a transformed spectrum.
-    
+
     Notes
     ----------------
 
@@ -2080,7 +2080,13 @@ class SuperSampleLensing(candl.transformations.abstract_base.Transformation):
           kappa_param: "Kappa"
     """
 
-    def __init__(self, ells, long_ells, kappa_param, descriptor="Super-Sample Lensing",):
+    def __init__(
+        self,
+        ells,
+        long_ells,
+        kappa_param,
+        descriptor="Super-Sample Lensing",
+    ):
         """
         Initialise the SuperSamleLensing transformation.
 
@@ -2101,7 +2107,12 @@ class SuperSampleLensing(candl.transformations.abstract_base.Transformation):
             A new instance of the SuperSampleLensing class.
         """
 
-        super().__init__(ells=ells, descriptor=descriptor, param_names=[kappa_param], operation_hint="additive")
+        super().__init__(
+            ells=ells,
+            descriptor=descriptor,
+            param_names=[kappa_param],
+            operation_hint="additive",
+        )
 
         self.kappa_param = kappa_param
         self.long_ells = long_ells
