@@ -16,6 +16,7 @@ Extragalactic foregrounds:
 * :class:`CIBClustering`
 * :class:`tSZTemplateForeground`
 * :class:`kSZTemplateForeground`
+* :class:`CIBtSZCorrelationGeometricMean`
 
 Galactic contamination:
 
