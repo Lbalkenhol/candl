@@ -118,7 +118,7 @@ BlackJAX
 -------------------------------------------------
 
 `BlackJAX <https://github.com/blackjax-devs/blackjax>`__ gradient-based samplers for JAX.
-We show how to interface with BlackJAX and run NUTS chains in :ref:`the differentiability tutorial <Tutorials>`.
+We show how to interface with BlackJAX and run NUTS chains in :ref:`the differentiability tutorial <Tutorials and Use>`.
 Below is a quick example using the ACT DR4 likelihood and CosmoPower-JAX.
 Note that you need to have downloaded the CosmoPower SPT high-accuracy models (available `here <https://github.com/alessiospuriomancini/cosmopower/tree/main/cosmopower/trained_models/SPT_high_accuracy>`_) and placed them in your ``cosmopower_jax/trained_models`` folder.
 First, we initialise the likelihood and the theory code:
@@ -198,7 +198,7 @@ Optax
 -------------------------------------------------
 
 `Optax <https://github.com/google-deepmind/optax>`__ is a library for gradient-based optimisation written for JAX.
-We show how to interface with Optax and run the ADAM minimiser in :ref:`the differentiability tutorial <Tutorials>`.
+We show how to interface with Optax and run the ADAM minimiser in :ref:`the differentiability tutorial <Tutorials and Use>`.
 Below is a quick example using the ACT DR4 likelihood and CosmoPower-JAX.
 Note that you need to have downloaded the CosmoPower SPT high-accuracy models (available `here <https://github.com/alessiospuriomancini/cosmopower/tree/main/cosmopower/trained_models/SPT_high_accuracy>`_) and placed them in your ``cosmopower_jax/trained_models`` folder.
 Like before, we initialise the likelihood and the theory code:
