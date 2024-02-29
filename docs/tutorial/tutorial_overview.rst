@@ -1,4 +1,4 @@
-Tutorials
+Tutorials and Use
 =================================================
 
 Below, you can find an example of how to quickly get started with candl.
@@ -61,3 +61,16 @@ This notebook shows different aspects relying on the differentiability of the li
 This tutorial uses some optional packages.
 Make sure you have Optax, BlackJAX, getdist, and CosmoPower-JAX installed in order to run the whole notebook.
 You also need to have some emulator models for CosmoPower-JAX; we recommend the SPT high-accuracy models available `here <https://github.com/alessiospuriomancini/cosmopower/tree/main/cosmopower/trained_models/SPT_high_accuracy>`_.
+
+Working With Instantiated Likelihoods
+----------------------------------------------------------
+
+In general, modifications to instantiated likelihood objects are only correctly propagated, if they are done immediately after initialisation.
+This has to do with how JAX's jit works with class methods (more details can be found here `here <https://jax.readthedocs.io/en/latest/faq.html#how-to-use-jit-with-methods>`_).
+While this may change in the future, exercise caution for now.
+
+.. warning::
+
+   Changes to the attributes of candl likelihoods (e.g. the band powers or the data model) must be made immediately after initialisation.
+   Once a jitted method has been called (e.g. the likelihood has been evaluated), changes to attributes are no longer tracked.
+   Therefore, it is advised to perform any customisation immediately after initialisation (or by modifying the underlying .yaml file directly - see :ref:`here<Data Structure>` for more info on how to do that).
