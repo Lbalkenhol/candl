@@ -259,9 +259,11 @@ class Like:
                 and self.dataset_dict["blinding"]
             ) or type(self.dataset_dict["blinding"]) == int:
                 self.data_bandpowers, self._blinding_function = self.blind_bandpowers(
-                    None
-                    if type(self.dataset_dict["blinding"]) == bool
-                    else self.dataset_dict["blinding"],
+                    (
+                        None
+                        if type(self.dataset_dict["blinding"]) == bool
+                        else self.dataset_dict["blinding"]
+                    ),
                 )
 
         # Get a mask according to any subselection of the data
@@ -891,27 +893,27 @@ class Like:
             # Specific spectrum targeted
             for i_spec, spec in enumerate(self.spec_order):
                 if data_hint == spec:
-                    base_msk[
-                        self.bins_start_ix[i_spec] : self.bins_stop_ix[i_spec]
-                    ] = True
+                    base_msk[self.bins_start_ix[i_spec] : self.bins_stop_ix[i_spec]] = (
+                        True
+                    )
                     affected_specs.append(self.spec_order[i_spec])
 
         elif data_hint in self.spec_types:
             # Probably concerns spectra
             for i_spec, st in enumerate(self.spec_types):
                 if data_hint == st:
-                    base_msk[
-                        self.bins_start_ix[i_spec] : self.bins_stop_ix[i_spec]
-                    ] = True
+                    base_msk[self.bins_start_ix[i_spec] : self.bins_stop_ix[i_spec]] = (
+                        True
+                    )
                     affected_specs.append(self.spec_order[i_spec])
 
         elif data_hint.split("x")[0] in [f for freqs in self.spec_freqs for f in freqs]:
             # Probably concerns frequencies
             for i_spec, freq_pair in enumerate(self.spec_freqs):
                 if set(data_hint.split("x")) == set(freq_pair):
-                    base_msk[
-                        self.bins_start_ix[i_spec] : self.bins_stop_ix[i_spec]
-                    ] = True
+                    base_msk[self.bins_start_ix[i_spec] : self.bins_stop_ix[i_spec]] = (
+                        True
+                    )
                     affected_specs.append(self.spec_order[i_spec])
 
         elif "ell" in data_hint:
@@ -1213,9 +1215,11 @@ class LensLike:
                 and self.dataset_dict["blinding"]
             ) or type(self.dataset_dict["blinding"]) == int:
                 self.data_bandpowers, self._blinding_function = self.blind_bandpowers(
-                    None
-                    if type(self.dataset_dict["blinding"]) == bool
-                    else self.dataset_dict["blinding"],
+                    (
+                        None
+                        if type(self.dataset_dict["blinding"]) == bool
+                        else self.dataset_dict["blinding"]
+                    ),
                 )
 
         # Get a mask according to any subselection of the data
@@ -1711,7 +1715,7 @@ class LensLike:
         * spectrum types, e.g. "pp"
         * ell range, e.g. "ell<650" or "ell>1500"
         Understood options for "(action)" are:
-        * "cut" remove this part
+        * "remove" remove this part
         * "only" only keep this part, removing all the rest
 
         Returns
@@ -1729,9 +1733,9 @@ class LensLike:
             # Probably concerns spectra
             for i_spec, st in enumerate(self.spec_types):
                 if data_hint == st:
-                    base_msk[
-                        self.bins_start_ix[i_spec] : self.bins_stop_ix[i_spec]
-                    ] = True
+                    base_msk[self.bins_start_ix[i_spec] : self.bins_stop_ix[i_spec]] = (
+                        True
+                    )
                     affected_specs.append(self.spec_order[i_spec])
 
         elif "ell" in data_hint:
