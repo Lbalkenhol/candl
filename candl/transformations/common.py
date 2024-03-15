@@ -1352,7 +1352,7 @@ def _CIBtSZCorrelationGeometricMean_output(fg_class_instance, sample_params):
 @_CIBtSZCorrelationGeometricMean_output.defjvp
 def _CIBtSZCorrelationGeometricMean_output_jvp(fg_class_instance, primals, tangents):
     """
-    Derivative of CIB-tSZ correlation term output function.
+    Hand-defined derivative of CIB-tSZ correlation term output function.
     See also: candl.transformations.common._CIBtSZCorrelationGeometricMean_output, jax.custom_jvp
     """
     # Process input into regular dictionary
