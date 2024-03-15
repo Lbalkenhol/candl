@@ -46,7 +46,7 @@ try:
     if USE_JAX:
         import jax.numpy as jnp
         import jax.scipy as jsp
-        from jax import jit, jacfwd
+        from jax import jit, jacfwd, custom_jvp
 
         # Unify syntax for setting array elements
         def jax_optional_set_element(arr, ix, el):
@@ -74,6 +74,10 @@ except:
 
     # define jit decorator to do nothing
     def jit(func, **kwargs):
+        return func
+
+    # define custom_jvp decorator to do nothing
+    def custom_jvp(func, **kwargs):
         return func
 
 

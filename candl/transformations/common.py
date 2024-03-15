@@ -1307,11 +1307,159 @@ class kSZTemplateForeground(candl.transformations.abstract_base.TemplateForegrou
         return Dls + self.output(sample_params)
 
 
+# CIB-tSZ correlation functions defined outside of class to guarantee differentiability
+@partial(custom_jvp, nondiff_argnums=(0,))
+def _CIBtSZCorrelationGeometricMean_output(fg_class_instance, sample_params):
+    """
+    Method to calculate tSZ-CIB correlation term using a geometric mean of individual terms.
+    Separated from class to allow for custom derivative method.
+    See also: candl.transformations.common.CIBtSZCorrelationGeometricMean
+
+    Parameters
+    ----------
+    fg_class_instance : candl.transformations.common.CIBtSZCorrelationGeometricMean
+        The CIB-tSZ class instance to use.
+    pars : dict
+        Dictionary of nuisance parameter values.
+
+    Returns
+    -------
+    array
+        tSZ-CIB correlation term.
+
+    """
+    # CIB
+    CIB_nu_1 = fg_class_instance.CIB[0].output(sample_params)
+    CIB_nu_2 = fg_class_instance.CIB[1].output(sample_params)
+
+    # tSZ
+    tSZ_nu_1 = fg_class_instance.tSZ[0].output(sample_params)
+    tSZ_nu_2 = fg_class_instance.tSZ[1].output(sample_params)
+
+    # CIB x tSZ
+    CIB_x_tSZ = jnp.sqrt(CIB_nu_1 * tSZ_nu_2) + jnp.sqrt(CIB_nu_2 * tSZ_nu_1)
+
+    # Complete foreground contribution and mask down
+    fg_pow = (
+        -1.0
+        * fg_class_instance.full_mask
+        * sample_params[fg_class_instance.amp_param]
+        * CIB_x_tSZ
+    )
+    return fg_pow
+
+
+@_CIBtSZCorrelationGeometricMean_output.defjvp
+def _CIBtSZCorrelationGeometricMean_output_jvp(fg_class_instance, primals, tangents):
+    """
+    Derivative of CIB-tSZ correlation term output function.
+    See also: candl.transformations.common._CIBtSZCorrelationGeometricMean_output, jax.custom_jvp
+    """
+    # Process input into regular dictionary
+    (full_pars,) = primals
+    (pars_dot,) = tangents
+
+    # Don't pass on Dl array - it's unnecessary
+    pars = deepcopy(full_pars)
+    if "Dl" in pars:
+        del pars["Dl"]
+
+    # Pass to original function for values
+    ans = fg_class_instance.output(pars)
+
+    # Calculate derivatives
+
+    # xi
+    xi_deriv = ans / pars["TT_tSZ_CIB_Corr_Amp"]
+
+    # A_tSZ
+    tSZ_amp_deriv_term1 = (
+        0.5
+        * jacfwd(fg_class_instance.tSZ[1].output)(pars)["TT_tSZ_Amp"]
+        * jnp.sqrt(
+            fg_class_instance.CIB[0].output(pars)
+            / fg_class_instance.tSZ[1].output(pars)
+        )
+    )
+    tSZ_amp_deriv_term2 = (
+        0.5
+        * jacfwd(fg_class_instance.tSZ[0].output)(pars)["TT_tSZ_Amp"]
+        * jnp.sqrt(
+            fg_class_instance.CIB[1].output(pars)
+            / fg_class_instance.tSZ[0].output(pars)
+        )
+    )
+    tSZ_amp_deriv = -pars["TT_tSZ_CIB_Corr_Amp"] * (
+        tSZ_amp_deriv_term1 + tSZ_amp_deriv_term2
+    )
+    tSZ_amp_deriv = tSZ_amp_deriv.at[
+        np.invert(np.asarray(fg_class_instance.full_mask, dtype=bool))
+    ].set(0.0)
+
+    # A_CIB
+    CIB_amp_deriv_term1 = (
+        0.5
+        * jacfwd(fg_class_instance.CIB[1].output)(pars)["TT_CIBClustering_Amp"]
+        * jnp.sqrt(
+            fg_class_instance.tSZ[0].output(pars)
+            / fg_class_instance.CIB[1].output(pars)
+        )
+    )
+    CIB_amp_deriv_term2 = (
+        0.5
+        * jacfwd(fg_class_instance.CIB[0].output)(pars)["TT_CIBClustering_Amp"]
+        * jnp.sqrt(
+            fg_class_instance.tSZ[1].output(pars)
+            / fg_class_instance.CIB[0].output(pars)
+        )
+    )
+    CIB_amp_deriv = -pars["TT_tSZ_CIB_Corr_Amp"] * (
+        CIB_amp_deriv_term1 + CIB_amp_deriv_term2
+    )
+    CIB_amp_deriv = CIB_amp_deriv.at[
+        np.invert(np.asarray(fg_class_instance.full_mask, dtype=bool))
+    ].set(0.0)
+
+    # beta
+    beta_deriv_term1 = (
+        0.5
+        * jacfwd(fg_class_instance.CIB[1].output)(pars)["TT_CIBClustering_Beta"]
+        * jnp.sqrt(
+            fg_class_instance.tSZ[0].output(pars)
+            / fg_class_instance.CIB[1].output(pars)
+        )
+    )
+    beta_deriv_term2 = (
+        0.5
+        * jacfwd(fg_class_instance.CIB[0].output)(pars)["TT_CIBClustering_Beta"]
+        * jnp.sqrt(
+            fg_class_instance.tSZ[1].output(pars)
+            / fg_class_instance.CIB[0].output(pars)
+        )
+    )
+    beta_deriv = -pars["TT_tSZ_CIB_Corr_Amp"] * (beta_deriv_term1 + beta_deriv_term2)
+    beta_deriv = beta_deriv.at[
+        np.invert(np.asarray(fg_class_instance.full_mask, dtype=bool))
+    ].set(0.0)
+
+    ans_dot = (
+        xi_deriv * pars_dot["TT_tSZ_CIB_Corr_Amp"]
+        + tSZ_amp_deriv * pars_dot["TT_tSZ_Amp"]
+        + CIB_amp_deriv * pars_dot["TT_CIBClustering_Amp"]
+        + beta_deriv * pars_dot["TT_CIBClustering_Beta"]
+    )
+
+    return ans, ans_dot
+
+
 class CIBtSZCorrelationGeometricMean(candl.transformations.abstract_base.Foreground):
     """
     Simple correlation term between power-law CIB and template tSZ modules above with a free amplitude..
     Note that the sign is defined such that a positive correlation parameter leads to a reduction of power at 150GHz.
     Used by SPT-3G 2018 TT/TE/EE implementation.
+    Note that the meat has been taken out of the output method in order to allow for differentiability;
+    auto-diff struggles with this module due to the square-roots, hence hand-defined defined custom derivate rules.
+    Thanks to Marco Bonici for the pointer.
 
     Attributes
     --------------
@@ -1447,11 +1595,11 @@ class CIBtSZCorrelationGeometricMean(candl.transformations.abstract_base.Foregro
             self.tSZ[0].freq_info[i] = [tSZ_freq_pair[0], tSZ_freq_pair[0]]
             self.tSZ[1].freq_info[i] = [tSZ_freq_pair[1], tSZ_freq_pair[1]]
 
-    # @custom_jvp
     @partial(jit, static_argnums=(0,))
     def output(self, sample_params):
         """
         Return foreground spectrum.
+        Direct call to _CIBtSZCorrelationGeometricMean_output.
 
         Arguments
         --------------
@@ -1464,29 +1612,7 @@ class CIBtSZCorrelationGeometricMean(candl.transformations.abstract_base.Foregro
             Foreground spectrum.
         """
 
-        # CIB
-        CIB_nu_1 = self.CIB[0].output(sample_params)
-        CIB_nu_2 = self.CIB[1].output(sample_params)
-
-        # tSZ
-        tSZ_nu_1 = self.tSZ[0].output(sample_params)
-        tSZ_nu_2 = self.tSZ[1].output(sample_params)
-
-        # CIB x tSZ
-        CIB_x_tSZ = jnp.sqrt(CIB_nu_1 * tSZ_nu_2) + jnp.sqrt(CIB_nu_2 * tSZ_nu_1)
-
-        # Complete foreground contribution and mask down
-        fg_pow = -1.0 * self.full_mask * sample_params[self.amp_param] * CIB_x_tSZ
-        return fg_pow
-
-    # @output.defjvp
-    # def output_jvp(primals, tangents):
-    #
-    #    print("ACCESSING THE CUSTOM DERIV")
-    #    print(primals)
-    #    print(tangents)
-    #
-    #    return None
+        return _CIBtSZCorrelationGeometricMean_output(self, sample_params)
 
     @partial(jit, static_argnums=(0,))
     def transform(self, Dls, sample_params):
@@ -2188,7 +2314,7 @@ class SuperSampleLensing(candl.transformations.abstract_base.Transformation):
 
 class AberrationCorrection(candl.transformations.abstract_base.Transformation):
     """
-    Super sample lensing.
+    AberrationCorrection.
     Following Equation 23 in Jeong et al. 2013 (https://arxiv.org/pdf/1309.2285.pdf).
     Note that this is a fixed transformation and does not depend on any nuisance parameters.
 
