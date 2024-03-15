@@ -1502,7 +1502,6 @@ class CIBtSZCorrelationGeometricMean(candl.transformations.abstract_base.Foregro
     Notes
     ----------------
 
-    Due to the functional form, this transformation is non-differentiable.
     User required arguments in data set yaml file:
 
     * link_transformation_module_CIB (str) : Class of the CIB module to scan initialised transformations for.
