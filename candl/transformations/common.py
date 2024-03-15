@@ -1349,7 +1349,7 @@ def _CIBtSZCorrelationGeometricMean_output(fg_class_instance, sample_params):
     return fg_pow
 
 
-#@_CIBtSZCorrelationGeometricMean_output.defjvp
+@_CIBtSZCorrelationGeometricMean_output.defjvp
 def _CIBtSZCorrelationGeometricMean_output_jvp(fg_class_instance, primals, tangents):
     """
     Hand-defined derivative of CIB-tSZ correlation term output function.
@@ -1451,7 +1451,6 @@ def _CIBtSZCorrelationGeometricMean_output_jvp(fg_class_instance, primals, tange
 
     return ans, ans_dot
 
-_CIBtSZCorrelationGeometricMean_output.defjvps(_CIBtSZCorrelationGeometricMean_output_jvp)
 
 class CIBtSZCorrelationGeometricMean(candl.transformations.abstract_base.Foreground):
     """
