@@ -35,8 +35,6 @@ SPT-3G 2018 TT/TE/EE
 :Short cut(s):
    ``candl.data.SPT3G_2018_TTTEEE``
 
-*Note:* this data set is not differentiable due to the functional form of the tSZ-CIB correlation term.
-
 SPT-3G 2018 PP
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
