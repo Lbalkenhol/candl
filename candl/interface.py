@@ -1657,8 +1657,20 @@ def get_CLASS_pars_to_theory_specs_func(CLASS_cosmo):
 
     """
 
+    all_class_pars = [
+        p.lower() for p in CLASS_cosmo.__dir__()
+    ]  # Grab list of parameters that CLASS understands
+
     def pars_to_theory_specs(pars, ell_high_cut, ell_low_cut=2):
-        CLASS_cosmo.set(pars)
+
+        # Only pass parameters understood by CLASS
+        pars_for_class = {}
+        for p in pars:
+            if p.lower() in all_class_pars:
+                pars_for_class[p] = pars[p]
+
+        # Hand off to CLASS
+        CLASS_cosmo.set(pars_for_class)
         CLASS_cosmo.compute()
         class_cls = CLASS_cosmo.lensed_cl(ell_high_cut)
         CLASS_cosmo.struct_cleanup()
