@@ -78,7 +78,7 @@ except:
 
     # define custom_jvp decorator to do nothing
     def custom_jvp(func, **kwargs):
-        func.defjvp = None
+        func.defjvp = lambda: None
         return func
 
 
