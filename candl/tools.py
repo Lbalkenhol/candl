@@ -89,7 +89,9 @@ def get_fisher_matrix(
 
     # Get derivate function
     model_specs = lambda p: pars_to_model_specs(like, p, pars_to_theory_specs)[1]
-    model_specs_deriv = jacfwd(model_specs)
+    model_specs_deriv = jacfwd(
+        model_specs
+    )  # Forward autodiff should be better here (going from few cosmological parameters to many band power bins)
 
     # Calculate derivatives
     Dl_derivs_dict = model_specs_deriv(pars)
