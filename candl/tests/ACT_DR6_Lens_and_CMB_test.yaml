@@ -1,4 +1,4 @@
-data_set_file: "data/ACT_DR6_Lens/ACT_DR6_KK_lens_and_CMB.yaml"
+data_set_file: "data/ACT_DR6_Lens_v0/ACT_DR6_KK_lens_and_CMB.yaml"
 lensing: True
 test_spectrum: "tests/ACT_DR6_Lens_and_CMB_test_spec.txt"
 param_values: {}

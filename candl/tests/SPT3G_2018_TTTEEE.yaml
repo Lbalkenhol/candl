@@ -1,4 +1,4 @@
-data_set_file: "data/SPT3G_2018_TTTEEE/SPT3G_2018_TTTEEE.yaml"
+data_set_file: "data/SPT3G_2018_TTTEEE_v0/SPT3G_2018_TTTEEE.yaml"
 lensing: False
 test_spectrum: "tests/SPT3G_2018_TTTEEE_test_spec.txt"
 param_values: {'omegabh2': 0.02204797,
