@@ -35,6 +35,9 @@ SPT-3G 2018 TT/TE/EE
 :Short cut(s):
    ``candl.data.SPT3G_2018_TTTEEE``
 
+:Latest version:
+   ``v0``
+
 SPT-3G 2018 PP
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -50,6 +53,9 @@ SPT-3G 2018 PP
 
 :Short cut(s):
    ``candl.data.SPT3G_2018_Lens``, ``candl.data.SPT3G_2018_Lens_and_CMB``
+
+:Latest version:
+   ``v0``
 
 *Note*: this data set uses the lensing power spectrum in :math:`\phi\phi`.
 Use ``candl.data.SPT3G_2018_Lens`` when only working with lensing data, use ``candl.data.SPT3G_2018_Lens_and_CMB`` when combining lensing and primary CMB data.
@@ -77,7 +83,10 @@ ACT DR4 TT/TE/EE
 
 :Short cut(s):
    ``candl.data.ACT_DR4_TTTEEE``
-   
+
+:Latest version:
+   ``v0``
+
 *Note*: This is the CMB-only, foreground marginalised version of the likelihood.
 The likelihood refers to the deep data as ``dxd`` and the wide data as ``wxw``.
 
@@ -103,6 +112,9 @@ ACT DR6 PP
 
 :Short cut(s):
    ``candl.data.ACT_DR6_Lens``, ``candl.data.ACT_DR6_Lens_and_CMB``
+
+:Latest version:
+   ``v0``
 
 *Note*: this data set uses the lensing power spectrum in :math:`\kappa\kappa`.
 For the ACT + Planck lensing combination see also `Carron, Mirmelstein, Lewis 2023 <https://arxiv.org/abs/2206.07773>`_.
