@@ -97,6 +97,8 @@ class Like:
         List of strings specifying the order of spectra in the long data and model vectors.
     spec_types : list
         List of strings specifying the spectrum type (TT, TE, EE).
+    unique_spec_types : list
+        List of strings specifying the spectrum type (TT, TE, EE) without duplicate entries in no particular order.
     tiled_ells : array, float
         2d array of ell values for unbinned model spectra.
     window_functions : list of arrays (float)
@@ -178,6 +180,7 @@ class Like:
             self.N_spectra_total,
             self.N_bins,
         ) = candl.io.read_spectrum_info_from_yaml(self.dataset_dict)
+        self.unique_spec_types = list(np.unique(self.spec_types)) # order is destroyed in this process
 
         # Grab total number of spectra and bins
         self.N_spectra_total = len(self.spec_order)
