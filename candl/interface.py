@@ -46,7 +46,7 @@ import candl
 # --------------------------------------#
 
 
-class CobayaTheoryCosmoPowerJAX(cobaya.theory.Theory):
+class CobayaTheoryCosmoPowerJAX(cobaya_theory_Theory):
     """
     Wraps CosmoPower-JAX model into a cobaya.theory.Theory class.
     See D. Piras, A. Spurio Mancini 2023 and A. Spurio Mancini et al. 2021 for more (https://arxiv.org/abs/2305.06347, https://arxiv.org/abs/2106.03846).
@@ -201,7 +201,7 @@ class CobayaTheoryCosmoPowerJAX(cobaya.theory.Theory):
             return self.current_state["Cl"].copy()
 
 
-class CobayaTheoryCosmoPower(cobaya.theory.Theory):
+class CobayaTheoryCosmoPower(cobaya_theory_Theory):
     """
     Wraps regular CosmoPower model into a cobaya theory class.
     See A. Spurio Mancini et al. 2021 for more (https://arxiv.org/abs/2106.03846).
@@ -360,7 +360,7 @@ class CobayaTheoryCosmoPower(cobaya.theory.Theory):
 # --------------------------------------#
 
 
-class CobayaTheoryPyCapse(cobaya.theory.Theory):
+class CobayaTheoryPyCapse(cobaya_theory_Theory):
     """
     Wraps a capse model into a cobaya theory class through the pycapse interface.
     See Bonici, Bianchini, Ruiz-Zapatero 2023 for more (https://arxiv.org/abs/2307.14339).
@@ -531,7 +531,7 @@ class CobayaTheoryPyCapse(cobaya.theory.Theory):
 # --------------------------------------#
 
 
-class CobayaTheoryBBTemplate(cobaya.theory.Theory):
+class CobayaTheoryBBTemplate(cobaya_theory_Theory):
     """
     Wrapper for a two template BB calculator in a cobaya theory class.
 
@@ -678,7 +678,7 @@ class CobayaTheoryBBTemplate(cobaya.theory.Theory):
 # --------------------------------------#
 
 
-class CobayaTheoryCosmoPowerJAXLensing(cobaya.theory.Theory):
+class CobayaTheoryCosmoPowerJAXLensing(cobaya_theory_Theory):
     """
     Wraps CosmoPower-JAX model for lensing into a cobaya theory code.
     See D. Piras, A. Spurio Mancini 2023 and A. Spurio Mancini et al. 2021 for more (https://arxiv.org/abs/2305.06347, https://arxiv.org/abs/2106.03846).
@@ -853,7 +853,7 @@ class CobayaTheoryCosmoPowerJAXLensing(cobaya.theory.Theory):
             return self.current_state["Cl"].copy()
 
 
-class CobayaTheoryCosmoPowerLensing(cobaya.theory.Theory):
+class CobayaTheoryCosmoPowerLensing(cobaya_theory_Theory):
     """
     Wraps CosmoPower model for lensing into a cobaya theory code.
     See A. Spurio Mancini et al. 2021 for more (https://arxiv.org/abs/2106.03846).
@@ -1032,7 +1032,7 @@ class CobayaTheoryCosmoPowerLensing(cobaya.theory.Theory):
 # --------------------------------------#
 
 
-class CandlCobayaLikelihood(cobaya.likelihood.Likelihood):
+class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
     """
     Wrapper for a candl likelihood into a cobaya.likelihood.Likelihood class.
     Based on example likelihood provided by Cobaya (https://cobaya.readthedocs.io/en/latest/likelihoods.html), Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290).
@@ -1165,7 +1165,7 @@ def get_cobaya_likelihood_class_for_like(like):
 
     """
 
-    class CandlLikeCobaya(cobaya.likelihood.Likelihood):
+    class CandlLikeCobaya(cobaya_likelihood_Likelihood):
         def logp(self, **params):
             # Grab the theory spectra
             cls = self.provider.get_Cl(ell_factor=True, units="muK2")

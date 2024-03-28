@@ -103,9 +103,17 @@ except:
 
 # Optional Cobaya import
 try:
-    import cobaya.theory
+    from cobaya.theory import Theory as cobaya_theory_Theory
+    from cobaya.likelihood import Likelihood as cobaya_likelihood_Likelihood
 except:
-    pass
+
+    # Empty class definitions in case Cobaya is not installed
+    class cobaya_theory_Theory:
+        pass
+
+    class cobaya_likelihood_Likelihood:
+        pass
+
 
 # Optional CosmoPower import
 try:
