@@ -180,7 +180,10 @@ class Like:
             self.N_spectra_total,
             self.N_bins,
         ) = candl.io.read_spectrum_info_from_yaml(self.dataset_dict)
-        self.unique_spec_types = list(np.unique(self.spec_types)) # order is destroyed in this process
+
+        self.unique_spec_types = list(
+            np.unique(self.spec_types)
+        )  # order is destroyed in this process
 
         # Grab total number of spectra and bins
         self.N_spectra_total = len(self.spec_order)
@@ -1093,6 +1096,8 @@ class LensLike:
         List of strings specifying the order of spectra in the long data and model vectors.
     spec_types : list
         List of strings specifying the spectrum type (pp).
+    unique_spec_types : list
+        List of strings specifying the spectrum type (TT, TE, EE) without duplicate entries in no particular order.
     tiled_ells : array, float
         2d array of ell values for unbinned model spectra.
     window_functions : list of arrays (float)
@@ -1171,6 +1176,10 @@ class LensLike:
             self.spec_types,
             self.N_bins,
         ) = candl.io.read_spectrum_info_from_yaml(self.dataset_dict, lensing=True)
+
+        self.unique_spec_types = list(
+            np.unique(self.spec_types)
+        )  # order is destroyed in this process
 
         # Grab total number of spectra and bins
         self.N_spectra_total = len(self.spec_order)
@@ -1266,6 +1275,9 @@ class LensLike:
             for prior_par in prior.par_names:
                 self.required_prior_parameters.append(prior_par)
         self.required_prior_parameters = list(np.unique(self.required_prior_parameters))
+
+        # Assert Likelihood form
+        self.dataset_dict["likelihood_form"] = "gaussian"
 
         # Output info on initialisation
         candl.io.like_init_output(self)
@@ -1535,7 +1547,6 @@ class LensLike:
                             M_matrices[s] = candl.io.read_lensing_M_matrices_from_yaml(
                                 self.dataset_dict["data_set_path"]
                                 + tr_arg_dict["M_matrices_folder"],
-                                self.N_bins_total,
                                 Mtype=s,
                             )
                     tr_arg_dict["M_matrices"] = M_matrices
@@ -1676,7 +1687,7 @@ class LensLike:
 
         # Check if crop is necessary
         if not "data_selection" in self.dataset_dict:
-            return np.ones(self.N_bins_total)
+            return np.ones(self.N_bins_total) == 1
 
         if isinstance(self.dataset_dict["data_selection"], str):
             # Generate crop mask based on some string hint

@@ -49,6 +49,8 @@ class BinnedTemplateForeground(candl.transformations.abstract_base.Foreground):
         Names of parameters involved in transformation.
     amp_param : str
         The name of the amplitude parameter.
+    crop_mask : array (bool)
+        Mask of which bins to use.
 
     Methods
     ---------
@@ -77,7 +79,7 @@ class BinnedTemplateForeground(candl.transformations.abstract_base.Foreground):
         amp_param: "A_fg"
     """
 
-    def __init__(self, ells, template_arr, amp_param, descriptor=""):
+    def __init__(self, ells, template_arr, amp_param, crop_mask, descriptor=""):
         """
         Initialise a new instance of the BinnedTemplateForeground class.
 
@@ -89,6 +91,8 @@ class BinnedTemplateForeground(candl.transformations.abstract_base.Foreground):
             A short descriptor.
         amp_param : str
             The name of the amplitude parameter.
+        crop_mask : array (bool)
+            Mask of which bins to use.
         template_arr : array (float)
             Array with two columns, the first for ell values, the second for values of the template spectrum.
 
@@ -102,8 +106,8 @@ class BinnedTemplateForeground(candl.transformations.abstract_base.Foreground):
 
         # Read in template
         self.template_arr = template_arr
-        self.template_spec = self.template_arr[:, 1]
-        self.template_ells = self.template_arr[:, 0]
+        self.template_spec = self.template_arr[crop_mask, 1]
+        self.template_ells = self.template_arr[crop_mask, 0]
 
         # Grab other args
         self.ells = ells
@@ -162,6 +166,8 @@ class ResponseFunctionM(candl.transformations.abstract_base.Transformation):
         A short descriptor.
     M_matrix : array (float)
         The matrix of the transformation.
+    crop_mask : array (bool)
+        Mask of which bins to use.
     operation_hint : str
         Type of the 'transform' operation: 'additive'.
 
@@ -196,7 +202,7 @@ class ResponseFunctionM(candl.transformations.abstract_base.Transformation):
           fiducial_correction_file: "spt3g_2018_pp_lensing_fiducial_correction_phionly.txt"
     """
 
-    def __init__(self, ells, M_matrices, fiducial_correction, descriptor=""):
+    def __init__(self, ells, M_matrices, fiducial_correction, crop_mask, descriptor=""):
         """
         Initialise the ResponseFunctionM transformation.
 
@@ -210,6 +216,8 @@ class ResponseFunctionM(candl.transformations.abstract_base.Transformation):
             A dictionary with the matrix(es) of the transformation.
         fiducial_correction : array (float)
             An array with the fiducial correction (M * C_fid) values.
+        crop_mask : array (bool)
+            Mask of which bins to use.
 
         Returns
         ----------------
@@ -218,8 +226,12 @@ class ResponseFunctionM(candl.transformations.abstract_base.Transformation):
         """
 
         super().__init__(ells=ells, descriptor=descriptor, operation_hint="additive")
-        self.M_matrices = M_matrices
-        self.fiducial_correction = fiducial_correction
+
+        # Crop down fiducial correction and M_matrices for bin selection
+        self.M_matrices = {}
+        for mode in list(M_matrices.keys()):
+            self.M_matrices[mode] = jnp.array(M_matrices[mode][:,crop_mask])
+        self.fiducial_correction = jnp.array(fiducial_correction[crop_mask])
 
     @partial(jit, static_argnums=(0,))
     def output(self, sample_params):
