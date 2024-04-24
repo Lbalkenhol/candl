@@ -311,41 +311,43 @@ def read_transformation_info_from_yaml(dataset_dict, i_tr):
     return tr_name, tr_passed_args
 
 
-def read_lensing_M_matrices_from_yaml(full_path, N_bins_total, Mtype="pp"):
+def read_lensing_M_matrices_from_yaml(full_path, Mtype="pp"):
     """
     Read lensing M matrices.
     This function assumes that window functions are saved in a specific format:  window{n}.dat, where n runs over the bin numbers.
     Each file specifies the response function at all L values.
+    All bins are read in, any cropping is performed later.
 
     Parameters
     --------------
     full_path : str
         The absolute path of the folder.
-    N_bins_total : int
-        The number of bins.
     Mtype : str
         Which M matrices to load, "TT", "TE", "EE", "BB", "pp", or "kk".
 
     Returns
     --------------
     array :
-        M matrices as a (number_of_ells, N_bins_total) array.
+        M matrices as a (number_of_ells, N_files_total) array.
     """
 
     # Load in window functions
+
+    # Figure out how many files (i.e. bins) there are to read
+    N_files_total = len([name for name in os.listdir(full_path) if name[:7] == "window_" and name[-4:] == ".txt"])
 
     # find highest L from the first bin's window
     first_window = np.loadtxt(full_path + "window_0.txt")
     last_L = int(first_window[-1, 0])
     number_of_ells = last_L - 1  # starting at ell = 2
     start_ix = np.argwhere(first_window[:, 0] == 2)[0, 0]  # start at ell = 2
-    this_window = np.zeros([number_of_ells, N_bins_total])
+    this_window = np.zeros([number_of_ells, N_files_total])
 
     # Spectrum order
     ix_to_access = {"TT": 0, "TE": 1, "EE": 2, "BB": 3, "pp": 4, "kk": 4}
 
     # each bin has its own file
-    for n in range(N_bins_total):
+    for n in range(N_files_total):
         a_window = np.loadtxt(full_path + "window_" + str(n) + ".txt")
         this_window[:, n] = a_window[
             start_ix:, ix_to_access[Mtype] + 1
