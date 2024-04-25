@@ -1108,7 +1108,10 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         # Cls
         required_pars = {"Cl": {}}
         for spec in np.unique(self.candl_like.spec_types):
-            required_pars["Cl"][spec] = self.candl_like.ell_max
+            if spec == "kk":
+                required_pars["Cl"]["pp"] = self.candl_like.ell_max # Cobaya works with pp for lensing by default rather than kk
+            else:
+                required_pars["Cl"][spec] = self.candl_like.ell_max
 
         # Nuisance parameters
         for par in self.candl_like.required_nuisance_parameters:
@@ -1128,6 +1131,10 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
             ell_factor=True, units="muK2"
         )  # grab Dls (ell_factor=True)
 
+        # Cover both lensing conventions if required
+        if "pp" in Dls:
+            Dls["kk"] = Dls["pp"]*jnp.pi/2.0
+
         # Crop spectra to correct ell range
         start_ix = np.argwhere(Dls["ell"] == self.candl_like.ell_min)[0][0]
         stop_ix = np.argwhere(Dls["ell"] == self.candl_like.ell_max)[0][0] + 1
@@ -1135,8 +1142,11 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         # Assume spectra handed start at ell=0
         for ky in list(Dls.keys()):
             if ky != "ell":
-                Dls[ky.upper()] = Dls[ky][start_ix:stop_ix]
-                del Dls[ky]
+                if ky in ["pp", "kk"]:
+                    Dls[ky] = Dls[ky][start_ix:stop_ix]
+                else:
+                    Dls[ky.upper()] = Dls[ky][start_ix:stop_ix]
+                    del Dls[ky]
 
         pars_to_pass = params
         pars_to_pass["Dl"] = Dls
@@ -1169,6 +1179,10 @@ def get_cobaya_likelihood_class_for_like(like):
         def logp(self, **params):
             # Grab the theory spectra
             cls = self.provider.get_Cl(ell_factor=True, units="muK2")
+
+            # Cover both lensing conventions if required
+            if "pp" in cls:
+                cls["kk"] = cls["pp"]*jnp.pi/2.0
 
             # Figure out ell range
             N_ell = like.ell_max - like.ell_min + 1
@@ -1232,7 +1246,10 @@ def get_cobaya_info_dict_for_like(like, name="candl_like"):
 
     # Add required CMB spectra
     for spec in np.unique(like.spec_types):
-        cobaya_info[name]["requires"]["Cl"][spec] = like.ell_max
+        if spec == "kk":
+            cobaya_info[name]["requires"]["Cl"]["pp"] = like.ell_max # account for different lensing conventions
+        else:
+            cobaya_info[name]["requires"]["Cl"][spec] = like.ell_max
 
     # Add priors and nuisance parameters as required parameters to the likelihood
     for par in np.unique(
@@ -1627,7 +1644,9 @@ def get_CAMB_pars_to_theory_specs_func(CAMB_pars):
         like_stop_ix = np.amin((CAMB_ells[-1], ell_high_cut)) + 1 - ell_low_cut
 
         # Return as dictionary
-        Dls = {"ell": np.arange(ell_low_cut, ell_high_cut + 1)}
+        Dls = {"ell": np.arange(ell_low_cut, ell_high_cut + 1),
+               "pp": powers["lens_potential"][theory_start_ix:theory_stop_ix,0],
+               "kk": powers["lens_potential"][theory_start_ix:theory_stop_ix,0]*jnp.pi/2.0}
         for ky in list(CAMB_ix.keys()):
             Dls[ky] = jnp.zeros(N_ell)
             Dls[ky] = jax_optional_set_element(
@@ -1692,6 +1711,10 @@ def get_CLASS_pars_to_theory_specs_func(CLASS_cosmo):
         Dls = {}
         for ky in list(class_cls.keys()):
             if ky == "ell":
+                continue
+            if ky == "pp":
+                Dls[ky] = (class_cls[ky] * ((class_cls["ell"] * (class_cls["ell"] + 1))**2.0)/(2.0*jnp.pi))[theory_start_ix:theory_stop_ix]
+                Dls["kk"] = Dls["pp"]*jnp.pi/2.0
                 continue
             Dls[ky.upper()] = jnp.zeros(N_ell)
             this_Dls = (
