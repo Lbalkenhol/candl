@@ -74,3 +74,13 @@ While this may change in the future, exercise caution for now.
    Changes to the attributes of candl likelihoods (e.g. the band powers or the data model) must be made immediately after initialisation.
    Once a jitted method has been called (e.g. the likelihood has been evaluated), changes to attributes are no longer tracked.
    Therefore, it is advised to perform any customisation immediately after initialisation (or by modifying the underlying .yaml file directly - see :ref:`here<Data Structure>` for more info on how to do that).
+
+Combining Multiple Likelihoods
+----------------------------------------------------------
+
+You can combine multiple likelihoods by defining a function that returns the sum of the individual likelihoods.
+However, for this approach the data sets in question need to be independent of one another.
+Consult the literature and in particular the relevant release papers to verify that this is true.
+If this is not the case, you need to create a new data set, with a long data vector comprising of the individual data sets and account for the correlation between the data sets in the covariance matrix.
+See :ref:`Data Structure` for more details on the structure of data sets.
+Even if your data sets are independent, be sure to check that you are not applying any priors twice (e.g. on :math:`\tau`).
