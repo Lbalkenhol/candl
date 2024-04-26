@@ -64,11 +64,12 @@ The order is:
 
 #. Calculate and add the prior contribution.
 
+Conventions
+-----------------------------
 
-.. warning::
+Primary CMB likelihoods operate in :math:`D_\ell` space, i.e. on :math:`C_\ell \ell (\ell + 1) / (2 \pi)`, in units of :math:`\mu K_{\mathrm{CMB}}^2`.
+Theory spectra passed to the likelihood start at :math:`\ell=2`.
+The interface module prefers spectrum identifiers (e.g. ``TT``, ``TE``, ``EE``) to be in uppercase.
 
-   You can combine multiple likelihoods by defining a function that returns the sum of the individual likelihoods.
-   However, for this approach the data sets in question need to be independent of one another.
-   Consult the literature and in particular the relevant release papers to verify that this is true.
-   If this is not the case, you need to create a new data set, with a long data vector comprising of the individual data sets and account for the correlation between the data sets in the covariance matrix.
-   See :ref:`Data Structure` for more details on the structure of data sets.
+For lensing likelihoods, theory spectra also start at :math:`L=2`.
+The interface module accounts for spectrum identifiers ``pp`` and ``kk`` (in lowercase), expecting the normalisations :math:`C^{\phi\phi}_L \left[ L (L + 1) \right]^2 / (2 \pi)` (such that the value of the spectrum at :math:`L=100` is approximately :math:`10^{-7}`) and :math:`C^{\phi\phi}_L \left[ L (L + 1) \right]^2 / 4`, respectively.
