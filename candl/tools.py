@@ -1174,7 +1174,8 @@ def undo_transformations(like, pars, pars_to_theory_specs):
             calibration_vec = np.repeat(
                 calibration_vec[:: like.N_ell_bins_theory], like.N_bins
             )
-            data_CMB_only_vec *= calibration_vec
+
+            data_CMB_only_vec /= calibration_vec
 
         elif transformation.operation_hint == "additive":
 
