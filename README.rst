@@ -64,6 +64,8 @@ candl is written in a JAX-friendly way.
 That means JAX is optional and you can install and run candl without JAX and perform traditional inference tasks such as MCMC sampling with Cobaya.
 However, if JAX is installed, the likelihood is fully differentiable thanks to automatic differentiation and many functions are jitted for speed.
 
+candl currently supports JAX version 0.4.24.
+
 Documentation
 --------------
 
