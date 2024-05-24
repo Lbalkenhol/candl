@@ -422,7 +422,7 @@ class Like:
         delta_bdp = data_bandpowers - binned_theory_Dls
 
         # Calculate logl
-        chol_fac = jsp.linalg.solve(self.covariance_chol_dec, delta_bdp)
+        chol_fac = jnp.linalg.solve(self.covariance_chol_dec, delta_bdp)
         chisq = jnp.dot(
             chol_fac.T, chol_fac
         )  # equivalent to the straightforward method, i.e. delta @ C^-1 @ delta
@@ -459,7 +459,7 @@ class Like:
         )
 
         # Calculate logl
-        chol_fac = jsp.linalg.solve(full_covariance_chol_dec, delta_bdp)
+        chol_fac = jnp.linalg.solve(full_covariance_chol_dec, delta_bdp)
         chisq = jnp.dot(
             chol_fac.T, chol_fac
         )  # equivalent to the straightforward method, i.e. delta @ C^-1 @ delta
@@ -502,10 +502,10 @@ class Like:
                 + self.beam_correlation
                 * jnp.outer(binned_theory_Dls, binned_theory_Dls)
             )
-            chol_fac = jsp.linalg.solve(full_covariance_chol_dec, delta_bdp)
+            chol_fac = jnp.linalg.solve(full_covariance_chol_dec, delta_bdp)
         else:
             # Calculate chisq
-            chol_fac = jsp.linalg.solve(self.covariance_chol_dec, delta_bdp)
+            chol_fac = jnp.linalg.solve(self.covariance_chol_dec, delta_bdp)
 
         chisq = jnp.dot(
             chol_fac.T, chol_fac
@@ -1384,7 +1384,7 @@ class LensLike:
         """
 
         # Calculate logl
-        chol_fac = jsp.linalg.solve(self.covariance_chol_dec, delta_bdp)
+        chol_fac = jnp.linalg.solve(self.covariance_chol_dec, delta_bdp)
         chisq = jnp.dot(
             chol_fac.T, chol_fac
         )  # equivalent to the straightforward method, i.e. delta @ C^-1 @ delta
@@ -1417,7 +1417,7 @@ class LensLike:
         delta_bdp = self._data_bandpowers - binned_theory_Dls
 
         # Calculate chisq
-        chol_fac = jsp.linalg.solve(self.covariance_chol_dec, delta_bdp)
+        chol_fac = jnp.linalg.solve(self.covariance_chol_dec, delta_bdp)
         chisq = jnp.dot(
             chol_fac.T, chol_fac
         )  # equivalent to the straight forward method, i.e. delta @ C^-1 @ delta
@@ -1952,7 +1952,7 @@ class GaussianPrior:
             jnp.atleast_1d([sampled_pars[par_name] for par_name in self.par_names])
             - self.central_value
         )
-        chol_fac = jsp.linalg.solve(self.prior_covariance_chol, delta_pars)
+        chol_fac = jnp.linalg.solve(self.prior_covariance_chol, delta_pars)
         logl = (
             jnp.dot(chol_fac.T, chol_fac) / 2
         )  # equivalent to the chisq method, i.e. 0.5*(delta @ C^-1 @ delta)
