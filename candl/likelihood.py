@@ -2002,16 +2002,22 @@ def cholesky_decomposition(covariance):
         Cholesky decomposition of the input matrix.
     """
 
+    covariance_chol_dec = None
+
+    # Compute cholesky decomposition, make sure it works
     try:
         covariance_chol_dec = jnp.linalg.cholesky(covariance)
-        if np.isnan(covariance_chol_dec).any():
-            raise Exception(
-                "candl: cholesky decomposition contains 'nan'! Check file and try switching on double precision in JAX. Stopping."
-            )
-            exit(1)
-        return covariance_chol_dec
     except:
         raise Exception(
             "Band power covariance matrix is not positive definite! Stopping."
         )
         exit(1)
+    
+    # Check no nans are present from insufficient precision
+    if np.isnan(covariance_chol_dec).any():
+        raise Exception(
+            "candl: cholesky decomposition contains 'nan'! Check file and try switching on double precision in JAX. Stopping."
+        )
+        exit(1)
+        
+    return covariance_chol_dec
