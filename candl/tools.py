@@ -56,10 +56,10 @@ import candl.io
 
 
 def get_fisher_matrix(
-    pars_to_theory_specs, like, pars, par_order=None, return_par_order=False
+    pars_to_theory_specs, like, pars, par_order=None, return_par_order=False, return_par_cov=True,
 ):
     """
-    Calculate the Fisher matrix using a differentiable theory code and the covariance of the data set.
+    Calculate the Parameter covariance matrix based on the Fisher matrix using a differentiable theory code and the covariance of the data set.
     Applies priors on nuisance parameters.
 
     Parameters
@@ -74,6 +74,8 @@ def get_fisher_matrix(
         Order of parameters requested in returned matrix.
     return_par_order : bool (optional)
         return a list of parameters to indicate the order in the matrix.
+    return_par_cov : bool (optional)
+        Return the parameter covariance matrix, setting to False will return the Fisher matrix (i.e. not inverted).
 
     Returns
     --------------
@@ -118,11 +120,16 @@ def get_fisher_matrix(
                     pass
 
     # Invert and return
-    par_cov = np.linalg.inv(fisher_mat)
+    if return_par_cov:
+        par_cov = np.linalg.inv(fisher_mat)
 
-    if return_par_order:
-        return par_cov, par_order
-    return par_cov
+        if return_par_order:
+            return par_cov, par_order
+        return par_cov
+    else:
+        if return_par_order:
+            return fisher_mat, par_order
+        return fisher_mat
 
 
 # --------------------------------------#
