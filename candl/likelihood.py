@@ -75,8 +75,10 @@ class Like:
         ratio of blinded to unblinded band powers - careful!
     data_model : list of candl.transformations.abstract_base.Transformation
         List of transformations to be applied to the theory spectra.
-    dataset_dict : dict
+    data_set_dict : dict
         Dictionary read in from data set .yaml file containing all the information needed to initialise the likelihood.
+    data_set_file : str
+        The file path of the data set .yaml file.
     effective_ells : array, float
         Bin centres for each spectrum.
     effective_frequencies : dict
@@ -140,13 +142,13 @@ class Like:
 
     """
 
-    def __init__(self, dataset_file, **kwargs):
+    def __init__(self, data_set_file, **kwargs):
         """
         Initialise a new instance of the Like class.
 
         Parameters
         --------------
-        dataset_file : str
+        data_set_file : str
             The file path of a .yaml file that contains all the necessary information to initialise the likelihood.
         **kwargs : dict
             Any additional keyword arguments to overwrite the information in the .yaml file.
@@ -157,20 +159,21 @@ class Like:
             A new instance of the base likelihood class with all data read in and the set-up completed.
         """
 
-        self.dataset_dict = candl.io.load_info_yaml(dataset_file)
+        self.data_set_file = data_set_file
+        self.data_set_dict = candl.io.load_info_yaml(data_set_file)
 
         # Overwrite any info in the data set yaml file by passed kwargs
         for key in kwargs:
-            self.dataset_dict[key] = kwargs[key]
+            self.data_set_dict[key] = kwargs[key]
 
         # Specify data path if necessary
-        if not "data_set_path" in self.dataset_dict:
-            self.dataset_dict["data_set_path"] = (
-                "/".join(dataset_file.split("/")[:-1]) + "/"
+        if not "data_set_path" in self.data_set_dict:
+            self.data_set_dict["data_set_path"] = (
+                "/".join(data_set_file.split("/")[:-1]) + "/"
             )
 
         # Grab fluffy descriptor data
-        self.name = candl.io.read_meta_info_from_yaml(self.dataset_dict)
+        self.name = candl.io.read_meta_info_from_yaml(self.data_set_dict)
 
         # Grab spectrum info
         (
@@ -179,7 +182,7 @@ class Like:
             self.spec_freqs,
             self.N_spectra_total,
             self.N_bins,
-        ) = candl.io.read_spectrum_info_from_yaml(self.dataset_dict)
+        ) = candl.io.read_spectrum_info_from_yaml(self.data_set_dict)
 
         self.unique_spec_types = list(
             np.unique(self.spec_types)
@@ -194,40 +197,40 @@ class Like:
 
         # Load band powers and covariance
         self._data_bandpowers = candl.io.read_file_from_yaml(
-            self.dataset_dict, "band_power_file"
+            self.data_set_dict, "band_power_file"
         )
         self.covariance = candl.io.read_file_from_yaml(
-            self.dataset_dict, "covariance_file"
+            self.data_set_dict, "covariance_file"
         )
 
         # Load beam correlation if present
         self.beam_correlation = None
-        if "beam_correlation_file" in self.dataset_dict:
+        if "beam_correlation_file" in self.data_set_dict:
             self.beam_correlation = candl.io.read_file_from_yaml(
-                self.dataset_dict, "beam_correlation_file"
+                self.data_set_dict, "beam_correlation_file"
             )
 
         # Set likelihood method to be used
         self.logl_function = self.gaussian_logl
-        if "likelihood_form" in self.dataset_dict:
-            if self.dataset_dict["likelihood_form"] == "gaussian_beam_detcov":
+        if "likelihood_form" in self.data_set_dict:
+            if self.data_set_dict["likelihood_form"] == "gaussian_beam_detcov":
                 if not self.beam_correlation is None:
                     self.logl_function = self.gaussian_logl_beam_and_detcov
         else:
-            self.dataset_dict["likelihood_form"] = "gaussian"
+            self.data_set_dict["likelihood_form"] = "gaussian"
 
         # Load effective frequencies
         self.effective_frequencies = candl.io.read_effective_frequencies_from_yaml(
-            self.dataset_dict
+            self.data_set_dict
         )
 
         # Read in band passes
         self.bandpasses = {}
-        if "bandpasses" in self.dataset_dict:
-            for freq in self.dataset_dict["bandpasses"]:
+        if "bandpasses" in self.data_set_dict:
+            for freq in self.data_set_dict["bandpasses"]:
                 bandpass_arr = candl.io.read_file_from_path(
-                    self.dataset_dict["data_set_path"]
-                    + self.dataset_dict["bandpasses"][freq]
+                    self.data_set_dict["data_set_path"]
+                    + self.data_set_dict["bandpasses"][freq]
                 )
                 this_bandpass = candl.transformations.abstract_base.BandPass(
                     bandpass_arr
@@ -236,7 +239,7 @@ class Like:
 
         # Load in window functions and grab number of theory ell bins
         self.window_functions = candl.io.read_window_functions_from_yaml(
-            self.dataset_dict, self.spec_order, self.N_bins
+            self.data_set_dict, self.spec_order, self.N_bins
         )
         self.N_ell_bins_theory = int(jnp.shape(self.window_functions[0])[0])
 
@@ -259,16 +262,16 @@ class Like:
 
         # Blind the band powers if necessary
         self.data_bandpowers = self._data_bandpowers
-        if "blinding" in list(self.dataset_dict.keys()):
+        if "blinding" in list(self.data_set_dict.keys()):
             if (
-                type(self.dataset_dict["blinding"]) == bool
-                and self.dataset_dict["blinding"]
-            ) or type(self.dataset_dict["blinding"]) == int:
+                type(self.data_set_dict["blinding"]) == bool
+                and self.data_set_dict["blinding"]
+            ) or type(self.data_set_dict["blinding"]) == int:
                 self.data_bandpowers, self._blinding_function = self.blind_bandpowers(
                     (
                         None
-                        if type(self.dataset_dict["blinding"]) == bool
-                        else self.dataset_dict["blinding"]
+                        if type(self.data_set_dict["blinding"]) == bool
+                        else self.data_set_dict["blinding"]
                     ),
                 )
 
@@ -303,9 +306,7 @@ class Like:
         for transformation in self.data_model:  # go through all transformations
             for nuisance_par in transformation.param_names:
                 self.required_nuisance_parameters.append(nuisance_par)
-        self.required_nuisance_parameters = list(
-            np.unique(self.required_nuisance_parameters)
-        )
+        self.required_nuisance_parameters = [str(p) for p in np.unique(self.required_nuisance_parameters)]
 
         # Similarly, get a list of all parameters with priors
         self.required_prior_parameters = []
@@ -591,13 +592,13 @@ class Like:
 
         # Load in the data model
         data_model = []
-        if not "data_model" in self.dataset_dict:
+        if not "data_model" in self.data_set_dict:
             return data_model
 
-        for i_tr in range(len(self.dataset_dict["data_model"])):
+        for i_tr in range(len(self.data_set_dict["data_model"])):
             # Get class of the requested transformation and any passed arguments
             full_tr_name, tr_passed_args = candl.io.read_transformation_info_from_yaml(
-                self.dataset_dict, i_tr
+                self.data_set_dict, i_tr
             )
 
             # Break the information into module and class name
@@ -706,8 +707,8 @@ class Like:
         """
 
         priors = []
-        if "priors" in self.dataset_dict:
-            for prior_block in self.dataset_dict["priors"]:
+        if "priors" in self.data_set_dict:
+            for prior_block in self.data_set_dict["priors"]:
                 prior_args = prior_block
 
                 if "prior_std" in prior_args:
@@ -718,7 +719,7 @@ class Like:
                 if isinstance(prior_args["prior_covariance"], str):
                     prior_args["prior_covariance"] = jnp.array(
                         np.loadtxt(
-                            self.dataset_dict["data_set_path"]
+                            self.data_set_dict["data_set_path"]
                             + prior_args["prior_covariance"]
                         )
                     )
@@ -825,41 +826,41 @@ class Like:
         """
 
         # Check if crop is necessary
-        if not "data_selection" in self.dataset_dict:
+        if not "data_selection" in self.data_set_dict:
             return np.ones(self.N_bins_total) == 1
 
-        if isinstance(self.dataset_dict["data_selection"], str):
-            if " " in self.dataset_dict["data_selection"]:
+        if isinstance(self.data_set_dict["data_selection"], str):
+            if " " in self.data_set_dict["data_selection"]:
                 # Generate crop mask based on some string hint
                 crop_mask = self.interpret_crop_hint(
-                    self.dataset_dict["data_selection"]
+                    self.data_set_dict["data_selection"]
                 )
             else:
                 # Interpret as a relative path to a mask
                 crop_mask = candl.io.read_file_from_yaml(
-                    self.dataset_dict, "data_selection"
+                    self.data_set_dict, "data_selection"
                 )
-        elif isinstance(self.dataset_dict["data_selection"], list) and isinstance(
-            self.dataset_dict["data_selection"][0], str
+        elif isinstance(self.data_set_dict["data_selection"], list) and isinstance(
+            self.data_set_dict["data_selection"][0], str
         ):
             # Generate crop mask based on multiple string hints
             cumulative_crop_mask = np.zeros(self.N_bins_total)
-            for this_string_hint in self.dataset_dict["data_selection"]:
+            for this_string_hint in self.data_set_dict["data_selection"]:
                 cumulative_crop_mask += self.interpret_crop_hint(this_string_hint)
             crop_mask = np.array(
                 cumulative_crop_mask == np.amax(cumulative_crop_mask), dtype=bool
             )
-        elif isinstance(self.dataset_dict["data_selection"], list):
+        elif isinstance(self.data_set_dict["data_selection"], list):
             # Can either be series of spectra to use or a boolean mask
-            if isinstance(self.dataset_dict["data_selection"][0], str):
+            if isinstance(self.data_set_dict["data_selection"][0], str):
                 crop_mask = np.array(
                     [
-                        1 if spec in self.dataset_dict["data_selection"] else 0
+                        1 if spec in self.data_set_dict["data_selection"] else 0
                         for spec in self.spec_order
                     ]
                 )
-            elif isinstance(self.dataset_dict["data_selection"][0], bool):
-                crop_mask = np.array(self.dataset_dict["data_selection"], dtype=int)
+            elif isinstance(self.data_set_dict["data_selection"][0], bool):
+                crop_mask = np.array(self.data_set_dict["data_selection"], dtype=int)
             else:
                 # Cannot interpret the list passed
                 crop_mask = np.ones(self.N_bins_total)
@@ -1076,8 +1077,10 @@ class LensLike:
         ratio of blinded to unblinded band powers - careful!
     data_model : list of candl.transformations.abstract_base.Transformation
         List of transformations to be applied to the theory spectra.
-    dataset_dict : dict
+    data_set_dict : dict
         Dictionary read in from data set .yaml file containing all the information needed to initialise the likelihood.
+    data_set_file : str
+        The file path of the data set .yaml file.
     effective_ells : array, float
         Bin centres for each spectrum.
     ells : array, float
@@ -1138,13 +1141,13 @@ class LensLike:
 
     """
 
-    def __init__(self, dataset_file, **kwargs):
+    def __init__(self, data_set_file, **kwargs):
         """
         Initialise a new instance of the LensLike class.
 
         Parameters
         --------------
-        dataset_file : str
+        data_set_file : str
             The file path of a .yaml file that contains all the necessary information to initialise the likelihood.
         kwargs : dict
             Any additional information to overwrite the information in the .yaml file.
@@ -1155,27 +1158,28 @@ class LensLike:
             A new instance of the base lensing likelihood class with all data read in and the set-up completed.
         """
 
-        self.dataset_dict = candl.io.load_info_yaml(dataset_file)
+        self.data_set_file = data_set_file
+        self.data_set_dict = candl.io.load_info_yaml(data_set_file)
 
         # Overwrite any info in the data set yaml file by passed kwargs
         for key in kwargs:
-            self.dataset_dict[key] = kwargs[key]
+            self.data_set_dict[key] = kwargs[key]
 
         # Specify data path if necessary
-        if not "data_set_path" in self.dataset_dict:
-            self.dataset_dict["data_set_path"] = (
-                "/".join(dataset_file.split("/")[:-1]) + "/"
+        if not "data_set_path" in self.data_set_dict:
+            self.data_set_dict["data_set_path"] = (
+                "/".join(data_set_file.split("/")[:-1]) + "/"
             )
 
         # Grab fluffy descriptor data
-        self.name = candl.io.read_meta_info_from_yaml(self.dataset_dict)
+        self.name = candl.io.read_meta_info_from_yaml(self.data_set_dict)
 
         # Grab spectrum info
         (
             self.spec_order,
             self.spec_types,
             self.N_bins,
-        ) = candl.io.read_spectrum_info_from_yaml(self.dataset_dict, lensing=True)
+        ) = candl.io.read_spectrum_info_from_yaml(self.data_set_dict, lensing=True)
 
         self.unique_spec_types = list(
             np.unique(self.spec_types)
@@ -1190,15 +1194,15 @@ class LensLike:
 
         # Load band powers and covariance
         self._data_bandpowers = candl.io.read_file_from_yaml(
-            self.dataset_dict, "band_power_file"
+            self.data_set_dict, "band_power_file"
         )
         self.covariance = candl.io.read_file_from_yaml(
-            self.dataset_dict, "covariance_file"
+            self.data_set_dict, "covariance_file"
         )
 
         # Load in window functions and grab number of theory ell bins
         self.window_functions = candl.io.read_window_functions_from_yaml(
-            self.dataset_dict, self.spec_order, self.N_bins
+            self.data_set_dict, self.spec_order, self.N_bins
         )
         self.N_ell_bins_theory = int(jnp.shape(self.window_functions[0])[0])
 
@@ -1221,16 +1225,16 @@ class LensLike:
 
         # Blind the band powers if necessary
         self.data_bandpowers = self._data_bandpowers
-        if "blinding" in list(self.dataset_dict.keys()):
+        if "blinding" in list(self.data_set_dict.keys()):
             if (
-                type(self.dataset_dict["blinding"]) == bool
-                and self.dataset_dict["blinding"]
-            ) or type(self.dataset_dict["blinding"]) == int:
+                type(self.data_set_dict["blinding"]) == bool
+                and self.data_set_dict["blinding"]
+            ) or type(self.data_set_dict["blinding"]) == int:
                 self.data_bandpowers, self._blinding_function = self.blind_bandpowers(
                     (
                         None
-                        if type(self.dataset_dict["blinding"]) == bool
-                        else self.dataset_dict["blinding"]
+                        if type(self.data_set_dict["blinding"]) == bool
+                        else self.data_set_dict["blinding"]
                     ),
                 )
 
@@ -1265,9 +1269,7 @@ class LensLike:
         for transformation in self.data_model:  # go through all transformations
             for nuisance_par in transformation.param_names:
                 self.required_nuisance_parameters.append(nuisance_par)
-        self.required_nuisance_parameters = list(
-            np.unique(self.required_nuisance_parameters)
-        )
+        self.required_nuisance_parameters = [str(p) for p in np.unique(self.required_nuisance_parameters)]
 
         # Similarly, get a list of all parameters with priors
         self.required_prior_parameters = []
@@ -1277,7 +1279,7 @@ class LensLike:
         self.required_prior_parameters = list(np.unique(self.required_prior_parameters))
 
         # Assert Likelihood form
-        self.dataset_dict["likelihood_form"] = "gaussian"
+        self.data_set_dict["likelihood_form"] = "gaussian"
 
         # Output info on initialisation
         candl.io.like_init_output(self)
@@ -1506,13 +1508,13 @@ class LensLike:
 
         # Load in the data model
         data_model = []
-        if not "data_model" in self.dataset_dict:
+        if not "data_model" in self.data_set_dict:
             return data_model
 
-        for i_tr in range(len(self.dataset_dict["data_model"])):
+        for i_tr in range(len(self.data_set_dict["data_model"])):
             # Get class of the requested transformation and any passed arguments
             full_tr_name, tr_passed_args = candl.io.read_transformation_info_from_yaml(
-                self.dataset_dict, i_tr
+                self.data_set_dict, i_tr
             )
 
             # Break the information into module and class name
@@ -1545,7 +1547,7 @@ class LensLike:
                     for s in tr_arg_dict["Mmodes"]:
                         if s in ["TT", "TE", "EE", "BB", "pp", "kk"]:
                             M_matrices[s] = candl.io.read_lensing_M_matrices_from_yaml(
-                                self.dataset_dict["data_set_path"]
+                                self.data_set_dict["data_set_path"]
                                 + tr_arg_dict["M_matrices_folder"],
                                 Mtype=s,
                             )
@@ -1554,7 +1556,7 @@ class LensLike:
                     del tr_arg_dict["Mmodes"]
                 if arg == "fiducial_correction":
                     tr_arg_dict["fiducial_correction"] = candl.io.read_file_from_path(
-                        self.dataset_dict["data_set_path"]
+                        self.data_set_dict["data_set_path"]
                         + tr_arg_dict["fiducial_correction_file"]
                     )
                     del tr_arg_dict["fiducial_correction_file"]
@@ -1577,8 +1579,8 @@ class LensLike:
         """
 
         priors = []
-        if "priors" in self.dataset_dict:
-            for prior_block in self.dataset_dict["priors"]:
+        if "priors" in self.data_set_dict:
+            for prior_block in self.data_set_dict["priors"]:
                 prior_args = prior_block
                 if "prior_std" in prior_args:
                     prior_args["prior_covariance"] = float(prior_args["prior_std"]) ** 2
@@ -1588,7 +1590,7 @@ class LensLike:
                 if isinstance(prior_args["prior_covariance"], str):
                     prior_args["prior_covariance"] = jnp.array(
                         np.loadtxt(
-                            self.dataset_dict["data_set_path"]
+                            self.data_set_dict["data_set_path"]
                             + prior_args["prior_covariance"]
                         )
                     )
@@ -1686,33 +1688,33 @@ class LensLike:
         """
 
         # Check if crop is necessary
-        if not "data_selection" in self.dataset_dict:
+        if not "data_selection" in self.data_set_dict:
             return np.ones(self.N_bins_total) == 1
 
-        if isinstance(self.dataset_dict["data_selection"], str):
+        if isinstance(self.data_set_dict["data_selection"], str):
             # Generate crop mask based on some string hint
-            crop_mask = self.interpret_crop_hint(self.dataset_dict["data_selection"])
-        elif isinstance(self.dataset_dict["data_selection"], list) and isinstance(
-            self.dataset_dict["data_selection"][0], str
+            crop_mask = self.interpret_crop_hint(self.data_set_dict["data_selection"])
+        elif isinstance(self.data_set_dict["data_selection"], list) and isinstance(
+            self.data_set_dict["data_selection"][0], str
         ):
             # Generate crop mask based on multiple string hints
             cumulative_crop_mask = np.zeros(self.N_bins_total)
-            for this_string_hint in self.dataset_dict["data_selection"]:
+            for this_string_hint in self.data_set_dict["data_selection"]:
                 cumulative_crop_mask += self.interpret_crop_hint(this_string_hint)
             crop_mask = np.array(
                 cumulative_crop_mask == np.amax(cumulative_crop_mask), dtype=bool
             )
-        elif isinstance(self.dataset_dict["data_selection"], list):
+        elif isinstance(self.data_set_dict["data_selection"], list):
             # Can either be series of spectra to use or a boolean mask
-            if isinstance(self.dataset_dict["data_selection"][0], str):
+            if isinstance(self.data_set_dict["data_selection"][0], str):
                 crop_mask = np.array(
                     [
-                        1 if spec in self.dataset_dict["data_selection"] else 0
+                        1 if spec in self.data_set_dict["data_selection"] else 0
                         for spec in self.spec_order
                     ]
                 )
-            elif isinstance(self.dataset_dict["data_selection"][0], bool):
-                crop_mask = np.array(self.dataset_dict["data_selection"], dtype=int)
+            elif isinstance(self.data_set_dict["data_selection"][0], bool):
+                crop_mask = np.array(self.data_set_dict["data_selection"], dtype=int)
             else:
                 # Cannot interpret the list passed
                 crop_mask = np.ones(self.N_bins_total)

@@ -27,13 +27,13 @@ from candl.lib import *
 # --------------------------------------#
 
 
-def read_meta_info_from_yaml(dataset_dict):
+def read_meta_info_from_yaml(data_set_dict):
     """
     Read any meta information.
 
     Parameters
     --------------
-    dataset_dict : dict
+    data_set_dict : dict
         The data set dictionary containing all the information from the input yaml file.
 
     Returns
@@ -42,7 +42,7 @@ def read_meta_info_from_yaml(dataset_dict):
         Name of the likelihood.
     """
 
-    return dataset_dict["name"]
+    return data_set_dict["name"]
 
 
 def load_info_yaml(dataset_file):
@@ -62,21 +62,21 @@ def load_info_yaml(dataset_file):
 
     # Read in the dataset yaml file
     with open(dataset_file, "r") as f:
-        dataset_dict = yaml.load(f, Loader=yaml.loader.SafeLoader)
+        data_set_dict = yaml.load(f, Loader=yaml.loader.SafeLoader)
 
     # Any potential path modification can go here
 
-    return dataset_dict
+    return data_set_dict
 
 
-def read_spectrum_info_from_yaml(dataset_dict, lensing=False):
+def read_spectrum_info_from_yaml(data_set_dict, lensing=False):
     """
     Read spectrum info.
     If lensing == True only returns first, second, and fourth item from usual returns.
 
     Parameters
     --------------
-    dataset_dict : dict
+    data_set_dict : dict
         The data set dictionary containing all the information from the input yaml file.
 
     Returns
@@ -95,8 +95,8 @@ def read_spectrum_info_from_yaml(dataset_dict, lensing=False):
     """
 
     # Extract spectrum order, number of bins, spectrum types, and spectrum frequencies
-    spec_order = [list(spec.keys())[0] for spec in dataset_dict["spectra_info"]]
-    N_bins = [int(list(spec.values())[0]) for spec in dataset_dict["spectra_info"]]
+    spec_order = [list(spec.keys())[0] for spec in data_set_dict["spectra_info"]]
+    N_bins = [int(list(spec.values())[0]) for spec in data_set_dict["spectra_info"]]
 
     # Lensing likelihoods only need some of this info
     if lensing == True:
@@ -105,21 +105,21 @@ def read_spectrum_info_from_yaml(dataset_dict, lensing=False):
     spec_types = [s[:2] for s in spec_order]
     spec_freqs = [s.split(" ")[1].split("x") for s in spec_order]
     N_spectra_total = len(spec_order)
-    N_bins = [int(list(spec.values())[0]) for spec in dataset_dict["spectra_info"]]
+    N_bins = [int(list(spec.values())[0]) for spec in data_set_dict["spectra_info"]]
 
     return spec_order, spec_types, spec_freqs, N_spectra_total, N_bins
 
 
-def read_file_from_yaml(dataset_dict, file_kw):
+def read_file_from_yaml(data_set_dict, file_kw):
     """
     Read in a file from the data_set dict.
 
     Parameters
     --------------
-    dataset_dict : dict
+    data_set_dict : dict
         The data set dictionary containing all the information from the input yaml file.
     file_kw : str
-        A string that corresponds to a keyword in dataset_dict that specifies the file location relative to
+        A string that corresponds to a keyword in data_set_dict that specifies the file location relative to
         the base path.
 
     Returns
@@ -129,7 +129,7 @@ def read_file_from_yaml(dataset_dict, file_kw):
     """
 
     # Hand off to file reader
-    arr = read_file_from_path(dataset_dict["data_set_path"] + dataset_dict[file_kw])
+    arr = read_file_from_path(data_set_dict["data_set_path"] + data_set_dict[file_kw])
 
     return arr
 
@@ -168,13 +168,13 @@ def read_file_from_path(full_path):
     return arr
 
 
-def read_effective_frequencies_from_yaml(dataset_dict):
+def read_effective_frequencies_from_yaml(data_set_dict):
     """
     Read in effective frequency information from data set dictionary.
 
     Parameters
     --------------
-    dataset_dict : dict
+    data_set_dict : dict
         The data set dictionary containing all the information from the input yaml file.
 
     Returns
@@ -184,12 +184,12 @@ def read_effective_frequencies_from_yaml(dataset_dict):
     """
 
     # Check if effective_frequencies exists (might not be needed for all likelihoods depending on spectra/fg models)
-    if not "effective_frequencies" in dataset_dict:
+    if not "effective_frequencies" in data_set_dict:
         return None
 
     # Load effective frequencies, casting frequency id's to strings and effective frequencies to floats
     with open(
-        dataset_dict["data_set_path"] + dataset_dict["effective_frequencies"], "r"
+        data_set_dict["data_set_path"] + data_set_dict["effective_frequencies"], "r"
     ) as f:
         effective_freq_dict = yaml.load(f, Loader=yaml.loader.SafeLoader)
     effective_frequencies = {}
@@ -203,7 +203,7 @@ def read_effective_frequencies_from_yaml(dataset_dict):
     return effective_frequencies
 
 
-def read_window_functions_from_yaml(dataset_dict, spec_order, N_bins):
+def read_window_functions_from_yaml(data_set_dict, spec_order, N_bins):
     """
     Read band power window functions using data set dictionary. There are two allowed formats:
 
@@ -215,7 +215,7 @@ def read_window_functions_from_yaml(dataset_dict, spec_order, N_bins):
 
     Parameters
     --------------
-    dataset_dict : dict
+    data_set_dict : dict
         The data set dictionary containing all the information from the input yaml file.
     spec_order : list
         List specifying the order of spectra.
@@ -230,7 +230,7 @@ def read_window_functions_from_yaml(dataset_dict, spec_order, N_bins):
 
     # Check what format the window functions are saved in depending on what files are in the passed folder
     files_in_dir = os.listdir(
-        dataset_dict["data_set_path"] + dataset_dict["window_functions_folder"]
+        data_set_dict["data_set_path"] + data_set_dict["window_functions_folder"]
     )
     bin_expected_files = [f"window_{i + 1}.txt" for i in range(np.amax(N_bins))]
     spec_expected_files = [
@@ -242,8 +242,8 @@ def read_window_functions_from_yaml(dataset_dict, spec_order, N_bins):
         window_functions = []
         for i, spec in enumerate(spec_order):
             this_window = np.loadtxt(
-                dataset_dict["data_set_path"]
-                + dataset_dict["window_functions_folder"]
+                data_set_dict["data_set_path"]
+                + data_set_dict["window_functions_folder"]
                 + f"{spec.replace(' ', '_')}_window_functions.txt"
             )
             start_ix = np.argwhere(this_window[:, 0] == 2)[0, 0]  # start at ell = 2
@@ -253,8 +253,8 @@ def read_window_functions_from_yaml(dataset_dict, spec_order, N_bins):
         # Format (2): window functions are saved as "window_{i}.txt"
         # Read in first window to understand file sizes
         first_window = np.loadtxt(
-            dataset_dict["data_set_path"]
-            + dataset_dict["window_functions_folder"]
+            data_set_dict["data_set_path"]
+            + data_set_dict["window_functions_folder"]
             + "window_1.txt"
         )
         ell_column = first_window[:, 0]
@@ -266,8 +266,8 @@ def read_window_functions_from_yaml(dataset_dict, spec_order, N_bins):
         ]
         for i in range(np.amax(N_bins)):
             wdw = np.loadtxt(
-                dataset_dict["data_set_path"]
-                + dataset_dict["window_functions_folder"]
+                data_set_dict["data_set_path"]
+                + data_set_dict["window_functions_folder"]
                 + f"window_{i + 1}.txt"
             )
             for j, spec in enumerate(spec_order):
@@ -282,13 +282,13 @@ def read_window_functions_from_yaml(dataset_dict, spec_order, N_bins):
     return [jnp.array(w) for w in window_functions]
 
 
-def read_transformation_info_from_yaml(dataset_dict, i_tr):
+def read_transformation_info_from_yaml(data_set_dict, i_tr):
     """
     Read in information about a specific transformation from data set yaml file.
 
     Parameters
     --------------
-    dataset_dict : dict
+    data_set_dict : dict
         The data set dictionary containing all the information from the input yaml file.
     i_tr : int
         Index of the transformation to be read.
@@ -301,10 +301,10 @@ def read_transformation_info_from_yaml(dataset_dict, i_tr):
         Dictionary of information passed by the user, required as instantiation Parameters for the specified class.
     """
 
-    tr_name = f"{dataset_dict['data_model'][i_tr]['Module']}"
+    tr_name = f"{data_set_dict['data_model'][i_tr]['Module']}"
     tr_passed_args = {
-        key: dataset_dict["data_model"][i_tr][key]
-        for key in dataset_dict["data_model"][i_tr]
+        key: data_set_dict["data_model"][i_tr][key]
+        for key in data_set_dict["data_model"][i_tr]
         if key != "Module"
     }
 
@@ -377,15 +377,15 @@ def like_init_output(like):
     """
 
     # Skip if no feedback is requested
-    if "feedback" not in like.dataset_dict:
+    if "feedback" not in like.data_set_dict:
         return
-    if not like.dataset_dict["feedback"]:
+    if not like.data_set_dict["feedback"]:
         return
 
-    if "log_file" in like.dataset_dict:
+    if "log_file" in like.data_set_dict:
         logging.basicConfig(
-            filename=like.dataset_dict["like_folder_path"]
-            + like.dataset_dict["log_file"],
+            filename=like.data_set_dict["like_folder_path"]
+            + like.data_set_dict["log_file"],
             encoding="utf-8",
             level=logging.INFO,
             format="%(message)s",
@@ -398,9 +398,9 @@ def like_init_output(like):
 
     # Header
     start_str = (
-        f"Successfully initialised candl likelihood '{like.dataset_dict['name']}' (type: {type(like)}).\n"
-        f"Data loaded from '{like.dataset_dict['data_set_path']}'.\n"
-        f"Functional likelihood form: {like.dataset_dict['likelihood_form']}"
+        f"Successfully initialised candl likelihood '{like.data_set_dict['name']}' (type: {type(like)}).\n"
+        f"Data loaded from '{like.data_set_dict['data_set_path']}'.\n"
+        f"Functional likelihood form: {like.data_set_dict['likelihood_form']}"
     )
     write_msg(start_str)
     write_msg(line_width * "-")

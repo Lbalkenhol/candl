@@ -1036,7 +1036,7 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
     """
     Wrapper for a candl likelihood into a cobaya.likelihood.Likelihood class.
     Based on example likelihood provided by Cobaya (https://cobaya.readthedocs.io/en/latest/likelihoods.html), Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290).
-    Used under the hood, users should see get_cobaya_likelihood_class_for_like.
+    See the different attributes below that can be set when passing the class to Cobaya.
 
     Attributes
     ------------
@@ -1157,71 +1157,11 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         return np.float32(logl)
 
 
-def get_cobaya_likelihood_class_for_like(like):
-    """
-    Thin wrapper for likelihood class to plug it into cobaya.
-    Returns a non-instantiated class custom-written for the particular likelihood passed.
-    The likelihood being fed in must already be initialised.
-
-    Parameters
-    ---------------
-    like: candl.Like
-        Likelihood to be used.
-
-    Returns
-    ---------------
-    cobaya.likelihood.Likelihood:
-        Likelihood that can be plugged into cobaya for sampling
-
-    """
-
-    class CandlLikeCobaya(cobaya_likelihood_Likelihood):
-        def logp(self, **params):
-            # Grab the theory spectra
-            cls = self.provider.get_Cl(ell_factor=True, units="muK2")
-
-            # Cover both lensing conventions if required
-            if "pp" in cls:
-                cls["kk"] = cls["pp"]*jnp.pi/2.0
-
-            # Figure out ell range
-            N_ell = like.ell_max - like.ell_min + 1
-
-            theory_start_ix = np.amax((cls["ell"][0], like.ell_min)) - cls["ell"][0]
-            theory_stop_ix = np.amin((cls["ell"][-1], like.ell_max)) + 1 - cls["ell"][0]
-
-            like_start_ix = np.amax((cls["ell"][0], like.ell_min)) - like.ell_min
-            like_stop_ix = np.amin((cls["ell"][-1], like.ell_max)) + 1 - like.ell_min
-
-            # Slice spectra
-            pars_to_pass = params
-            pars_to_pass["Dl"] = {"ell": np.arange(like.ell_min, like.ell_max + 1)}
-            for ky in cls:
-                # Some theory codes pass "TT", "EE", "TE", "BB" and some pass "tt", "ee", "te", "bb"
-                pass_ky = ky
-                if pass_ky in ["tt", "ee", "te", "bb"]:
-                    pass_ky = pass_ky.upper()
-
-                # Slot into array
-                pars_to_pass["Dl"][pass_ky] = jnp.zeros(N_ell)
-                pars_to_pass["Dl"][pass_ky] = jax_optional_set_element(
-                    pars_to_pass["Dl"][pass_ky],
-                    np.arange(like_start_ix, like_stop_ix),
-                    cls[ky][theory_start_ix:theory_stop_ix],
-                )
-
-            # Hand off to the likelihood
-            logl = like.log_like(pars_to_pass)
-
-            return np.float32(logl)
-
-    return CandlLikeCobaya
-
-
 def get_cobaya_info_dict_for_like(like, name="candl_like"):
     """
-    Calls ``get_cobaya_class_for_like()`` to create a custom class for the likelihood in cobaya.
-    Packages the likelihood into an info dictionary that can be plugged straight into cobaya.
+    Thin wrapper for CandlCobayaLikelihood that returns the class with the requested data set in the format expected by Cobaya.
+    Note that since Cobaya prefers to instantiate likelihoods itself, this will instantiate a new instance of the likelihood.
+    That means, any modifications to the likelihood object you pass will not be reflected in the likelihood that Cobaya uses.
 
     Parameters
     ---------------
@@ -1236,27 +1176,14 @@ def get_cobaya_info_dict_for_like(like, name="candl_like"):
         Dictionary to use in Cobaya's 'likelihood' entry.
     """
 
-    # Construct dictionary
-    cobaya_info = {
-        name: {
-            "external": get_cobaya_likelihood_class_for_like(like),
-            "requires": {"Cl": {}},
-        }
-    }
-
-    # Add required CMB spectra
-    for spec in np.unique(like.spec_types):
-        if spec == "kk":
-            cobaya_info[name]["requires"]["Cl"]["pp"] = like.ell_max # account for different lensing conventions
-        else:
-            cobaya_info[name]["requires"]["Cl"][spec] = like.ell_max
-
-    # Add priors and nuisance parameters as required parameters to the likelihood
-    for par in np.unique(
-        like.required_prior_parameters + like.required_nuisance_parameters
-    ):
-        cobaya_info[name]["requires"][par] = None
-
+    cobaya_info = {name: {"external": CandlCobayaLikelihood,
+                          "data_set_file": like.data_set_file,
+                   }}
+    
+    # Add flag for lensing likelihoods
+    if isinstance(like, candl.LensLike):
+        cobaya_info[name]["lensing"] = True
+    
     return cobaya_info
 
 
