@@ -30,7 +30,7 @@ For example:
 
 This will interface the likelihood with Cobaya and register all of its requirements.
 You can then proceed to populate ``cobaya_dict`` with the the parameters to be sampled etc. and run Cobaya as usual.
-By default the candl internal priors are not applied, pass ``clear_internal_priors = False`` if you want to use them.
+By default the candl internal priors are not applied, add ``"clear_internal_priors": False`` to the relevant likelihood block in the dictionary if you want to use them.
 Note that Cobaya prefers to initialise the likelihood itself, hence any modifications of ``candl_like`` won't be reflected in the Cobaya likelihood.
 
 .. autofunction:: candl.interface.get_cobaya_info_dict_for_like
@@ -52,7 +52,7 @@ In order to run Cobaya from the command line it sufficies to include the followi
 
 Only ``data_set_file`` is required, the other arguments are optional.
 See :ref:`here <Data Selection>` for info on data selection.
-Again, by default the candl internal priors are not applied, pass ``clear_internal_priors = False`` if you want to use them.
+Again, by default the candl internal priors are not applied, set ``clear_internal_priors: False`` if you want to use them.
 
 Connecting Theory Codes to Cobaya
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
