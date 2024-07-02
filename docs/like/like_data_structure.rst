@@ -14,7 +14,6 @@ The info file is a ``.yaml`` file containing the following information:
 .. code-block:: yaml
    
       name: <name of data set>
-      data_set_path: <path of the parent folder containing the data set>
       band_power_file: <relative path of the band power file>
       covariance_file: <relative path of the band power file>
       window_functions_folder: <relative path of the window functions folder>
