@@ -1146,7 +1146,8 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
                     Dls[ky] = Dls[ky][start_ix:stop_ix]
                 else:
                     Dls[ky.upper()] = Dls[ky][start_ix:stop_ix]
-                    del Dls[ky]
+                    if ky.lower() == ky:
+                        del Dls[ky]
 
         pars_to_pass = params
         pars_to_pass["Dl"] = Dls
