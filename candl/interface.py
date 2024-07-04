@@ -95,7 +95,7 @@ class CobayaTheoryCosmoPowerJAX(cobaya_theory_Theory):
         Parameters
         ------------
         emulator_filenames : dict
-            Spectrum type (TT, TE, ...) and file names of corresponding emulator models.
+            Dictionary of spectrum types and emulator file names (if they are placed in cosmopower-jax's trained_models/ folder), or the full path of the files, including in either case the file ending '.pkl' or '.npz'.
 
         Returns
         ----------
@@ -119,15 +119,27 @@ class CobayaTheoryCosmoPowerJAX(cobaya_theory_Theory):
         self.cp_emulators = {}
         for spec_type in list(self.emulator_filenames.keys()):
             if spec_type == "TE":
-                self.cp_emulators[spec_type] = CPJ(
-                    probe="custom_pca",
-                    filename=self.emulator_filenames[spec_type] + ".pkl",
-                )
+                try:
+                    self.cp_emulators[spec_type] = CPJ(
+                        probe="custom_pca",
+                        filename=self.emulator_filenames[spec_type],
+                    )
+                except:
+                    self.cp_emulators[spec_type] = CPJ(
+                        probe="custom_pca",
+                        filepath=self.emulator_filenames[spec_type],
+                    )
             else:
-                self.cp_emulators[spec_type] = CPJ(
-                    probe="custom_log",
-                    filename=self.emulator_filenames[spec_type] + ".pkl",
-                )
+                try:
+                    self.cp_emulators[spec_type] = CPJ(
+                        probe="custom_log",
+                        filename=self.emulator_filenames[spec_type],
+                    )
+                except:
+                    self.cp_emulators[spec_type] = CPJ(
+                        probe="custom_log",
+                        filepath=self.emulator_filenames[spec_type],
+                    )
 
         # Just using a random spec here, would be weird if TT/TE/EE had different requirements
         self.cp_pars = list(list(self.cp_emulators.values())[0].parameters)
@@ -1158,18 +1170,26 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         return np.float32(logl)
 
 
-def get_cobaya_info_dict_for_like(like, name="candl_like"):
+def get_cobaya_info_dict_for_like(like, name="candl_like", data_selection=None, clear_internal_priors=True, feedback=False):
     """
     Thin wrapper for CandlCobayaLikelihood that returns the class with the requested data set in the format expected by Cobaya.
     Note that since Cobaya prefers to instantiate likelihoods itself, this will instantiate a new instance of the likelihood.
     That means, any modifications to the likelihood object you pass will not be reflected in the likelihood that Cobaya uses.
+    Use the optional keywords to pass arguments to the new Cobaya likelihood object during initialisation.
+    Note that candl internal priors are cleared by default, be sure to either apply these in the Cobaya parameter block or override the default behaviour.
 
     Parameters
     ---------------
-    like: candl.Like
-        Likelihood to be used.
+    like: candl.Like, candl.LensLike
+        A candl likelihood to be used.
     name: str (optional)
         Name to give the likelihood in Cobaya
+    data_selection : any
+        Data selection to be used. String, list of string, binary mask, or path to a mask are supported.
+    clear_internal_priors : bool
+        Whether to clear internal priors.
+    feedback : bool
+        Whether to print feedback when initialising the likelihood.
 
     Returns
     ---------------
@@ -1177,8 +1197,15 @@ def get_cobaya_info_dict_for_like(like, name="candl_like"):
         Dictionary to use in Cobaya's 'likelihood' entry.
     """
 
+    # Throw up a warning about how Cobaya re-instantiates likelihoods
+    print("Warning: Cobaya will re-instantiate the likelihood object and any earlier modifications you may have done to your instance (such as data selection) will therefore not apply unless you have specified them here again.")
+
+    # Construct Cobaya dictionary
     cobaya_info = {name: {"external": CandlCobayaLikelihood,
                           "data_set_file": like.data_set_file,
+                          "data_selection": data_selection,
+                          "clear_internal_priors": clear_internal_priors,
+                          "feedback": feedback,
                    }}
     
     # Add flag for lensing likelihoods
@@ -1288,7 +1315,7 @@ def get_CosmoPowerJAX_pars_to_theory_specs_func(emulator_filenames):
     Parameters
     ---------------
     emulator_filenames : dict
-        Dictionary of spectrum types and emulator file names.
+        Dictionary of spectrum types and emulator file names (if they are placed in cosmopower-jax's trained_models/ folder), or the full path of the files, including in either case the file ending '.pkl' or '.npz'.
 
     Returns
     ---------------
@@ -1301,13 +1328,23 @@ def get_CosmoPowerJAX_pars_to_theory_specs_func(emulator_filenames):
     cp_emulators = {}
     for spec_type in list(emulator_filenames.keys()):
         if spec_type == "TE":
-            cp_emulators[spec_type] = CPJ(
-                probe="custom_pca", filename=emulator_filenames[spec_type] + ".pkl"
-            )
+            try:
+                cp_emulators[spec_type] = CPJ(
+                    probe="custom_pca", filename=emulator_filenames[spec_type]
+                )
+            except:
+                cp_emulators[spec_type] = CPJ(
+                    probe="custom_pca", filepath=emulator_filenames[spec_type]
+                )
         else:
-            cp_emulators[spec_type] = CPJ(
-                probe="custom_log", filename=emulator_filenames[spec_type] + ".pkl"
-            )
+            try:
+                cp_emulators[spec_type] = CPJ(
+                    probe="custom_log", filename=emulator_filenames[spec_type]
+                )
+            except:
+                cp_emulators[spec_type] = CPJ(
+                    probe="custom_log", filepath=emulator_filenames[spec_type]
+                )
 
     # Grab input parameter order
     cp_pars = list(list(cp_emulators.values())[0].parameters)
