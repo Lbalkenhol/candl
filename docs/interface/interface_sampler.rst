@@ -8,7 +8,9 @@ Moreover, we show how the likelihood can be interfaced with tools that explicitl
 
     When using MCMC samplers, be careful to only apply priors once.
     For some data sets candl includes Gaussian priors on cosmological and nuisance parameters, to ensure a fully differentiable pipeline.
-    Some MCMC samplers offer to apply priors themselves, which can lead to double-counting.
+    When interfacing candl with Cobaya and MontePython these will be turned off by default and you are expected to specify them within the relevant framework.
+    However, this may not be available for all samplers (e.g. BlackJAX).
+    Look out for ``clear_internal_priors`` flags in the interface functions and take care not to double count information.
 
 Cobaya
 -------------------------------------------------
