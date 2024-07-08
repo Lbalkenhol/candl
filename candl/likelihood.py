@@ -829,6 +829,12 @@ class Like:
         if not "data_selection" in self.data_set_dict:
             return np.ones(self.N_bins_total) == 1
 
+        if isinstance(self.data_set_dict["data_selection"], str) and self.data_set_dict["data_selection"].lower() == "none":
+            return np.ones(self.N_bins_total) == 1
+
+        if self.data_set_dict["data_selection"] is None:
+            return np.ones(self.N_bins_total) == 1
+
         if isinstance(self.data_set_dict["data_selection"], str):
             if " " in self.data_set_dict["data_selection"]:
                 # Generate crop mask based on some string hint
@@ -1689,6 +1695,12 @@ class LensLike:
 
         # Check if crop is necessary
         if not "data_selection" in self.data_set_dict:
+            return np.ones(self.N_bins_total) == 1
+
+        if isinstance(self.data_set_dict["data_selection"], str) and self.data_set_dict["data_selection"].lower() == "none":
+            return np.ones(self.N_bins_total) == 1
+
+        if self.data_set_dict["data_selection"] is None:
             return np.ones(self.N_bins_total) == 1
 
         if isinstance(self.data_set_dict["data_selection"], str):
