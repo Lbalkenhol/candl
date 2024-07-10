@@ -61,17 +61,17 @@ Connecting Theory Codes to Cobaya
 
 In the ``interface`` module we also supply an interface to allow for the use of CosmoPower, CosmoPower-JAX, and Capse.jl with Cobaya.
 This works through custom ``cobaya.theory.Theory`` subclasses.
-For example, to use CosmoPower in an interactive session with Cobaya, you can use the following code:
+For example, to use CosmoPowerJAX in an interactive session with Cobaya, you can use the following code:
 
 .. code-block:: python
 
     import candl.interface
 
     cp_emulator_filenames = {"TT": "your_desired_emu_model"}
-    theory_calc = candl.interface.CobayaTheoryCosmoPower(cp_emulator_filenames)
-    cobaya_dict = {"theory": {theory_calc}}
+    cobaya_dict = {"theory": {"CosmoPowerJAX": {"external": candl.interface.CobayaTheoryCosmoPowerJAX,
+                                                "emulator_filenames": cp_emulator_filenames}}}
 
-You can then add the other info needed to ``cobaya_dict`` and initialise Cobaya.
+You can then add the other info needed to ``cobaya_dict`` and initialise Cobaya. You can similarly use this interface when launching Cobaya from the command line.
 
 MontePython
 -------------------------------------------------

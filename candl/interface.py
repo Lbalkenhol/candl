@@ -51,6 +51,9 @@ class CobayaTheoryCosmoPowerJAX(cobaya_theory_Theory):
     Wraps CosmoPower-JAX model into a cobaya.theory.Theory class.
     See D. Piras, A. Spurio Mancini 2023 and A. Spurio Mancini et al. 2021 for more (https://arxiv.org/abs/2305.06347, https://arxiv.org/abs/2106.03846).
 
+    To initialise, pass 'emulator_filenames' in the relevant cobaya block:
+    A dictionary of spectrum types and emulator file names (if they are placed in cosmopower-jax's trained_models/ folder), or the full path of the files, including in either case the file ending '.pkl' or '.npz'.
+
     This code is taken from the Cobaya example for custom theory codes and only slightly modified.
     See https://cobaya.readthedocs.io/en/latest/theories_and_dependencies.html.
     Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290)
@@ -70,10 +73,8 @@ class CobayaTheoryCosmoPowerJAX(cobaya_theory_Theory):
 
     Methods
     ---------
-    __init__ :
-        Initialises an instance of the class.
     initialize :
-        Complete set-up.
+        Initialises an instance of the class (loads emulators).
     initialize_with_provider :
         Initialization after other components initialised.
     get_requirements :
@@ -88,32 +89,18 @@ class CobayaTheoryCosmoPowerJAX(cobaya_theory_Theory):
         Return result of calculation (Cl and Dl).
     """
 
-    def __init__(self, emulator_filenames):
+    # I know having this be a class variable is not super elegant, but it's the easiest way to interface with Cobaya
+    emulator_filenames: dict = {}
+
+    def initialize(self):
         """
-        Initialise an instance of the class.
-
-        Parameters
-        ------------
-        emulator_filenames : dict
-            Dictionary of spectrum types and emulator file names (if they are placed in cosmopower-jax's trained_models/ folder), or the full path of the files, including in either case the file ending '.pkl' or '.npz'.
-
-        Returns
-        ----------
-        candl.interface.CobayaTheoryCosmoPowerJAX
+        Called from __init__ to initialise. Loads the emulator models.
 
         Notes
         ----------
         For CosmoPower-JAX emulator models are expected to be placed in the package directory.
         TE emulators are loaded as PCA+NN, other spectra as NN-only models.
 
-        """
-        self.emulator_filenames = emulator_filenames
-        super().__init__()
-
-    def initialize(self):
-        """
-        Called from __init__ to initialise.
-        Loads the emulator models.
         """
 
         self.cp_emulators = {}
@@ -218,6 +205,9 @@ class CobayaTheoryCosmoPower(cobaya_theory_Theory):
     Wraps regular CosmoPower model into a cobaya theory class.
     See A. Spurio Mancini et al. 2021 for more (https://arxiv.org/abs/2106.03846).
 
+    To initialise, pass 'emulator_filenames' in the relevant cobaya block:
+    A dictionary of spectrum type (TT, TE, ...) and file names of corresponding emulator models.
+
     This code is taken from the Cobaya example for custom theory codes and only slightly modified.
     See https://cobaya.readthedocs.io/en/latest/theories_and_dependencies.html.
     Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290)
@@ -237,8 +227,6 @@ class CobayaTheoryCosmoPower(cobaya_theory_Theory):
 
     Methods
     ---------
-    __init__ :
-        Initialises an instance of the class.
     initialize :
         Complete set-up.
     initialize_with_provider :
@@ -255,26 +243,8 @@ class CobayaTheoryCosmoPower(cobaya_theory_Theory):
         Return result of calculation (Cl and Dl).
     """
 
-    def __init__(self, emulator_filenames):
-        """
-        Initialise an instance of the class.
-
-        Parameters
-        ------------
-        emulator_filenames : dict
-            Spectrum type (TT, TE, ...) and file names of corresponding emulator models.
-
-        Returns
-        ----------
-        candl.interface.CobayaTheoryCosmoPower
-
-        Notes
-        ----------
-        TE emulators are loaded as PCA+NN, other spectra as NN-only models.
-
-        """
-        self.emulator_filenames = emulator_filenames
-        super().__init__()
+    # I know having this be a class variable is not super elegant, but it's the easiest way to interface with Cobaya
+    emulator_filenames: dict = {}
 
     def initialize(self):
         """
@@ -377,6 +347,12 @@ class CobayaTheoryPyCapse(cobaya_theory_Theory):
     Wraps a capse model into a cobaya theory class through the pycapse interface.
     See Bonici, Bianchini, Ruiz-Zapatero 2023 for more (https://arxiv.org/abs/2307.14339).
 
+    To initialise pass in the relevant Cobaya block:
+    base_path : str
+        Base path where emulator files are stored.
+    specs_to_emulate : list
+        Spectrum type (TT, TE, ...) of corresponding emulator models.
+
     This code is taken from the Cobaya example for custom theory codes and only slightly modified.
     See https://cobaya.readthedocs.io/en/latest/theories_and_dependencies.html.
     Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290)
@@ -419,29 +395,9 @@ class CobayaTheoryPyCapse(cobaya_theory_Theory):
         Return result of calculation (Dl and Cl).
     """
 
-    def __init__(self, base_path, specs_to_emulate):
-        """
-        Initialise an instance of the class.
-
-        Parameters
-        ------------
-        base_path : str
-            Base path where emulator files are stored.
-        specs_to_emulate : list
-            Spectrum type (TT, TE, ...) of corresponding emulator models.
-
-        Returns
-        ----------
-        candl.interface.CobayaTheoryPyCapse
-
-        Notes
-        ----------
-        Currently only supports the LCDM emulator released with the Capse.jl paper.
-
-        """
-        self.base_path = base_path
-        self.specs_to_emulate = specs_to_emulate
-        super().__init__()
+    # I know having these be a class variables is not super elegant, but it's the easiest way to interface with Cobaya
+    base_path: str = "./"
+    specs_to_emulate: list = []
 
     def initialize(self):
         """
@@ -547,6 +503,9 @@ class CobayaTheoryBBTemplate(cobaya_theory_Theory):
     """
     Wrapper for a two template BB calculator in a cobaya theory class.
 
+    To initialise, pass 'template_filenames' in the relevant cobaya block:
+    A dictionary with 'lensing_B_modes' and 'r' template file names.
+
     This code is taken from the Cobaya example for custom theory codes and only slightly modified.
     See https://cobaya.readthedocs.io/en/latest/theories_and_dependencies.html.
     Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290)
@@ -566,10 +525,8 @@ class CobayaTheoryBBTemplate(cobaya_theory_Theory):
 
     Methods
     ---------
-    __init__ :
-        Initialises an instance of the class.
     initialize :
-        Complete set-up.
+        Complete set-up, loading templates.
     initialize_with_provider :
         Initialization after other components initialised.
     get_requirements :
@@ -585,22 +542,8 @@ class CobayaTheoryBBTemplate(cobaya_theory_Theory):
 
     """
 
-    def __init__(self, template_filenames):
-        """
-        Initialise an instance of the class.
-
-        Parameters
-        ------------
-        template_filenames : dict
-            templates for 'r' and 'lensing_B_modes' to be loaded.
-
-        Returns
-        ----------
-        candl.interface.CobayaTheoryBBTemplate
-
-        """
-        self.template_filenames = template_filenames
-        super().__init__()
+    # I know having this be a class variable is not super elegant, but it's the easiest way to interface with Cobaya
+    template_filenames: dict = {}
 
     def initialize(self):
         """
@@ -695,6 +638,9 @@ class CobayaTheoryCosmoPowerJAXLensing(cobaya_theory_Theory):
     Wraps CosmoPower-JAX model for lensing into a cobaya theory code.
     See D. Piras, A. Spurio Mancini 2023 and A. Spurio Mancini et al. 2021 for more (https://arxiv.org/abs/2305.06347, https://arxiv.org/abs/2106.03846).
 
+    To initialise, pass 'emulator_filenames' in the relevant cobaya block:
+    A dictionary of spectrum types and emulator file names as placed in cosmopower-jax's trained_models/ folder.
+
     This code is taken from the Cobaya example for custom theory codes and only slightly modified.
     See https://cobaya.readthedocs.io/en/latest/theories_and_dependencies.html.
     Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290)
@@ -718,8 +664,6 @@ class CobayaTheoryCosmoPowerJAXLensing(cobaya_theory_Theory):
 
     Methods
     ---------
-    __init__ :
-        Initialises an instance of the class.
     initialize :
         Complete set-up.
     initialize_with_provider :
@@ -737,26 +681,8 @@ class CobayaTheoryCosmoPowerJAXLensing(cobaya_theory_Theory):
 
     """
 
-    def __init__(self, emulator_filenames):
-        """
-        Initialise an instance of the class.
-
-        Parameters
-        ------------
-        emulator_filenames : dict
-            Spectrum type (TT, ..., pp) and file names of corresponding emulator models.
-
-        Returns
-        ----------
-        candl.interface.CobayaTheoryCosmoPowerJAXLensing
-
-        Notes
-        ----------
-        For CosmoPower-JAX emulator models are expected to be placed in the package directory.
-        TE emulators are loaded as PCA+NN, pp as lensing models. Other spectra are loaded as NN-only models.
-        """
-        self.emulator_filenames = emulator_filenames
-        super().__init__()
+    # I know having this be a class variable is not super elegant, but it's the easiest way to interface with Cobaya
+    emulator_filenames: dict = {}
 
     def initialize(self):
         """Called from __init__ to initialise. Calls the CosmoPower-JAX emulator models."""
@@ -870,6 +796,9 @@ class CobayaTheoryCosmoPowerLensing(cobaya_theory_Theory):
     Wraps CosmoPower model for lensing into a cobaya theory code.
     See A. Spurio Mancini et al. 2021 for more (https://arxiv.org/abs/2106.03846).
 
+    To initialise, pass 'emulator_filenames' in the relevant cobaya block:
+    A dictionary of spectrum types and emulator file names as placed in cosmopower-jax's trained_models/ folder.
+
     This code is taken from the Cobaya example for custom theory codes and only slightly modified.
     See https://cobaya.readthedocs.io/en/latest/theories_and_dependencies.html.
     Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290)
@@ -912,25 +841,8 @@ class CobayaTheoryCosmoPowerLensing(cobaya_theory_Theory):
         Return result of calculation (Cls and Dls).
     """
 
-    def __init__(self, emulator_filenames):
-        """
-        Initialise an instance of the class.
-
-        Parameters
-        ------------
-        emulator_filenames : dict
-            Spectrum type (TT, ..., pp) and file names of corresponding emulator models.
-
-        Returns
-        ----------
-        candl.interface.CobayaTheoryCosmoPowerLensing
-
-        Notes
-        ----------
-        TE and pp emulators are loaded as PCA+NN, other spectra are loaded as NN-only.
-        """
-        self.emulator_filenames = emulator_filenames
-        super().__init__()
+    # I know having this be a class variable is not super elegant, but it's the easiest way to interface with Cobaya
+    emulator_filenames: dict = {}
 
     def initialize(self):
         """Called from __init__ to initialise. Calls the CosmoPower emulator models."""
