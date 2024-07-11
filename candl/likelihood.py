@@ -285,7 +285,15 @@ class Like:
             self.crop_for_data_selection()
 
         # Grab cholesky decomposition of the covariance
-        self.covariance_chol_dec = cholesky_decomposition(self.covariance)
+        # Check if Hartlap correction is requested
+        if "hartlap_correction" in list(self.data_set_dict.keys()):
+            self.covariance_chol_dec = cholesky_decomposition(
+                self.covariance,
+                N_sims=self.data_set_dict["hartlap_correction"]["N_sims"],
+                N_bins=self.N_bins_total,
+            )
+        else:
+            self.covariance_chol_dec = cholesky_decomposition(self.covariance)
 
         # Define ell range and grab some helpers
         (
@@ -306,7 +314,9 @@ class Like:
         for transformation in self.data_model:  # go through all transformations
             for nuisance_par in transformation.param_names:
                 self.required_nuisance_parameters.append(nuisance_par)
-        self.required_nuisance_parameters = [str(p) for p in np.unique(self.required_nuisance_parameters)]
+        self.required_nuisance_parameters = [
+            str(p) for p in np.unique(self.required_nuisance_parameters)
+        ]
 
         # Similarly, get a list of all parameters with priors
         self.required_prior_parameters = []
@@ -458,6 +468,17 @@ class Like:
             self.covariance
             + self.beam_correlation * jnp.outer(binned_theory_Dls, binned_theory_Dls)
         )
+
+        # Apply Hartlap correction if requested
+        if "hartlap_correction" in self.data_set_dict:
+            full_covariance_chol_dec /= np.sqrt(
+                (
+                    self.data_set_dict["hartlap_correction"]["N_sims"]
+                    - self.N_bins_total
+                    - 2
+                )
+                / (self.data_set_dict["hartlap_correction"]["N_sims"] - 1)
+            )
 
         # Calculate logl
         chol_fac = jnp.linalg.solve(full_covariance_chol_dec, delta_bdp)
@@ -829,7 +850,10 @@ class Like:
         if not "data_selection" in self.data_set_dict:
             return np.ones(self.N_bins_total) == 1
 
-        if isinstance(self.data_set_dict["data_selection"], str) and self.data_set_dict["data_selection"].lower() == "none":
+        if (
+            isinstance(self.data_set_dict["data_selection"], str)
+            and self.data_set_dict["data_selection"].lower() == "none"
+        ):
             return np.ones(self.N_bins_total) == 1
 
         if self.data_set_dict["data_selection"] is None:
@@ -1254,7 +1278,14 @@ class LensLike:
             self.crop_for_data_selection()
 
         # Grab cholesky decomposition of the covariance
-        self.covariance_chol_dec = cholesky_decomposition(self.covariance)
+        if "hartlap_correction" in list(self.data_set_dict.keys()):
+            self.covariance_chol_dec = cholesky_decomposition(
+                self.covariance,
+                N_sims=self.data_set_dict["hartlap_correction"]["N_sims"],
+                N_bins=self.N_bins_total,
+            )
+        else:
+            self.covariance_chol_dec = cholesky_decomposition(self.covariance)
 
         # Define ell range and grab some helpers
         (
@@ -1275,7 +1306,9 @@ class LensLike:
         for transformation in self.data_model:  # go through all transformations
             for nuisance_par in transformation.param_names:
                 self.required_nuisance_parameters.append(nuisance_par)
-        self.required_nuisance_parameters = [str(p) for p in np.unique(self.required_nuisance_parameters)]
+        self.required_nuisance_parameters = [
+            str(p) for p in np.unique(self.required_nuisance_parameters)
+        ]
 
         # Similarly, get a list of all parameters with priors
         self.required_prior_parameters = []
@@ -1549,6 +1582,8 @@ class LensLike:
 
                 # Read in M matrices and fiducial correction, if needed
                 if arg == "M_matrices":
+
+                    # Start with M matrices, looping over requested corrections
                     M_matrices = dict()
                     for s in tr_arg_dict["Mmodes"]:
                         if s in ["TT", "TE", "EE", "BB", "pp", "kk"]:
@@ -1558,13 +1593,36 @@ class LensLike:
                                 Mtype=s,
                             )
                     tr_arg_dict["M_matrices"] = M_matrices
-                    del tr_arg_dict["M_matrices_folder"]
-                    del tr_arg_dict["Mmodes"]
-                if arg == "fiducial_correction":
-                    tr_arg_dict["fiducial_correction"] = candl.io.read_file_from_path(
+
+                    # Now read in fiducial correction
+                    fiducial_correction = candl.io.read_file_from_path(
                         self.data_set_dict["data_set_path"]
                         + tr_arg_dict["fiducial_correction_file"]
                     )
+
+                    # If a matrix was passed, use corrections only for the requested spectra
+                    if np.ndim(fiducial_correction) == 2:
+                        spec_ix = {
+                            "TT": 0,
+                            "TE": 1,
+                            "EE": 2,
+                            "BB": 3,
+                            "pp": 4,
+                            "kk": 4,
+                        }  # order expected in M_matrices and in fiducial corrections file
+                        sum_msk = np.zeros(5, dtype=bool)
+                        for s in list(spec_ix.keys()):
+                            if s in tr_arg_dict["Mmodes"]:
+                                sum_msk[spec_ix[s]] = True
+                        fiducial_correction = jnp.sum(
+                            fiducial_correction, axis=1, where=sum_msk
+                        )
+
+                    tr_arg_dict["fiducial_correction"] = fiducial_correction
+
+                    # Clean up arguments
+                    del tr_arg_dict["M_matrices_folder"]
+                    del tr_arg_dict["Mmodes"]
                     del tr_arg_dict["fiducial_correction_file"]
 
             # Initialise the transformation
@@ -1697,7 +1755,10 @@ class LensLike:
         if not "data_selection" in self.data_set_dict:
             return np.ones(self.N_bins_total) == 1
 
-        if isinstance(self.data_set_dict["data_selection"], str) and self.data_set_dict["data_selection"].lower() == "none":
+        if (
+            isinstance(self.data_set_dict["data_selection"], str)
+            and self.data_set_dict["data_selection"].lower() == "none"
+        ):
             return np.ones(self.N_bins_total) == 1
 
         if self.data_set_dict["data_selection"] is None:
@@ -2001,14 +2062,18 @@ def get_start_stop_ix(N_bins):
     return bins_start_ix, bins_stop_ix
 
 
-def cholesky_decomposition(covariance):
+def cholesky_decomposition(covariance, N_sims=None, N_bins=None):
     """
-    Performs theCcholesky decomposition of the covariance matrix. Stops the program if unsuccessful.
+    Performs the Ccholesky decomposition of the covariance matrix. Stops the program if unsuccessful.
 
     Parameters
     --------------
     covariance : array (float)
         The matrix to be decomposed
+    N_sims : int, optional
+        Number of simulations (used for the Hartlap correction).
+    N_bins : int, optional
+        Number of bins in the data vector (used for the Hartlap correction).
 
     Returns
     --------------
@@ -2026,12 +2091,16 @@ def cholesky_decomposition(covariance):
             "Band power covariance matrix is not positive definite! Stopping."
         )
         exit(1)
-    
+
     # Check no nans are present from insufficient precision
     if np.isnan(covariance_chol_dec).any():
         raise Exception(
             "candl: cholesky decomposition contains 'nan'! Check file and try switching on double precision in JAX. Stopping."
         )
         exit(1)
-        
+
+    # Apply Hartlap correction if requested
+    if N_sims is not None and N_bins is not None:
+        covariance_chol_dec /= np.sqrt((N_sims - N_bins - 2) / (N_sims - 1))
+
     return covariance_chol_dec
