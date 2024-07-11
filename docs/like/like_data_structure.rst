@@ -85,6 +85,7 @@ Along with the entries described above, the info file can contain the following 
 * ``likelihood_form: <gaussian/gaussian_beam_detcov>``: alternative form of the likelihood if correction for beam covariance matrix is required (default: ``gaussian``).
 * ``bandpasses: <dictionary of frequency identifiers and band pass file names>``: needed if integrals over band passes are required for any transformations (typically only for :math:`BB`).
 * ``blinding: <True/False/int>``: whether to blind the band powers (through multiplication by a random oscillatory function). Integers are used as seeds.
+* ``hartlap_correction: <dictionary with 'N_sims' entry>``: will apply the `Hartlap factor <https://arxiv.org/abs/astro-ph/0608064>`__ to the inverse covariance matrix.
 
 .. note::
 
