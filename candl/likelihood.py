@@ -789,6 +789,7 @@ class Like:
         self.N_spectra_total = len(self.spec_order)
         self.N_bins_total = jnp.sum(self.crop_mask)
         self.spec_freqs = [s.split(" ")[1].split("x") for s in self.spec_order]
+        self.unique_spec_types = list(np.unique(self.spec_types))
 
         # Crop band powers, covariance matrix, window functions, and beam covariance (if present)
         self._data_bandpowers = jnp.delete(
@@ -819,6 +820,7 @@ class Like:
                 )
         self.window_functions = window_list
 
+        # Crop beam correlation if present
         if not self.beam_correlation is None:
             self.beam_correlation = jnp.delete(
                 self.beam_correlation, jnp.invert(self.crop_mask), axis=0
@@ -1702,6 +1704,7 @@ class LensLike:
         self.spec_types = [s[:2] for s in self.spec_order]
         self.N_spectra_total = len(self.spec_order)
         self.N_bins_total = jnp.sum(self.crop_mask)
+        self.unique_spec_types = list(np.unique(self.spec_types))
 
         # Crop band powers, covariance matrix, window functions
         self._data_bandpowers = jnp.delete(
