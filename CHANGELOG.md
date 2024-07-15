@@ -1,11 +1,20 @@
 # Changelog
 
+## v1.4.0 (2024-07-15)
+
+A few fixes to add more flexibility.
+
+* Can now supply full file paths to CosmoPower models in interface
+* Made behaviour of Cobaya interface more explicit
+* Improved stability of data selection
+* Added option to apply Hartlap correction to inverse covariance
+
 ## v1.3.0 (2024-06-21)
 
 Tidied up Cobaya interface under the hood and various small improvements, including:
 
 * Tidied up and unified Cobaya interfaces under the hood
-    * __NOTE:__ Change in default behaviour: candl internal priors now ignored. Check docs for how to keep them.
+    * __NOTE:__ Change in default behaviour: candl internal priors now ignored. Check docs for how to keep them
 * Improved speed of likelihoods when not using JAX
 * Added option to return Fisher matrices (i.e. non-inverted) in `candl.tools.get_fisher_matrix`
 
