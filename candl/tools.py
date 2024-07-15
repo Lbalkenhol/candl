@@ -56,7 +56,12 @@ import candl.io
 
 
 def get_fisher_matrix(
-    pars_to_theory_specs, like, pars, par_order=None, return_par_order=False, return_par_cov=True,
+    pars_to_theory_specs,
+    like,
+    pars,
+    par_order=None,
+    return_par_order=False,
+    return_par_cov=True,
 ):
     """
     Calculate the Parameter covariance matrix based on the Fisher matrix using a differentiable theory code and the covariance of the data set.
