@@ -1033,7 +1033,11 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         required_pars = {"Cl": {}}
         for spec in np.unique(self.candl_like.spec_types):
             if spec == "kk":
-                required_pars["Cl"]["pp"] = self.candl_like.ell_max # Cobaya works with pp for lensing by default rather than kk
+                required_pars["Cl"][
+                    "pp"
+                ] = (
+                    self.candl_like.ell_max
+                )  # Cobaya works with pp for lensing by default rather than kk
             else:
                 required_pars["Cl"][spec] = self.candl_like.ell_max
 
@@ -1057,7 +1061,7 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
 
         # Cover both lensing conventions if required
         if "pp" in Dls:
-            Dls["kk"] = Dls["pp"]*jnp.pi/2.0
+            Dls["kk"] = Dls["pp"] * jnp.pi / 2.0
 
         # Crop spectra to correct ell range
         start_ix = np.argwhere(Dls["ell"] == self.candl_like.ell_min)[0][0]
@@ -1082,7 +1086,13 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         return np.float32(logl)
 
 
-def get_cobaya_info_dict_for_like(like, name="candl_like", data_selection=None, clear_internal_priors=True, feedback=False):
+def get_cobaya_info_dict_for_like(
+    like,
+    name="candl_like",
+    data_selection=None,
+    clear_internal_priors=True,
+    feedback=False,
+):
     """
     Thin wrapper for CandlCobayaLikelihood that returns the class with the requested data set in the format expected by Cobaya.
     Note that since Cobaya prefers to instantiate likelihoods itself, this will instantiate a new instance of the likelihood.
@@ -1110,20 +1120,25 @@ def get_cobaya_info_dict_for_like(like, name="candl_like", data_selection=None, 
     """
 
     # Throw up a warning about how Cobaya re-instantiates likelihoods
-    print("Warning: Cobaya will re-instantiate the likelihood object and any earlier modifications you may have done to your instance (such as data selection) will therefore not apply unless you have specified them here again.")
+    print(
+        "Warning: Cobaya will re-instantiate the likelihood object and any earlier modifications you may have done to your instance (such as data selection) will therefore not apply unless you have specified them here again."
+    )
 
     # Construct Cobaya dictionary
-    cobaya_info = {name: {"external": CandlCobayaLikelihood,
-                          "data_set_file": like.data_set_file,
-                          "data_selection": data_selection,
-                          "clear_internal_priors": clear_internal_priors,
-                          "feedback": feedback,
-                   }}
-    
+    cobaya_info = {
+        name: {
+            "external": CandlCobayaLikelihood,
+            "data_set_file": like.data_set_file,
+            "data_selection": data_selection,
+            "clear_internal_priors": clear_internal_priors,
+            "feedback": feedback,
+        }
+    }
+
     # Add flag for lensing likelihoods
     if isinstance(like, candl.LensLike):
         cobaya_info[name]["lensing"] = True
-    
+
     return cobaya_info
 
 
@@ -1521,9 +1536,13 @@ def get_CAMB_pars_to_theory_specs_func(CAMB_pars):
         like_stop_ix = np.amin((CAMB_ells[-1], ell_high_cut)) + 1 - ell_low_cut
 
         # Return as dictionary
-        Dls = {"ell": np.arange(ell_low_cut, ell_high_cut + 1),
-               "pp": powers["lens_potential"][theory_start_ix:theory_stop_ix,0],
-               "kk": powers["lens_potential"][theory_start_ix:theory_stop_ix,0]*jnp.pi/2.0}
+        Dls = {
+            "ell": np.arange(ell_low_cut, ell_high_cut + 1),
+            "pp": powers["lens_potential"][theory_start_ix:theory_stop_ix, 0],
+            "kk": powers["lens_potential"][theory_start_ix:theory_stop_ix, 0]
+            * jnp.pi
+            / 2.0,
+        }
         for ky in list(CAMB_ix.keys()):
             Dls[ky] = jnp.zeros(N_ell)
             Dls[ky] = jax_optional_set_element(
@@ -1590,8 +1609,12 @@ def get_CLASS_pars_to_theory_specs_func(CLASS_cosmo):
             if ky == "ell":
                 continue
             if ky == "pp":
-                Dls[ky] = (class_cls[ky] * ((class_cls["ell"] * (class_cls["ell"] + 1))**2.0)/(2.0*jnp.pi))[theory_start_ix:theory_stop_ix]
-                Dls["kk"] = Dls["pp"]*jnp.pi/2.0
+                Dls[ky] = (
+                    class_cls[ky]
+                    * ((class_cls["ell"] * (class_cls["ell"] + 1)) ** 2.0)
+                    / (2.0 * jnp.pi)
+                )[theory_start_ix:theory_stop_ix]
+                Dls["kk"] = Dls["pp"] * jnp.pi / 2.0
                 continue
             Dls[ky.upper()] = jnp.zeros(N_ell)
             this_Dls = (
