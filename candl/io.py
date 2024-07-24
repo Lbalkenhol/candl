@@ -333,8 +333,14 @@ def read_lensing_M_matrices_from_yaml(full_path, Mtype="pp"):
 
     # Load in window functions
 
-    # Figure out how many files (i.e. bins) there are to read
-    N_files_total = len([name for name in os.listdir(full_path) if name[:7] == "window_" and name[-4:] == ".txt"])
+    # Figure out how many files (i.e. bins) there are to read
+    N_files_total = len(
+        [
+            name
+            for name in os.listdir(full_path)
+            if name[:7] == "window_" and name[-4:] == ".txt"
+        ]
+    )
 
     # find highest L from the first bin's window
     first_window = np.loadtxt(full_path + "window_0.txt")
