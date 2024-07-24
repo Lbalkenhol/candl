@@ -230,7 +230,7 @@ class ResponseFunctionM(candl.transformations.abstract_base.Transformation):
         # Crop down fiducial correction and M_matrices for bin selection
         self.M_matrices = {}
         for mode in list(M_matrices.keys()):
-            self.M_matrices[mode] = jnp.array(M_matrices[mode][:,crop_mask])
+            self.M_matrices[mode] = jnp.array(M_matrices[mode][:, crop_mask])
         self.fiducial_correction = jnp.array(fiducial_correction[crop_mask])
 
     @partial(jit, static_argnums=(0,))
@@ -257,11 +257,9 @@ class ResponseFunctionM(candl.transformations.abstract_base.Transformation):
         M_correction = -self.fiducial_correction
 
         # multiply arrays according to length of theory spectra
-        l_length = len(jnp.block(sample_params["Dl"]["pp"]))
-
         for mode in M_modes:
             M_correction += jnp.dot(
-                np.transpose(self.M_matrices[mode][:l_length]),
+                np.transpose(self.M_matrices[mode][: len(self.ells)]),
                 jnp.block(sample_params["Dl"][mode]),
             )
         return M_correction
