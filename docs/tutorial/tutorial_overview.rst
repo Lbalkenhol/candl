@@ -62,6 +62,20 @@ This tutorial uses some optional packages.
 Make sure you have Optax, BlackJAX, getdist, and CosmoPower-JAX installed in order to run the whole notebook.
 You also need to have some emulator models for CosmoPower-JAX; we recommend the SPT high-accuracy models available `here <https://github.com/alessiospuriomancini/cosmopower/tree/main/cosmopower/trained_models/SPT_high_accuracy>`_.
 
+``SPT_ACT_summer_school_2024_candl.ipynb``
+--------------------------------------------
+
+This notebook was designed for the joint SPT and ACT analysis summer school 2024.
+This is not a pure click-through tutorial, but features some exercises.
+It covers in three parts:
+
+* Part I candl Basics: This part will run you through the basics of using candl: how to initialise a likelihood, access different data products, understand the data model, and evaluate the likelihood. For this part of the notebook you will be using the SPT-3G 2018 TT/TE/EE data set.
+* Part II Building a Differentiable Pipeline, Calculating Derivatives: in this part you will build a differentiable pipeline from cosmological parameters all the way to the likelihood value. We will look at two useful applications using the ACT DR4 TT/TE/EE data set.
+* Part III Gradient-Powered Likelihood Exploration: in this part you will find the best-fit point of the ACT DR4 TT/TE/EE data set using traditional and gradient-powered methods.
+
+You can run this tutorial locally or on `google colab <https://github.com/Lbalkenhol/candl/blob/main/notebooks/SPT_ACT_summer_school_2024/SPT_ACT_summer_school_2024_candl_colab.ipynb>`_.
+
+
 Working With Instantiated Likelihoods
 ----------------------------------------------------------
 
