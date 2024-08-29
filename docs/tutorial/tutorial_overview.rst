@@ -83,9 +83,9 @@ Usage Guisance
 ------------------------------
 
 Instantiating Likelihoods
-----------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-There are three options for instantiating likelihoods you have three options. In ``candl.Like()`` or ``candl.LensLike()`` you can:
+There are three options for instantiating likelihoods. In ``candl.Like()`` or ``candl.LensLike()`` you can:
 
 1. point directly to the data set info ``.yaml`` file.
 2. use the short cut for released data sets, e.g. ``candl.data.SPT3G_2018_TTTEEE``.
@@ -93,7 +93,7 @@ There are three options for instantiating likelihoods you have three options. In
 
 
 Working With Instantiated Likelihoods
-----------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In general, modifications to instantiated likelihood objects are only correctly propagated, if they are done immediately after initialisation.
 This has to do with how JAX's jit works with class methods (more details can be found here `here <https://jax.readthedocs.io/en/latest/faq.html#how-to-use-jit-with-methods>`_).
@@ -106,7 +106,7 @@ While this may change in the future, exercise caution for now.
    Therefore, it is advised to perform any customisation immediately after initialisation (or by modifying the underlying .yaml file directly - see :ref:`here<Data Structure>` for more info on how to do that).
 
 Combining Multiple Likelihoods
-----------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can combine multiple likelihoods by defining a function that returns the sum of the individual likelihoods.
 However, for this approach the data sets in question need to be independent of one another.
