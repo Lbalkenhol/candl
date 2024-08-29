@@ -36,8 +36,11 @@ If you have a dictionary of parameter values and CMB spectra you can then go ahe
     The likelihood operates in :math:`D_\ell` space, i.e. on :math:`\ell (\ell + 1) C_\ell / (2 \pi)`, in units of :math:`\mu K_{\mathrm{CMB}}^2`.
     Theory spectra start at :math:`\ell=2`.
 
-``traditional_tutorial.ipynb``
+Tutorials
 ------------------------------
+
+``traditional_tutorial.ipynb``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This notebook shows how traditional inference tasks are accomplished. In particular:
 
@@ -49,7 +52,7 @@ This tutorial uses some optional packages.
 Make sure you have Cobaya, getdist, and CAMB installed in order to run the whole notebook.
 
 ``differentiable_tutorial.ipynb``
----------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This notebook shows different aspects relying on the differentiability of the likelihood. In particular:
 
@@ -63,7 +66,7 @@ Make sure you have Optax, BlackJAX, getdist, and CosmoPower-JAX installed in ord
 You also need to have some emulator models for CosmoPower-JAX; we recommend the SPT high-accuracy models available `here <https://github.com/alessiospuriomancini/cosmopower/tree/main/cosmopower/trained_models/SPT_high_accuracy>`_.
 
 ``SPT_ACT_summer_school_2024_candl.ipynb``
---------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This notebook was designed for the joint SPT and ACT analysis summer school 2024.
 This is not a pure click-through tutorial, but features some exercises.
@@ -74,6 +77,19 @@ It covers in three parts:
 * Part III Gradient-Powered Likelihood Exploration: in this part you will find the best-fit point of the ACT DR4 TT/TE/EE data set using traditional and gradient-powered methods.
 
 You can run this tutorial locally or on `google colab <https://github.com/Lbalkenhol/candl/blob/main/notebooks/SPT_ACT_summer_school_2024/SPT_ACT_summer_school_2024_candl_colab.ipynb>`_.
+
+
+Usage Guisance
+------------------------------
+
+Instantiating Likelihoods
+----------------------------------------------------------
+
+There are three options for instantiating likelihoods you have three options. In ``candl.Like()`` or ``candl.LensLike()`` you can:
+
+1. point directly to the data set info ``.yaml`` file.
+2. use the short cut for released data sets, e.g. ``candl.data.SPT3G_2018_TTTEEE``.
+3. point to an index file and specify the variant, e.g. ``candl.data.SPT3G_2018_Lens`` with ``variant = 'lens_only'``.
 
 
 Working With Instantiated Likelihoods

@@ -150,6 +150,7 @@ class Like:
         --------------
         data_set_file : str
             The file path of a .yaml file that contains all the necessary information to initialise the likelihood.
+            Alternatively, this can be an index file that then points to the data set file. In this case, use the keyword "variant" to specify which variant of the data set to use.
         **kwargs : dict
             Any additional keyword arguments to overwrite the information in the .yaml file.
 
@@ -159,8 +160,12 @@ class Like:
             A new instance of the base likelihood class with all data read in and the set-up completed.
         """
 
-        self.data_set_file = data_set_file
-        self.data_set_dict = candl.io.load_info_yaml(data_set_file)
+        # Load in the data set yaml file, checking if a variant is requested
+        if not "variant" in kwargs:
+            kwargs["variant"] = None
+        self.data_set_dict, self.data_set_file = candl.io.load_info_yaml(
+            data_set_file, kwargs["variant"]
+        )
 
         # Overwrite any info in the data set yaml file by passed kwargs
         for key in kwargs:
@@ -1181,6 +1186,7 @@ class LensLike:
         --------------
         data_set_file : str
             The file path of a .yaml file that contains all the necessary information to initialise the likelihood.
+            Alternatively, this can be an index file that then points to the data set file. In this case, use the keyword "variant" to specify which variant of the data set to use.
         kwargs : dict
             Any additional information to overwrite the information in the .yaml file.
 
@@ -1190,8 +1196,12 @@ class LensLike:
             A new instance of the base lensing likelihood class with all data read in and the set-up completed.
         """
 
-        self.data_set_file = data_set_file
-        self.data_set_dict = candl.io.load_info_yaml(data_set_file)
+        # Load in the data set yaml file, checking if a variant is requested
+        if not "variant" in kwargs:
+            kwargs["variant"] = None
+        self.data_set_dict, self.data_set_file = candl.io.load_info_yaml(
+            data_set_file, kwargs["variant"]
+        )
 
         # Overwrite any info in the data set yaml file by passed kwargs
         for key in kwargs:

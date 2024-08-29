@@ -1,0 +1,16 @@
+# ACT DR6 Lensing
+# Index file pointing to variants of the likelihood
+# Madhavacheril, Qu, Sherwin, MacCrann, Li et al ACT Collaboration (2023), arxiv:2304.05203
+# Qu, Sherwin, Madhavacheril, Han, Crowley et al ACT Collaboration (2023), arxiv:2304.05202
+# Carron, Mirmelstein, Lewis (2022), arxiv:2206.07773, JCAP09(2022)039
+
+# DEFAULT
+default: "ACT_DR6_KK_lens_only.yaml"
+
+# LENS ONLY
+# Use when only using the lensing data - no primary CMB data - for inference
+lens_only: "ACT_DR6_KK_lens_only.yaml"
+
+# USE CMB
+# Use when combining lensing and primary CMB data
+use_CMB: "ACT_DR6_KK_lens_and_CMB.yaml"

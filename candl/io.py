@@ -45,28 +45,47 @@ def read_meta_info_from_yaml(data_set_dict):
     return data_set_dict["name"]
 
 
-def load_info_yaml(dataset_file):
+def load_info_yaml(yaml_file, variant="default"):
     """
     Read the data set yaml file that contains all the information needed to instantiate the likelihood.
+    Navigates through index files if necessary.
 
     Parameters
     --------------
-    dataset_file : str
-        Path of the data set yaml file
+    yaml_file : str
+        Path of the data set yaml file or index file
+    variant : str
+        Optional, to be used for index files. Indicates the variant of the data set to be read in.
 
     Returns
     --------------
     dict :
         Data set dictionary.
+    str :
+        Path of the data set yaml file.
     """
+
+    # Check if this is an index file or a complete data set file already
+    dataset_file = yaml_file
+    if "index.yaml" in yaml_file:
+
+        # Read index file
+        with open(yaml_file, "r") as f:
+            index_dict = yaml.load(f, Loader=yaml.loader.SafeLoader)
+
+        # Grab file corresponding to desired variant
+        if variant not in index_dict:
+            print(
+                f"Variant '{variant}' not found in index file '{yaml_file}'. Running with default '{index_dict['default']}'."
+            )
+            variant = "default"
+        dataset_file = "/".join(yaml_file.split("/")[:-1]) + "/" + index_dict[variant]
 
     # Read in the dataset yaml file
     with open(dataset_file, "r") as f:
         data_set_dict = yaml.load(f, Loader=yaml.loader.SafeLoader)
 
-    # Any potential path modification can go here
-
-    return data_set_dict
+    return data_set_dict, dataset_file
 
 
 def read_spectrum_info_from_yaml(data_set_dict, lensing=False):

@@ -1,4 +1,5 @@
 candl_mp.data_set_file = "candl.data.ACT_DR4_TTTEEE"
+candl_mp.variant = None
 candl_mp.lensing = False
 candl_mp.feedback = True
 candl_mp.data_selection = None

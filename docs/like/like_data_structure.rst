@@ -6,6 +6,7 @@ The info file contains information about the data set, such as its name, the loc
 If you are interested in understanding these in detail, we recommend looking at some of the released data sets as an example along with the explanations below.
 You can also find more details in the :ref:`documentation<like_api>`.
 
+
 Data Set Info File
 -------------------------------------------------
 
@@ -110,3 +111,17 @@ Band passes are text files containing of two columns: the frequency and the resp
 
 M matrices for lensing likelihoods are stored as ``window_[i].txt`` files (starting at ``i=0``) in a separate folder, i.e. matching the second format option for band power window functions above.
 Each file is expected to contain six columns in the following order: ell, :math:`TT`, :math:`TE`, :math:`EE`, :math:`BB`, :math:`\phi\phi/\kappa\kappa`.
+
+Index Files
+-------------------------------------------------
+
+Index files contain the file names of different variants of the same likelihood in a dictionary format.
+Index files are optional, you can always initiate likelihoods by pointing directly towards the desired data set info ``.yaml`` file.
+However, they can help you navigate between different variants without cluttering your working space.
+Index files are ``.yaml`` files with the following format:
+
+.. code-block:: yaml
+   
+      default: <data set info file>
+      a_variant: <data set info file>
+      another_variant: <data set info file>

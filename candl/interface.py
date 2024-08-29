@@ -965,7 +965,9 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
     Attributes
     ------------
     data_set_file : str
-        path of the data set info yaml file.
+        Path of the data set info yaml file.
+    variant : str
+        Variant of the likelihood (if requested).
     clear_internal_priors : bool
         Whether to clear internal priors.
     lensing : bool
@@ -991,6 +993,7 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
     """
 
     data_set_file: str = "./"
+    variant: str = None
     clear_internal_priors: bool = True
     lensing: bool = False
     feedback: bool = False
@@ -1011,12 +1014,14 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
             if self.lensing:
                 self.candl_like = candl.LensLike(
                     self.data_set_file,
+                    variant=self.variant,
                     feedback=self.feedback,
                     data_selection=self.data_selection,
                 )
             else:
                 self.candl_like = candl.Like(
                     self.data_set_file,
+                    variant=self.variant,
                     feedback=self.feedback,
                     data_selection=self.data_selection,
                 )
