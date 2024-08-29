@@ -53,9 +53,9 @@ SPT-3G 2018 PP
    Lensing power spectrum measurement (:math:`\phi\phi`)
 
 :Short cut(s):
-   ``candl.data.SPT3G_2018_Lens`` (index file),
-   ``candl.data.SPT3G_2018_Lens_only`` (or ``variant = 'lens_only'``),
-   ``candl.data.SPT3G_2018_Lens_and_CMB`` (or ``variant = 'CMB_only'``)
+   | ``candl.data.SPT3G_2018_Lens`` (index file),
+   | ``candl.data.SPT3G_2018_Lens_only`` (or ``variant = 'lens_only'``),
+   | ``candl.data.SPT3G_2018_Lens_and_CMB`` (or ``variant = 'CMB_only'``)
 
 :Latest version:
    ``v0``
@@ -114,9 +114,9 @@ ACT DR6 PP
 :Website: `Github <https://github.com/ACTCollaboration/act_dr6_lenslike>`__
 
 :Short cut(s):
-   ``candl.data.ACT_DR6_Lens`` (index file),
-   ``candl.data.ACT_DR6_Lens_only`` (or ``variant = 'lens_only'``),
-   ``candl.data.ACT_DR6_Lens_and_CMB`` (or ``variant = 'use_CMB'``)
+   | ``candl.data.ACT_DR6_Lens`` (index file),
+   | ``candl.data.ACT_DR6_Lens_only`` (or ``variant = 'lens_only'``),
+   | ``candl.data.ACT_DR6_Lens_and_CMB`` (or ``variant = 'use_CMB'``)
 
 :Latest version:
    ``v0``
