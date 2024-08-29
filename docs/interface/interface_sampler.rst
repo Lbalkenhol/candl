@@ -47,6 +47,7 @@ In order to run Cobaya from the command line it sufficies to include the followi
     likelihood:
         candl.interface.CandlCobayaLikelihood:
             data_set_file: candl.data.SPT3G_2018_TTTEEE # data set or path to .yaml file
+            variant: None # Select a variant of the data set if pointing to an index file
             lensing: False # Switch on for lensing likelihoods
             feedback: False # Switch on to request feedback from candl initialisation
             data_selection: None # Select a subset of the data set
@@ -55,6 +56,7 @@ In order to run Cobaya from the command line it sufficies to include the followi
 Only ``data_set_file`` is required, the other arguments are optional.
 See :ref:`here <Data Selection>` for info on data selection.
 Again, by default the candl internal priors are not applied, set ``clear_internal_priors: False`` if you want to use them.
+If you are pointing to an index file with ``data_set_file``, use ``variant`` to select the desired variant.
 
 Connecting Theory Codes to Cobaya
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

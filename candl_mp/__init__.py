@@ -21,12 +21,14 @@ class candl_mp(Likelihood):
             if self.lensing:
                 self.candl_like = candl.LensLike(
                     self.data_set_file,
+                    variant=self.variant,
                     feedback=self.feedback,
                     data_selection=self.data_selection,
                 )
             else:
                 self.candl_like = candl.Like(
                     self.data_set_file,
+                    variant=self.variant,
                     feedback=self.feedback,
                     data_selection=self.data_selection,
                 )

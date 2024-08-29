@@ -52,13 +52,13 @@ SPT-3G 2018 PP
    Lensing power spectrum measurement (:math:`\phi\phi`)
 
 :Short cut(s):
-   ``candl.data.SPT3G_2018_Lens``, ``candl.data.SPT3G_2018_Lens_and_CMB``
+   ``candl.data.SPT3G_2018_Lens`` (index file), ``candl.data.SPT3G_2018_Lens_only`` (or ``variant = 'lens_only'``), ``candl.data.SPT3G_2018_Lens_and_CMB`` (or ``variant = 'CMB_only'``)
 
 :Latest version:
    ``v0``
 
 *Note*: this data set uses the lensing power spectrum in :math:`\phi\phi`.
-Use ``candl.data.SPT3G_2018_Lens`` when only working with lensing data, use ``candl.data.SPT3G_2018_Lens_and_CMB`` when combining lensing and primary CMB data.
+Use ``candl.data.SPT3G_2018_Lens`` with ``variant = 'lens_only'`` or ``candl.data.SPT3G_2018_Lens_only`` when only working with lensing data, use ``candl.data.SPT3G_2018_Lens`` with ``variant = 'use_CMB'`` or ``candl.data.SPT3G_2018_Lens_and_CMB`` when combining lensing and primary CMB data.
 
 ACT DR4 TT/TE/EE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -111,14 +111,14 @@ ACT DR6 PP
 :Website: `Github <https://github.com/ACTCollaboration/act_dr6_lenslike>`__
 
 :Short cut(s):
-   ``candl.data.ACT_DR6_Lens``, ``candl.data.ACT_DR6_Lens_and_CMB``
+   ``candl.data.ACT_DR6_Lens`` (index file), ``candl.data.ACT_DR6_Lens_only`` (or ``variant = 'lens_only'``), ``candl.data.ACT_DR6_Lens_and_CMB`` (or ``variant = 'use_CMB'``)
 
 :Latest version:
    ``v0``
 
 *Note*: this data set uses the lensing power spectrum in :math:`\kappa\kappa`.
 For the ACT + Planck lensing combination see also `Carron, Mirmelstein, Lewis 2023 <https://arxiv.org/abs/2206.07773>`_.
-Use ``candl.data.ACT_DR6_Lens`` when only working with lensing data, use ``candl.data.ACT_DR6_Lens_and_CMB`` when combining lensing and primary CMB data.
+Use ``candl.data.ACT_DR6_Lens`` with ``variant = 'lens_only'`` or ``candl.data.ACT_DR6_Lens_only`` when only working with lensing data, use ``candl.data.ACT_DR6_Lens`` with ``variant = 'use_CMB'`` or ``candl.data.ACT_DR6_Lens_and_CMB`` when combining lensing and primary CMB data.
 
 Adding Data Sets
 -------------------------------------------------

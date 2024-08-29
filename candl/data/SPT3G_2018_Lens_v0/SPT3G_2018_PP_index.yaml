@@ -1,0 +1,14 @@
+# SPT-3G 2018 Lensing
+# Index file pointing to variants of the likelihood
+# Pan, Bianchini, Wu et al. 2023, https://arxiv.org/abs/2308.11608
+
+# DEFAULT
+default: "SPT3G_2018_PP_lens_only.yaml"
+
+# LENS ONLY
+# Use when only using the lensing data - no primary CMB data - for inference
+lens_only: "SPT3G_2018_PP_lens_only.yaml"
+
+# USE CMB
+# Use when combining lensing and primary CMB data
+use_CMB: "SPT3G_2018_PP_lens_and_CMB.yaml"

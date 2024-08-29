@@ -1122,9 +1122,9 @@ def pars_to_model_specs_partial_transformation(
     Returns
     --------------
     array:
-        Best-fit model unbinned.
+        Model unbinned.
     array:
-        Best-fit model binned.
+        Model binned.
     """
 
     # Calculate theory Dls
