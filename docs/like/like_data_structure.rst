@@ -118,6 +118,8 @@ Index Files
 Index files contain the file names of different variants of the same likelihood in a dictionary format.
 Index files are optional, you can always initiate likelihoods by pointing directly towards the desired data set info ``.yaml`` file.
 However, they can help you navigate between different variants without cluttering your working space.
+For example, they are handy when switching between the versions of lensing likelihoods used when performing analyses with or without primary CMB data.
+If you find yourself making lots of variations of a data set info file, consider linking between them with an index file.
 Index files are ``.yaml`` files with the following format:
 
 .. code-block:: yaml

@@ -3,6 +3,7 @@ Data Sets
 
 The following data sets are available for use with candl.
 For the default data sets that ship with the release there are shortcuts available to access them easily (see below).
+For data sets that have multiple variants (for the moment lensing data sets), you can either point to the specific data set you want or you can point to the (more generally named) index file and add ``variant = <your_desired_variant>`` during initialisation.
 You can also use :func:`candl.data.print_all_shortcuts` to list all available shortcuts.
 New data sets will be uploaded as they become available.
 
@@ -52,7 +53,9 @@ SPT-3G 2018 PP
    Lensing power spectrum measurement (:math:`\phi\phi`)
 
 :Short cut(s):
-   ``candl.data.SPT3G_2018_Lens`` (index file), ``candl.data.SPT3G_2018_Lens_only`` (or ``variant = 'lens_only'``), ``candl.data.SPT3G_2018_Lens_and_CMB`` (or ``variant = 'CMB_only'``)
+   ``candl.data.SPT3G_2018_Lens`` (index file),
+   ``candl.data.SPT3G_2018_Lens_only`` (or ``variant = 'lens_only'``),
+   ``candl.data.SPT3G_2018_Lens_and_CMB`` (or ``variant = 'CMB_only'``)
 
 :Latest version:
    ``v0``
@@ -111,7 +114,9 @@ ACT DR6 PP
 :Website: `Github <https://github.com/ACTCollaboration/act_dr6_lenslike>`__
 
 :Short cut(s):
-   ``candl.data.ACT_DR6_Lens`` (index file), ``candl.data.ACT_DR6_Lens_only`` (or ``variant = 'lens_only'``), ``candl.data.ACT_DR6_Lens_and_CMB`` (or ``variant = 'use_CMB'``)
+   ``candl.data.ACT_DR6_Lens`` (index file),
+   ``candl.data.ACT_DR6_Lens_only`` (or ``variant = 'lens_only'``),
+   ``candl.data.ACT_DR6_Lens_and_CMB`` (or ``variant = 'use_CMB'``)
 
 :Latest version:
    ``v0``
