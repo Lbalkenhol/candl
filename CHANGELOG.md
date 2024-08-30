@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.5.0 (2024-08-30)
+
+Added index files to help navigate between variants of a likelihood, plus few other small fixes and changes. Restructured the docs, pulling tutorials and usage tips apart.
+
 ## v1.4.0 (2024-07-15)
 
 A few fixes to add more flexibility.
