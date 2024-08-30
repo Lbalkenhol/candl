@@ -1,9 +1,16 @@
 Tutorials and Use
 =================================================
 
+.. toctree::
+   :hidden:
+   :titlesonly:
+   :maxdepth: 1
+
+   tutorial_list
+   usage_tips
+
 Below, you can find an example of how to quickly get started with candl.
-In addition, we provide two jupyter notebooks that show the likelihood in action.
-You can find them in the ``notebooks/`` on the git repo.
+Be sure to check out the :ref:`tutorials<Tutorials>` for helpful examples and look at the :ref:`usage tips<Usage Tips>` for some important information on how to use candl.
 
 Quickstart
 ------------------------------
@@ -35,82 +42,3 @@ If you have a dictionary of parameter values and CMB spectra you can then go ahe
 
     The likelihood operates in :math:`D_\ell` space, i.e. on :math:`\ell (\ell + 1) C_\ell / (2 \pi)`, in units of :math:`\mu K_{\mathrm{CMB}}^2`.
     Theory spectra start at :math:`\ell=2`.
-
-Tutorials
-------------------------------
-
-``traditional_tutorial.ipynb``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-This notebook shows how traditional inference tasks are accomplished. In particular:
-
-* Initialising the likelihood and accessing the data (band powers, covariance, etc.)
-* Interfacing the likelihood with CAMB and calculating the :math:`\chi^2` for a given spectrum
-* Interfacing the likelihood with Cobaya and running an MCMC chain
-
-This tutorial uses some optional packages.
-Make sure you have Cobaya, getdist, and CAMB installed in order to run the whole notebook.
-
-``differentiable_tutorial.ipynb``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-This notebook shows different aspects relying on the differentiability of the likelihood. In particular:
-
-* Initialising the likelihood and accessing the data (band powers, covariance, etc.)
-* Running gradient-based minimisers
-* Interfacing the likelihood with Optax
-* Running NUTS chains by interfacing the likelihood with BlackJAX
-
-This tutorial uses some optional packages.
-Make sure you have Optax, BlackJAX, getdist, and CosmoPower-JAX installed in order to run the whole notebook.
-You also need to have some emulator models for CosmoPower-JAX; we recommend the SPT high-accuracy models available `here <https://github.com/alessiospuriomancini/cosmopower/tree/main/cosmopower/trained_models/SPT_high_accuracy>`_.
-
-``SPT_ACT_summer_school_2024_candl.ipynb``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-This notebook was designed for the joint SPT and ACT analysis summer school 2024.
-This is not a pure click-through tutorial, but features some exercises.
-It covers in three parts:
-
-* Part I candl Basics: This part will run you through the basics of using candl: how to initialise a likelihood, access different data products, understand the data model, and evaluate the likelihood. For this part of the notebook you will be using the SPT-3G 2018 TT/TE/EE data set.
-* Part II Building a Differentiable Pipeline, Calculating Derivatives: in this part you will build a differentiable pipeline from cosmological parameters all the way to the likelihood value. We will look at two useful applications using the ACT DR4 TT/TE/EE data set.
-* Part III Gradient-Powered Likelihood Exploration: in this part you will find the best-fit point of the ACT DR4 TT/TE/EE data set using traditional and gradient-powered methods.
-
-You can run this tutorial locally or on `google colab <https://github.com/Lbalkenhol/candl/blob/main/notebooks/SPT_ACT_summer_school_2024/SPT_ACT_summer_school_2024_candl_colab.ipynb>`_.
-
-
-Usage Guisance
-------------------------------
-
-Instantiating Likelihoods
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-There are three options for instantiating likelihoods. In ``candl.Like()`` or ``candl.LensLike()`` you can:
-
-1. point directly to the data set info ``.yaml`` file.
-2. use the short cut for released data sets, e.g. ``candl.data.SPT3G_2018_TTTEEE``.
-3. point to an index file and specify the variant, e.g. ``candl.data.SPT3G_2018_Lens`` with ``variant = 'lens_only'``.
-
-
-Working With Instantiated Likelihoods
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-In general, modifications to instantiated likelihood objects are only correctly propagated, if they are done immediately after initialisation.
-This has to do with how JAX's jit works with class methods (more details can be found here `here <https://jax.readthedocs.io/en/latest/faq.html#how-to-use-jit-with-methods>`_).
-While this may change in the future, exercise caution for now.
-
-.. warning::
-
-   Changes to the attributes of candl likelihoods (e.g. the band powers or the data model) must be made immediately after initialisation.
-   Once a jitted method has been called (e.g. the likelihood has been evaluated), changes to attributes are no longer tracked.
-   Therefore, it is advised to perform any customisation immediately after initialisation (or by modifying the underlying .yaml file directly - see :ref:`here<Data Structure>` for more info on how to do that).
-
-Combining Multiple Likelihoods
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-You can combine multiple likelihoods by defining a function that returns the sum of the individual likelihoods.
-However, for this approach the data sets in question need to be independent of one another.
-Consult the literature and in particular the relevant release papers to verify that this is true.
-If this is not the case, you need to create a new data set, with a long data vector comprising of the individual data sets and account for the correlation between the data sets in the covariance matrix.
-See :ref:`Data Structure` for more details on the structure of data sets.
-Even if your data sets are independent, be sure to check that you are not applying any priors twice (e.g. on :math:`\tau`).

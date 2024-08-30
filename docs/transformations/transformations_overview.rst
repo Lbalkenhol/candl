@@ -8,7 +8,7 @@ Their code is in the ``transformations/`` folder, which contains abstract base c
 See the :ref:`full documentation<transformations_api>` for details.
 
 
-Adding a Transformation to the Data model
+Adding a Transformation to the Data Model
 -------------------------------------------------
 
 In order for a transformation to be applied to the model spectra, it needs to be listed in the data set info ``.yaml`` file.

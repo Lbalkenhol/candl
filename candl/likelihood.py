@@ -627,6 +627,24 @@ class Like:
                 self.data_set_dict, i_tr
             )
 
+            # Check whether transformation is deliberately ignored through backdoor
+            ignore_transformation = False
+            if "force_ignore_transformations" in self.data_set_dict:
+                # loop over all transformations (identified by their descriptor) that should be ignored
+                for ignore_tr_descriptor in (
+                    self.data_set_dict["force_ignore_transformations"].split(", ")
+                    if isinstance(
+                        self.data_set_dict["force_ignore_transformations"], str
+                    )
+                    else self.data_set_dict["force_ignore_transformations"]
+                ):
+                    # This casts the different acceptable formats into a list of strings
+                    if "descriptor" in tr_passed_args:
+                        if tr_passed_args["descriptor"] == ignore_tr_descriptor:
+                            ignore_transformation = True
+            if ignore_transformation:
+                continue
+
             # Break the information into module and class name
             module_name, tr_name = full_tr_name.split(".")
 
@@ -1567,6 +1585,24 @@ class LensLike:
             full_tr_name, tr_passed_args = candl.io.read_transformation_info_from_yaml(
                 self.data_set_dict, i_tr
             )
+
+            # Check whether transformation is deliberately ignored through backdoor
+            ignore_transformation = False
+            if "force_ignore_transformations" in self.data_set_dict:
+                # loop over all transformations (identified by their descriptor) that should be ignored
+                for ignore_tr_descriptor in (
+                    self.data_set_dict["force_ignore_transformations"].split(", ")
+                    if isinstance(
+                        self.data_set_dict["force_ignore_transformations"], str
+                    )
+                    else self.data_set_dict["force_ignore_transformations"]
+                ):
+                    # This casts the different acceptable formats into a list of strings
+                    if "descriptor" in tr_passed_args:
+                        if tr_passed_args["descriptor"] == ignore_tr_descriptor:
+                            ignore_transformation = True
+            if ignore_transformation:
+                continue
 
             # Break the information into module and class name
             module_name, tr_name = full_tr_name.split(".")
