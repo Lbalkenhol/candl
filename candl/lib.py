@@ -42,11 +42,13 @@ import seaborn as sns
 USE_JAX = True
 
 # Optional JAX import
+JAX_IMPORT_SUCCEEDED = False
 try:
     if USE_JAX:
         import jax.numpy as jnp
         import jax.scipy as jsp
         from jax import jit, jacfwd, custom_jvp
+        from jax import config as jax_config
 
         # Unify syntax for setting array elements
         def jax_optional_set_element(arr, ix, el):
@@ -54,13 +56,12 @@ try:
 
         # Need JAX to run with 64bit for dynamic range in covmats
         try:
-            from jax.config import config
-
-            config.update("jax_enable_x64", True)
+            jax_config.update("jax_enable_x64", True)
         except:
             raise Exception(
                 "candl: could not configure JAX to run in 64 bit mode - this will likely lead to wrong results!"
             )
+        JAX_IMPORT_SUCCEEDED = True
     else:
         raise ImportError()
 except:
