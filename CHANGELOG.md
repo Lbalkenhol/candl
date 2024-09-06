@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.5.1 (2024-09-06)
+
+Compatibility with JAX version 0.4.31 (tested with TF 2.17.0).
+
 ## v1.5.0 (2024-08-30)
 
 Added index files to help navigate between variants of a likelihood, plus few other small fixes and changes. Restructured the docs, pulling tutorials and usage tips apart.
