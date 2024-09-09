@@ -1927,6 +1927,108 @@ class CalibrationSingleScalar(candl.transformations.abstract_base.Calibration):
         return Dls / sample_params[self.cal_param]
 
 
+class CalibrationAuto(candl.transformations.abstract_base.IndividualCalibration):
+    """
+    Calibration model that divides each spectrum by the series of specified parameters.
+    Scales model spectra by :math:`1/\Pi_i X_i`, where :math:`X_i` are specified in the spec_param_dict.
+    Contributed by Etienne Camphuis.
+
+    Attributes
+    --------------
+    ells : array (float)
+        The ell range the transformation acts on.
+    descriptor : str
+        A short descriptor.
+    par_names : list
+        Names of parameters involved in transformation.
+    spec_param_dict : dict
+        A dictionary with keys that are spectrum identifiers and values that are lists of the nuisance parameter names
+        that are used to transform this spectrum.
+    spec_order : list
+        Order of the spectra in the long data vector.
+    N_specs : int
+        Total number of spectra.
+    affected_specs : list (str)
+            List of the spectra to apply this foreground to.
+    spec_mask : array (int)
+        Masks which parts of the long data vector are affected by the transformation.
+    affected_specs_ix : list (int)
+        Indices in spectra_order of spectra the transformation is applied to.
+
+    Methods
+    ----------------
+    __init__ :
+        initialises an instance of the class.
+    transform :
+        transforms an input spectrum.
+
+    Notes
+    ----------------
+
+    User required arguments in data set yaml file
+
+    * spec_param_dict (dict) : A dictionary with keys that are spectrum identifiers and values that are lists of the nuisance parameter names that are used to transform this spectrum.
+
+
+    Examples
+    ----------------
+
+    Example yaml block to calibrate TT 90GHz and 150GHz spectra in two steps (internal and external)::
+
+        - Module: "common.CalibrationAuto"
+          spec_param_dict:
+            TT 90x90: ["cal_ext", "cal_ext", "cal_rel", "cal_rel"]
+            TT 90x150: ["cal_ext", "cal_ext", "cal_rel"]
+            TT 150x150: ["cal_ext", "cal_ext"]
+    """
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        """
+        Transform the input spectrum.
+
+        Arguments
+        --------------
+        Dls : array (float)
+           The spectrum to transform in Dl.
+        sample_params : dict
+           A dictionary of parameters that are used in the transformation
+
+        Returns
+        --------------
+        array : float
+           The transformed spectrum in Dl.
+        """
+
+        # amplitude part
+        cal_vals = jnp.ones(len(self.spec_order))
+        for ix in self.affected_specs_ix:
+            this_cal_val = 1.0
+            for par in self.spec_param_dict[self.spec_order[ix]]:
+                this_cal_val *= sample_params[par]
+            cal_vals = jax_optional_set_element(cal_vals, ix, this_cal_val)
+        tiled_cal_vals = jnp.repeat(cal_vals, len(self.ells))
+
+        return Dls / tiled_cal_vals
+
+    @partial(jit, static_argnums=(0,))
+    def get_cal_vec(self, sample_params):
+        """
+        Shortcut to access calibration vector.
+        See also: transformation()
+        """
+
+        # amplitude part
+        cal_vals = jnp.ones(len(self.spec_order))
+        for ix in self.affected_specs_ix:
+            this_cal_val = 1.0
+            for par in self.spec_param_dict[self.spec_order[ix]]:
+                this_cal_val *= sample_params[par]
+            cal_vals = jax_optional_set_element(cal_vals, ix, this_cal_val)
+
+        return cal_vals
+
+
 class CalibrationCross(candl.transformations.abstract_base.IndividualCalibration):
     """
     Calibration model for summed spectra, e.g. for TE_90x150: :math:` 0.5 * ( T_{90}xE_{150} + E_{90}xT_{150} )`.
