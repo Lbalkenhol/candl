@@ -55,7 +55,7 @@ SPT-3G 2018 PP
 :Short cut(s):
    | ``candl.data.SPT3G_2018_Lens`` (index file),
    | ``candl.data.SPT3G_2018_Lens_only`` (or ``variant = 'lens_only'``),
-   | ``candl.data.SPT3G_2018_Lens_and_CMB`` (or ``variant = 'CMB_only'``)
+   | ``candl.data.SPT3G_2018_Lens_and_CMB`` (or ``variant = 'use_CMB'``)
 
 :Latest version:
    ``v0``
