@@ -1,0 +1,83 @@
+name: "candl"
+version: "1.0.0"
+purpose: "Interface with candl."
+url: "https://github.com/Lbalkenhol/candl"
+interface: "candl_cosmosis_interface.py"
+attribution: ["Y. Omori", "L. Balkenhol"]
+rules:
+    "None"
+cite:
+    - "https://doi.org/10.48550/arXiv.2401.13433"
+
+assumptions:
+    - "candl python module"
+
+explanation: |
+    "Interface to candl."
+
+# List of parameters that can go in the params.ini file in the section for this module    
+params:
+    data_set:
+        meaning: "The data set to use"
+        type: str
+    variant:
+        meaning: "Variant of the data set requested, if applicable."
+        type: str
+        default: None
+    lensing:
+        meaning: "Lensing likelihood (or primary CMB)."
+        type: bool
+        default: True
+    feedback:
+        meaning: "Whether to generate feedback from the likelihood initialisation."
+        type: bool
+        default: True
+    data_selection:
+        meaning: "Further data selection"
+        type: any
+        default: None
+    clear_1d_internal_priors:
+        meaning: "Delete all 1d Gaussian priors implemented in candl."
+        type: bool
+        default: True
+    clear_nd_internal_priors:
+        meaning: "Delete all >1d Gaussian priors implemented in candl. Beware: CosmoSIS does not have support for higher-dimensional Gaussian priors."
+        type: bool
+        default: False
+    force_ignore_transformations:
+        meaning: "Backdoor to explicitly ignore certain transformations in the data model. See candl documentation for more information."
+        type: str
+        default: None
+
+inputs:
+    cmb_cl:
+        ell:
+            meaning: "CMB power spectrum ell values of other inputs"
+            type: real 1d
+            default:
+        tt:
+            meaning: "Lensed CMB temperature power spectrum in ell(ell+1)/2pi units"
+            type: real 1d
+            default:
+        te:
+            meaning: "Lensed CMB temperature-E-mode polarization cross power spectrum in ell(ell+1)/2pi units"
+            type: real 1d
+            default:
+        ee:
+            meaning: "Lensed CMB E-mode polaration power spectrum in ell(ell+1)/2pi units"
+            type: real 1d
+            default:
+        bb:
+            meaning: "Lensed CMB B-mode polaration power spectrum in ell(ell+1)/2pi units"
+            type: real 1d
+            default:
+        pp:
+            meaning: "CMB lensing phi-phi power spectrum in ell(ell+1)/2pi units"
+            type: real 1d
+            default:
+
+outputs:
+    likelihoods:
+        candl_like:
+            meaning: "candl likelihood"
+            type: real

@@ -1,7 +1,7 @@
 Samplers and Minimisers
 =================================================
 
-We provide tools to interface the likelihood with the two most commonly used MCMC samplers in cosmology: `Cobaya <https://github.com/CobayaSampler/cobaya>`_ and `MontePython <https://baudren.github.io/montepython.html>`_.
+We provide tools to interface the likelihood with the two most commonly used MCMC samplers in cosmology: `Cobaya <https://github.com/CobayaSampler/cobaya>`_, `MontePython <https://baudren.github.io/montepython.html>`_, and `CosmoSIS <https://cosmosis.readthedocs.io/en/latest/index.html>`_.
 Moreover, we show how the likelihood can be interfaced with tools that explicitly exploit its differentiability: `BlackJAX <https://github.com/blackjax-devs/blackjax>`_ and `Optax <https://github.com/google-deepmind/optax>`_.
 
 .. warning::
@@ -46,7 +46,7 @@ In order to run Cobaya from the command line it sufficies to include the followi
 
     likelihood:
         candl.interface.CandlCobayaLikelihood:
-            data_set_file: candl.data.SPT3G_2018_TTTEEE # data set or path to .yaml file
+            data_set_file: candl.data.SPT3G_2018_TTTEEE # Data set or path to .yaml file
             variant: None # Select a variant of the data set if pointing to an index file
             lensing: False # Switch on for lensing likelihoods
             feedback: False # Switch on to request feedback from candl initialisation
@@ -115,6 +115,31 @@ This will print the nuisance parameter block to the terminal, which you can then
 
 .. autofunction:: candl.interface.get_montepython_nuisance_param_block_for_like
 
+
+CosmoSIS
+-------------------------------------------------
+
+In order to interface with CosmoSIS, copy the ``candl_cosmosis`` folder into your ``cosmosis-standard-library/likelihood`` directory.
+The folder contains the wrapper (``candl_cosmosis_interface.py``) as well as the module file required by CosmoSIS.
+In order run chains with e.g. the SPT-3G 2018 lensing likelihood, include the following block in your ``.ini`` file:
+
+.. code-block:: INI
+    
+    file = ./likelihood/candl/candl_cosmosis_interface.py ; Location of interface code - change depending on the location of your .ini file
+    data_set = 'candl.data.SPT3G_2018_Lens' ; Data set or path to .yaml file
+    variant = 'use_CMB' ; Select a variant of the data set if pointing to an index file
+    lensing = T ; Switch on for lensing likelihoods
+    feedback = T ; Switch on to request feedback from candl initialisation
+    data_selection = None ; Select a subset of the data set
+    clear_1d_internal_priors = T ; Switch off to use candl internal 1d priors
+    clear_nd_internal_priors = F ; Switch on to ignore candl internal higher dimensional priors. Careful: higher-dimensional priors are not implemented in CosmoSIS itself.
+    force_ignore_transformations = '' ; Backdoor if you want to ignore certain transformations in the data model.
+
+This wrapper was written by Y. Omori and L. Balkenhol, with help from J. Zuntz.
+
+.. note::
+    By default the 1-dimensional internal priors declared in candl's data set ``.yaml`` file are ignored, while the multi-dimensional priors are applied.
+    If you want to modify this behaviour, set ``clear_1d_internal_priors`` and ``clear_nd_internal_priors``.
 
 BlackJAX
 -------------------------------------------------
