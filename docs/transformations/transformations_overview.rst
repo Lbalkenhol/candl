@@ -36,6 +36,11 @@ Before writing your own transformation, check the libraries in ``transformations
 Moreover, note that limited support for the SO library `FGSpectra <https://github.com/simonsobs/fgspectra/tree/main>`_ exists.
 In particular, the class ``FactorizedCrossSpectrum``` is made available (see the documentation of ``transformations/common.FGSpectraInterfaceFactorizedCrossSpectrum`` for details).
 
+.. tip::
+
+   You can also load transformations that are not part of candl's library by pointing directly to the specific class, e.g.: ``my_transformations_module.MyTransformation``.
+   candl will then import the class under the hood, given that ``my_transformations_module`` is an importable module.
+
 
 Writing Your Own Transformation
 ----------------------------------------
