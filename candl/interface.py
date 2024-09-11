@@ -996,8 +996,8 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
     variant: str = None
     clear_internal_priors: bool = True
     lensing: bool = False
-    feedback: bool = False
-    data_selection: any = None
+    feedback: bool = True
+    data_selection: any = ...
 
     def initialize(self):
         """
@@ -1009,21 +1009,25 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
             importlib.import_module("candl.data")
             self.data_set_file = eval(self.data_set_file)
 
+        # Collect arguments
+        init_args = {
+            "variant": self.variant,
+            "feedback": self.feedback,
+        }
+        if self.data_selection is not ...:
+            init_args["data_selection"] = self.data_selection
+
         # Initialise the likelihood
         try:
             if self.lensing:
                 self.candl_like = candl.LensLike(
                     self.data_set_file,
-                    variant=self.variant,
-                    feedback=self.feedback,
-                    data_selection=self.data_selection,
+                    **init_args,
                 )
             else:
                 self.candl_like = candl.Like(
                     self.data_set_file,
-                    variant=self.variant,
-                    feedback=self.feedback,
-                    data_selection=self.data_selection,
+                    **init_args,
                 )
         except:
             raise Exception("candl: likelihood could not be initialised!")
@@ -1094,9 +1098,9 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
 def get_cobaya_info_dict_for_like(
     like,
     name="candl_like",
-    data_selection=None,
+    data_selection=...,
     clear_internal_priors=True,
-    feedback=False,
+    feedback=True,
 ):
     """
     Thin wrapper for CandlCobayaLikelihood that returns the class with the requested data set in the format expected by Cobaya.
@@ -1109,10 +1113,10 @@ def get_cobaya_info_dict_for_like(
     ---------------
     like: candl.Like, candl.LensLike
         A candl likelihood to be used.
-    name: str (optional)
+    name: str
         Name to give the likelihood in Cobaya
     data_selection : any
-        Data selection to be used. String, list of string, binary mask, or path to a mask are supported.
+        Data selection to be used. None, string, list of string, binary mask, or path to a mask are supported.
     clear_internal_priors : bool
         Whether to clear internal priors.
     feedback : bool
@@ -1134,11 +1138,14 @@ def get_cobaya_info_dict_for_like(
         name: {
             "external": CandlCobayaLikelihood,
             "data_set_file": like.data_set_file,
-            "data_selection": data_selection,
             "clear_internal_priors": clear_internal_priors,
             "feedback": feedback,
         }
     }
+
+    # Add data selection if requested
+    if data_selection is not ...:
+        cobaya_info[name]["data_selection"] = data_selection
 
     # Add flag for lensing likelihoods
     if isinstance(like, candl.LensLike):

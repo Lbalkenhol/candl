@@ -12,6 +12,12 @@ Moreover, we show how the likelihood can be interfaced with tools that explicitl
     However, this may not be available for all samplers (e.g. BlackJAX).
     Look out for ``clear_internal_priors`` flags in the interface functions and take care not to double count information.
 
+
+.. tip::
+
+    See :ref:`Data Selection <Data Selection>` for info on how to select subsets of the data.
+
+
 Cobaya
 -------------------------------------------------
 
@@ -49,12 +55,11 @@ In order to run Cobaya from the command line it sufficies to include the followi
             data_set_file: candl.data.SPT3G_2018_TTTEEE # Data set or path to .yaml file
             variant: None # Select a variant of the data set if pointing to an index file
             lensing: False # Switch on for lensing likelihoods
-            feedback: False # Switch on to request feedback from candl initialisation
-            data_selection: None # Select a subset of the data set
+            feedback: True # Switch off to hide feedback from candl initialisation
+            data_selection: ... # Select a subset of the data set
             clear_internal_priors: True # Switch off to use candl internal priors
 
 Only ``data_set_file`` is required, the other arguments are optional.
-See :ref:`here <Data Selection>` for info on data selection.
 Again, by default the candl internal priors are not applied, set ``clear_internal_priors: False`` if you want to use them.
 If you are pointing to an index file with ``data_set_file``, use ``variant`` to select the desired variant.
 
@@ -87,7 +92,7 @@ The provided template for the latter looks like this:
     candl_mp.data_set_file = #"candl.data.the_data_set_you_want" or "path/to/info.yaml"
     candl_mp.lensing = False
     candl_mp.feedback = True
-    candl_mp.data_selection = None
+    candl_mp.data_selection = ...
     candl_mp.clear_internal_priors = True
 
 You have to insert the data set you want in the first line: either the name of a released data set or a path to a .yaml file.
@@ -130,7 +135,7 @@ In order run chains with e.g. the SPT-3G 2018 lensing likelihood, include the fo
     variant = 'use_CMB' ; Select a variant of the data set if pointing to an index file
     lensing = T ; Switch on for lensing likelihoods
     feedback = T ; Switch on to request feedback from candl initialisation
-    data_selection = None ; Select a subset of the data set
+    data_selection = "..." ; Select a subset of the data set
     clear_1d_internal_priors = T ; Switch off to use candl internal 1d priors
     clear_nd_internal_priors = F ; Switch on to ignore candl internal higher dimensional priors. Careful: higher-dimensional priors are not implemented in CosmoSIS itself.
     force_ignore_transformations = '' ; Backdoor if you want to ignore certain transformations in the data model.

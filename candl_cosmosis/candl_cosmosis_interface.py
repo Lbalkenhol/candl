@@ -37,42 +37,39 @@ class CandlCosmoSISLikelihood:
         self.feedback = options.get_bool('feedback', default=True)
 
         # Optional entries
+        init_args = {"feedback": self.feedback}
         
         # Data selection
         if options.has_value("data_selection"):
-            self.data_selection = options.get_string("data_selection", default=None)
-        else:
-            self.data_selection = None
+            self.data_selection = options.get_string("data_selection", default="...")
+            data_selection_requested = True
+            if isinstance(self.data_selection, str):
+                if self.data_selection == "...":
+                    data_selection_requested = False
+            if data_selection_requested:
+                init_args["data_selection"] = self.data_selection
 
         # Likelihood variant
         if options.has_value("variant"):
             self.variant_str = options.get_string("variant", default=None)
-        else:
-            self.variant_str = None
+            init_args["variant"] = self.variant_str
 
         # Force ignore transformations
         if options.has_value("force_ignore_transformations"):
             self.force_ignore_transformations = options.get_string("force_ignore_transformations", default=None)
-        else:
-            self.force_ignore_transformations = None
+            init_args["force_ignore_transformations"] = self.force_ignore_transformations
 
         # Initialise the likelihood
         try:
             if self.lensing:
                 self.candl_like = candl.LensLike(
                     self.data_set_file,
-                    variant=self.variant_str,
-                    feedback=self.feedback,
-                    data_selection=self.data_selection,
-                    force_ignore_transformations=self.force_ignore_transformations,
+                    **init_args,
                 )
             else:
                 self.candl_like = candl.Like(
                     self.data_set_file,
-                    variant=self.variant_str,
-                    feedback=self.feedback,
-                    data_selection=self.data_selection,
-                    force_ignore_transformations=self.force_ignore_transformations,
+                    **init_args,
                 )
         except:
             raise Exception("candl: likelihood could not be initialised!")
