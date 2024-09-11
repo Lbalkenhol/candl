@@ -646,14 +646,23 @@ class Like:
                 continue
 
             # Break the information into module and class name
-            module_name, tr_name = full_tr_name.split(".")
+            module_name = ".".join(full_tr_name.split(".")[:-1])
+            tr_name = full_tr_name.split(".")[-1]
 
-            # Load the required module - either own library or SO's FGSpectra
-            tr_module = importlib.import_module("candl.transformations." + module_name)
+            # Load the required module - either candl library or user's own
+            try:
+                try:
+                    tr_module = importlib.import_module(
+                        "candl.transformations." + module_name
+                    )
+                except:
+                    tr_module = importlib.import_module(module_name)
 
-            # Check what arguments are required to initialise the Transformation
-            tr_signature = inspect.signature(tr_module.__dict__[tr_name]).parameters
-            tr_all_args = list(tr_signature)
+                # Check what arguments are required to initialise the Transformation
+                tr_signature = inspect.signature(tr_module.__dict__[tr_name]).parameters
+                tr_all_args = list(tr_signature)
+            except:
+                raise Exception(f"Could not locate transformation: {full_tr_name}")
 
             # Compile all arguments required to initialise the transformation class
             tr_arg_dict = tr_passed_args  # use all passed args
@@ -1605,14 +1614,23 @@ class LensLike:
                 continue
 
             # Break the information into module and class name
-            module_name, tr_name = full_tr_name.split(".")
+            module_name = ".".join(full_tr_name.split(".")[:-1])
+            tr_name = full_tr_name.split(".")[-1]
 
-            # Load the required module
-            tr_module = importlib.import_module("candl.transformations." + module_name)
+            # Load the required module - either candl library or user's own
+            try:
+                try:
+                    tr_module = importlib.import_module(
+                        "candl.transformations." + module_name
+                    )
+                except:
+                    tr_module = importlib.import_module(module_name)
 
-            # Check what arguments are required to initialise the Transformation
-            tr_signature = inspect.signature(tr_module.__dict__[tr_name]).parameters
-            tr_all_args = list(tr_signature)
+                # Check what arguments are required to initialise the Transformation
+                tr_signature = inspect.signature(tr_module.__dict__[tr_name]).parameters
+                tr_all_args = list(tr_signature)
+            except:
+                raise Exception(f"Could not locate transformation: {full_tr_name}")
 
             # Compile all arguments required to initialise the transformation class
             tr_arg_dict = tr_passed_args  # use all passed args
