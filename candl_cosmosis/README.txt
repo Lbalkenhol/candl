@@ -30,4 +30,4 @@ If you use this wrapper in your work please cite candl (https://arxiv.org/abs/24
 Authors
 ---------------------------
 
-This wrapper was written by Y. Omori and L. Balkenhol, with help from J. Zuntz. If you have any questions or experience issues, please feel free to contact L. Balkenhol (lennart.balkenhol_at_iap.fr).
+This wrapper was written by L. Balkenhol and Y. Omori, with help from J. Zuntz. If you have any questions or experience issues, please feel free to contact L. Balkenhol (lennart.balkenhol_at_iap.fr).
