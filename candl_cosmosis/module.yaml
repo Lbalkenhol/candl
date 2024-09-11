@@ -35,7 +35,7 @@ params:
     data_selection:
         meaning: "Further data selection"
         type: any
-        default: None
+        default: "..."
     clear_1d_internal_priors:
         meaning: "Delete all 1d Gaussian priors implemented in candl."
         type: bool

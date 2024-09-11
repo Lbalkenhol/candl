@@ -16,21 +16,22 @@ class candl_mp(Likelihood):
             importlib.import_module("candl.data")
             self.data_set_file = eval(self.data_set_file)
 
+        # Grab optional arguments
+        init_args = {"feedback": self.feedback, "variant": self.variant}
+        if self.data_selection is not ...:
+            init_args["data_selection"] = self.data_selection
+
         # Initialise the candl likelihood
         try:
             if self.lensing:
                 self.candl_like = candl.LensLike(
                     self.data_set_file,
-                    variant=self.variant,
-                    feedback=self.feedback,
-                    data_selection=self.data_selection,
+                    **init_args,
                 )
             else:
                 self.candl_like = candl.Like(
                     self.data_set_file,
-                    variant=self.variant,
-                    feedback=self.feedback,
-                    data_selection=self.data_selection,
+                    **init_args,
                 )
         except:
             raise Exception("candl: likelihood could not be initialised!")

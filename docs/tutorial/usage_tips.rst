@@ -50,6 +50,29 @@ See :ref:`Data Structure` for more details on the structure of data sets.
 Even if your data sets are independent, be sure to check that you are not applying any priors twice (e.g. on :math:`\tau`).
 
 
+Data Selection
+----------------------------------------------------------
+
+In order to run the likelihood with only a subset of the data (e.g., :math:`TT` spectra only) use the ``data_selection`` block in the info ``.yaml`` file.
+Acceptable inputs are:
+
+* A string hint
+* A boolean list of which bins to use
+* The path to a boolean list of which bins to use
+* ``None``
+
+For string hints, the intended format is: ``(data) (action)``, where ``(data)`` specifies which part of the data is selected and ``(action)`` declares what to do with this selection.
+Understood options for ``(data)`` are specific spectra matching a name in the ``spectra_info`` list (e.g., ``EE 90x90``), spectrum types (e.g., ``TT``), frequencies (e.g., ``90``), frequency combinations (e.g., ``90x150``), and ell ranges (e.g., ``ell<650`` or ``ell>1500``).
+Understood options for ``(action)`` are ``remove`` (remove this part) and ``only`` (only keep this part, removing all the rest).
+It's possible to supply a list of string hints (check documentation of ``generate_crop_mask()`` in ``SPT3G_JAX_likelihood.py`` for details).
+In general, it's a good idea to use run the likelihood with feedback and check that the desired selection has been made.
+
+.. note::
+
+   Passing ``data_selection = None`` is understood as using all the data available.
+   Note that this means that if you have a data selection specified in your info ``.yaml`` file, this will be overridden.
+   If you don't want to perform any data selection in addition to what is in the info file, do not set this argument.
+
 Overriding Keywords at Initialisation
 ----------------------------------------------------------
 
