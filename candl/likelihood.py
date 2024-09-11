@@ -733,8 +733,8 @@ class Like:
                 if arg[:26] == "link_transformation_module":
                     # Loop over already initialised modules and see if it's available
 
-                    req_module_name = ".".join(full_tr_name.split(".")[:-1])
-                    req_tr_name = full_tr_name.split(".")[-1]
+                    req_module_name = ".".join(tr_passed_args[arg].split(".")[:-1])
+                    req_tr_name = tr_passed_args[arg].split(".")[-1]
 
                     try:
                         req_module = importlib.import_module(
