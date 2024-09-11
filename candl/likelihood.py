@@ -719,18 +719,30 @@ class Like:
 
                 # Read in any templates
                 if arg == "template_arr":
-                    tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
-                        f"{candl_path}/{tr_arg_dict['template_file']}"
-                    )
+                    try:
+                        tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
+                            f"{candl_path}/{tr_arg_dict['template_file']}"
+                        )
+                    except:
+                        tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
+                            f"{tr_arg_dict['template_file']}"
+                        )
                     del tr_arg_dict["template_file"]
 
                 # Link any already initialised transformations
                 if arg[:26] == "link_transformation_module":
                     # Loop over already initialised modules and see if it's available
-                    req_module_name, req_tr_name = tr_passed_args[arg].split(".")
-                    req_module = importlib.import_module(
-                        "candl.transformations." + req_module_name
-                    )
+
+                    req_module_name = ".".join(full_tr_name.split(".")[:-1])
+                    req_tr_name = full_tr_name.split(".")[-1]
+
+                    try:
+                        req_module = importlib.import_module(
+                            "candl.transformations." + req_module_name
+                        )
+                    except:
+                        req_module = importlib.import_module(req_module_name)
+
                     for transformation in data_model:
                         if isinstance(transformation, req_module.__dict__[req_tr_name]):
                             tr_arg_dict[arg] = transformation
@@ -1641,9 +1653,14 @@ class LensLike:
 
                 # Read in any templates
                 if arg == "template_arr":
-                    tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
-                        f"{candl_path}/{tr_arg_dict['template_file']}"
-                    )
+                    try:
+                        tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
+                            f"{candl_path}/{tr_arg_dict['template_file']}"
+                        )
+                    except:
+                        tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
+                            f"{tr_arg_dict['template_file']}"
+                        )
                     del tr_arg_dict["template_file"]
 
                 # Read in M matrices and fiducial correction, if needed
