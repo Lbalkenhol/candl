@@ -724,9 +724,14 @@ class Like:
                             f"{candl_path}/{tr_arg_dict['template_file']}"
                         )
                     except:
-                        tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
-                            f"{tr_arg_dict['template_file']}"
-                        )
+                        try:
+                            tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
+                                f"{self.data_set_dict["data_set_path"]}{tr_arg_dict['template_file']}"
+                            )
+                        except:
+                            tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
+                                f"{tr_arg_dict['template_file']}"
+                            )
                     del tr_arg_dict["template_file"]
 
                 # Link any already initialised transformations
@@ -1658,9 +1663,14 @@ class LensLike:
                             f"{candl_path}/{tr_arg_dict['template_file']}"
                         )
                     except:
-                        tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
-                            f"{tr_arg_dict['template_file']}"
-                        )
+                        try:
+                            tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
+                                f"{self.data_set_dict["data_set_path"]}{tr_arg_dict['template_file']}"
+                            )
+                        except:
+                            tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
+                                f"{tr_arg_dict['template_file']}"
+                            )
                     del tr_arg_dict["template_file"]
 
                 # Read in M matrices and fiducial correction, if needed
