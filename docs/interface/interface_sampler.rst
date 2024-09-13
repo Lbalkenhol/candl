@@ -124,9 +124,10 @@ This will print the nuisance parameter block to the terminal, which you can then
 CosmoSIS
 -------------------------------------------------
 
-In order to interface with CosmoSIS, copy the ``candl_cosmosis`` folder into your ``cosmosis-standard-library/likelihood`` directory.
+A candl interface is included automatically in the latest version of CosmoSIS on GitHub.
+If you are not able to use this version, you can alternatively copy the ``candl_cosmosis`` folder from the candl GitHub into your ``cosmosis-standard-library/likelihood`` directory.
 The folder contains the wrapper (``candl_cosmosis_interface.py``) as well as the module file required by CosmoSIS.
-In order run chains with e.g. the SPT-3G 2018 lensing likelihood, include the following block in your ``.ini`` file:
+Either way, in order run chains with e.g. the SPT-3G 2018 lensing likelihood, include the following block in your ``.ini`` file:
 
 .. code-block:: INI
     
