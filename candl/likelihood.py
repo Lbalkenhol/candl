@@ -931,7 +931,9 @@ class Like:
             crop_mask = np.array(
                 cumulative_crop_mask == np.amax(cumulative_crop_mask), dtype=bool
             )
-        elif isinstance(self.data_set_dict["data_selection"], list):
+        elif isinstance(self.data_set_dict["data_selection"], list) or isinstance(
+            self.data_set_dict["data_selection"], np.ndarray
+        ):
             # Can either be series of spectra to use or a boolean mask
             if isinstance(self.data_set_dict["data_selection"][0], str):
                 crop_mask = np.array(
@@ -940,7 +942,13 @@ class Like:
                         for spec in self.spec_order
                     ]
                 )
-            elif isinstance(self.data_set_dict["data_selection"][0], bool):
+            elif (
+                isinstance(self.data_set_dict["data_selection"][0], bool)
+                or isinstance(self.data_set_dict["data_selection"][0], np.bool_)
+            ) or (
+                isinstance(self.data_set_dict["data_selection"][0], int)
+                or isinstance(self.data_set_dict["data_selection"][0], np.int64)
+            ):
                 crop_mask = np.array(self.data_set_dict["data_selection"], dtype=int)
             else:
                 # Cannot interpret the list passed
