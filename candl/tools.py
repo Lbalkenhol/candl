@@ -1179,15 +1179,25 @@ def undo_transformations(like, pars, pars_to_theory_specs):
     for i_tr, transformation in enumerate(like.data_model[::-1]):
 
         if transformation.operation_hint == "multiplicative":
-            # This is most likely a calibration-like transformation
-            calibration_vec = transformation.transform(
-                np.ones(like.N_ell_bins_theory * like.N_spectra_total), pars
-            )
-            calibration_vec = np.repeat(
-                calibration_vec[:: like.N_ell_bins_theory], like.N_bins
-            )
+            if isinstance(
+                transformation, candl.transformations.abstract_base.Calibration
+            ):
+                # Catch calibration
+                calibration_vec = transformation.transform(
+                    np.ones(like.N_ell_bins_theory * like.N_spectra_total), pars
+                )
+                calibration_vec = np.repeat(
+                    calibration_vec[:: like.N_ell_bins_theory], like.N_bins
+                )
 
-            data_CMB_only_vec /= calibration_vec
+                data_CMB_only_vec /= calibration_vec
+            else:
+                # More general case
+                unbinned_Dls, binned_Dls = pars_to_model_specs_partial_transformation(
+                    like, pars, pars_to_theory_specs, len(like.data_model) - i_tr - 1
+                )
+                tr_vec_unbinned = transformation.transform(unbinned_Dls, pars)
+                data_CMB_only_vec /= like.bin_model_specs(tr_vec_unbinned) / binned_Dls
 
         elif transformation.operation_hint == "additive":
 
