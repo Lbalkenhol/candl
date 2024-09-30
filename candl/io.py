@@ -74,11 +74,14 @@ def load_info_yaml(yaml_file, variant="default"):
             index_dict = yaml.load(f, Loader=yaml.loader.SafeLoader)
 
         # Grab file corresponding to desired variant
-        if variant not in index_dict:
+        if variant is None:
+            variant = "default"
+        elif variant not in index_dict:
             print(
                 f"Variant '{variant}' not found in index file '{yaml_file}'. Running with default '{index_dict['default']}'."
             )
             variant = "default"
+
         dataset_file = "/".join(yaml_file.split("/")[:-1]) + "/" + index_dict[variant]
 
     # Read in the dataset yaml file

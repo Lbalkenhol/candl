@@ -174,7 +174,7 @@ class Like:
         # Specify data path if necessary
         if not "data_set_path" in self.data_set_dict:
             self.data_set_dict["data_set_path"] = (
-                "/".join(data_set_file.split("/")[:-1]) + "/"
+                "/".join(self.data_set_file.split("/")[:-1]) + "/"
             )
 
         # Grab fluffy descriptor data
@@ -1262,7 +1262,7 @@ class LensLike:
         # Specify data path if necessary
         if not "data_set_path" in self.data_set_dict:
             self.data_set_dict["data_set_path"] = (
-                "/".join(data_set_file.split("/")[:-1]) + "/"
+                "/".join(self.data_set_file.split("/")[:-1]) + "/"
             )
 
         # Grab fluffy descriptor data
