@@ -34,10 +34,16 @@ SPT-3G 2018 TT/TE/EE
    `NASA Archive <https://lambda.gsfc.nasa.gov/product/spt/spt3g_likelihood_v2_get.html>`__
 
 :Short cut(s):
-   ``candl.data.SPT3G_2018_TTTEEE``
+   ````
+   | ``candl.data.SPT3G_2018_TTTEEE`` (index file),
+   | ``candl.data.SPT3G_2018_TTTEEE_multifreq`` (or ``variant = 'multifreq'``),
+   | ``candl.data.SPT3G_2018_TTTEEE_lite`` (or ``variant = 'lite'``)
 
 :Latest version:
    ``v0``
+
+*Note*: by default, the multi-frequency version of the associated release paper is loaded, but be sure to also check out the much faster lite version with ``variant = 'lite'``.
+If you are interested in how the lite likelihood is constructed, see the associated notebook in the :ref:`tutorials<Tutorials>`.
 
 SPT-3G 2018 PP
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
