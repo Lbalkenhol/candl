@@ -1,0 +1,5 @@
+data_set_file: "data/SPT3G_2018_TTTEEE_v0/SPT3G_2018_TTTEEE_lite.yaml"
+lensing: False
+test_spectrum: "tests/SPT3G_2018_TTTEEE_lite_test_spec.txt"
+param_values: {"Tcal": 1.001, "Ecal": 1.001}
+test_chisq: 141.74004888

@@ -22,7 +22,9 @@ data_path = os.path.dirname(os.path.realpath(__file__))
 # --------------------------------------#
 
 # SPT-3G 2018 TT/TE/EE
-SPT3G_2018_TTTEEE = f"{data_path}/SPT3G_2018_TTTEEE_v0/SPT3G_2018_TTTEEE.yaml"
+SPT3G_2018_TTTEEE = f"{data_path}/SPT3G_2018_TTTEEE_v0/SPT3G_2018_TTTEEE_index.yaml"
+SPT3G_2018_TTTEEE_multifreq = f"{data_path}/SPT3G_2018_TTTEEE_v0/SPT3G_2018_TTTEEE.yaml"
+SPT3G_2018_TTTEEE_lite = f"{data_path}/SPT3G_2018_TTTEEE_v0/SPT3G_2018_TTTEEE_lite.yaml"
 
 # SPT-3G 2018 Lensing
 SPT3G_2018_Lens = f"{data_path}/SPT3G_2018_Lens_v0/SPT3G_2018_PP_index.yaml"
@@ -41,7 +43,11 @@ ACT_DR6_Lens_and_CMB = f"{data_path}/ACT_DR6_Lens_v0/ACT_DR6_KK_lens_and_CMB.yam
 
 # Define Shortcuts
 shortcuts = {
-    "SPT-3G 2018 TT/TE/EE": "SPT3G_2018_TTTEEE",
+    "SPT-3G 2018 TT/TE/EE": {
+        "index": "SPT3G_2018_TTTEEE",
+        "multifreq": "SPT3G_2018_TTTEEE_multifreq",
+        "lite": "SPT3G_2018_TTTEEE_lite",
+    },
     "SPT-3G 2018 Lensing": {
         "index": "SPT3G_2018_Lens",
         "lens_only": "SPT3G_2018_Lens_only",
@@ -57,7 +63,11 @@ shortcuts = {
 
 # Additional Information
 info = {
-    "SPT-3G 2018 TT/TE/EE": None,
+    "SPT-3G 2018 TT/TE/EE": {
+        "index": None,
+        "multifreq": "default, original multi-frequency likelihood",
+        "lite": "foreground-marginalised CMBlite version",
+    },
     "SPT-3G 2018 Lensing": {
         "index": None,
         "lens_only": "default",

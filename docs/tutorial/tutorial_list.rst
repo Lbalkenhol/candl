@@ -45,3 +45,8 @@ It covers in three parts:
 * Part III Gradient-Powered Likelihood Exploration: in this part you will find the best-fit point of the ACT DR4 TT/TE/EE data set using traditional and gradient-powered methods.
 
 You can run this tutorial locally or on `google colab <https://github.com/Lbalkenhol/candl/blob/main/notebooks/SPT_ACT_summer_school_2024/SPT_ACT_summer_school_2024_candl_colab.ipynb>`_.
+
+``CMBlite_using_autodiff.ipynb``
+--------------------------------------------
+
+This notebook accompagnies Balkenhol et al. 2024 (arXiv:????.?????) and shows how to construct foreground-marginalised CMBlite likelihoods using automatic differentiation using the SPT-3G 2018 TT/TE/EE data set as an example.
