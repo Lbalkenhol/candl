@@ -49,4 +49,4 @@ You can run this tutorial locally or on `google colab <https://github.com/Lbalke
 ``CMBlite_using_autodiff.ipynb``
 --------------------------------------------
 
-This notebook accompagnies Balkenhol et al. 2024 (arXiv:????.?????) and shows how to construct foreground-marginalised CMBlite likelihoods using automatic differentiation using the SPT-3G 2018 TT/TE/EE data set as an example.
+This notebook accompagnies Balkenhol et al. 2024 (arXiv:????.?????) and shows how to construct foreground-marginalised CMBlite likelihoods with automatic differentiation using the SPT-3G 2018 TT/TE/EE data set as an example.
