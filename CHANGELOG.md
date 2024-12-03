@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.5.1 (2024-12-03)
+## v1.5.2 (2024-12-03)
 
 Added foreground-marginalised 'lite' version of the SPT-3G 2018 TT/TE/EE likelihood and a notebook showing its construction.
 
