@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.5.1 (2024-12-03)
+
+Added foreground-marginalised 'lite' version of the SPT-3G 2018 TT/TE/EE likelihood and a notebook showing its construction.
+
 ## v1.5.1 (2024-09-06)
 
 Compatibility with JAX version 0.4.31 (tested with TF 2.17.0).
