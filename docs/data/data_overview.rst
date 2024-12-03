@@ -42,8 +42,10 @@ SPT-3G 2018 TT/TE/EE
 :Latest version:
    ``v0``
 
-*Note*: by default, the multi-frequency version of the associated release paper is loaded, but be sure to also check out the much faster lite version with ``variant = 'lite'``.
-If you are interested in how the lite likelihood is constructed, see the associated notebook in the :ref:`tutorials<Tutorials>`.
+.. tip::
+
+    Though the multi-frequency likelihood is loaded by default, be sure to check out the much faster lite version with ``variant = 'lite'`` introduced in `Balkenhol 2024 <https://arxiv.org/abs/2412.00826>`__.
+    If you are interested in how the lite likelihood is constructed, see the associated notebook in the :ref:`tutorials<Tutorials>`.    
 
 SPT-3G 2018 PP
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

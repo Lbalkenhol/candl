@@ -9,7 +9,7 @@ default: "SPT3G_2018_TTTEEE.yaml"
 # With all foreground components etc.
 multifreq: "SPT3G_2018_TTTEEE.yaml"
 
-# LITE
+# LITE (Balkenhol 2024, https://arxiv.org/abs/2412.00826)
 # Foreground-marginsalised CMB-lite version
 lite: "SPT3G_2018_TTTEEE_lite.yaml"
 
