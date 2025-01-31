@@ -127,3 +127,9 @@ try:
     from cosmopower_jax.cosmopower_jax import CosmoPowerJAX as CPJ
 except:
     pass
+
+# Optional clipy import
+try:
+    import clipy
+except:
+    pass

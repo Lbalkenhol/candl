@@ -133,6 +133,18 @@ ACT DR6 PP
 For the ACT + Planck lensing combination see also `Carron, Mirmelstein, Lewis 2023 <https://arxiv.org/abs/2206.07773>`_.
 Use ``candl.data.ACT_DR6_Lens`` with ``variant = 'lens_only'`` or ``candl.data.ACT_DR6_Lens_only`` when only working with lensing data, use ``candl.data.ACT_DR6_Lens`` with ``variant = 'use_CMB'`` or ``candl.data.ACT_DR6_Lens_and_CMB`` when combining lensing and primary CMB data.
 
+
+Planck
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`candl` comes with `clipy`, a pure Python implementation of the Planck likelihoods.
+See the `clipy website <https://github.com/benabed/clipy>`_ to see which specific likelihoods supported and be sure to download the respective data files from the `Planck Legacy Archive <https://github.com/benabed/clipy>`_.
+
+The Planck likelihoods are not implemented as native `candl` likelihoods, but as wrappers.
+While they are differentiable and work with a lot of the `candl` tools and interface code, they do not support the full functionality.
+See the `clipy` x `candl` :ref:`tutorial<Tutorials>` for a demonstration of what's possible.
+
+
 Adding Data Sets
 -------------------------------------------------
 

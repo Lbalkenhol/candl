@@ -91,6 +91,39 @@ def load_info_yaml(yaml_file, variant="default"):
     return data_set_dict, dataset_file
 
 
+def expand_transformation_block(data_set_dict, block_file):
+    """
+    Read a .yaml file containing a list of transformation entries.
+
+    Parameters
+    --------------
+    data_set_dict : dict
+        The data set dictionary containing all the information from the input yaml file.
+    block_file : str
+        Full path of the .yaml block file containing the transformations to be read.
+
+    Returns
+    --------------
+    list :
+        List of transformations form the block file.
+    """
+
+    with open(data_set_dict["data_set_path"] + block_file, "r") as f:
+        transformation_block = yaml.load(f, Loader=yaml.loader.SafeLoader)
+
+    # Check if any paths are given in here - these should be adjusted so that they are relative to the info .yaml file again
+    block_file_path_prefix = "/".join(block_file.split("/")[:-1]) + "/"
+    for i, tr in enumerate(transformation_block):
+        for tr_attribute in list(tr.keys()):
+            if "file" in tr_attribute and "." in tr[tr_attribute]:
+                # This is most likely a file path that needs to be adjusted
+                transformation_block[i][tr_attribute] = (
+                    block_file_path_prefix + tr[tr_attribute]
+                )
+
+    return transformation_block
+
+
 def read_spectrum_info_from_yaml(data_set_dict, lensing=False):
     """
     Read spectrum info.
@@ -113,7 +146,6 @@ def read_spectrum_info_from_yaml(data_set_dict, lensing=False):
         Number of total spectra.
     list :
         List of ints giving number of bins for each spectrum.
-
     """
 
     # Extract spectrum order, number of bins, spectrum types, and spectrum frequencies

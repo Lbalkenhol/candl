@@ -978,6 +978,10 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         Data selection to be used. String, list of string, binary mask, or path to a mask are supported.
     candl_like : candl.Like or candl.LensLike
         Candl likelihood.
+    wrapper: any
+        Set if wanting to access a wrapper likelihood (e.g. clipy).
+    additional_args : dict
+        Additional arguments to be passed to the likelihood at initialisation.
 
     Methods
     -----------
@@ -998,6 +1002,8 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
     lensing: bool = False
     feedback: bool = True
     data_selection: any = ...
+    wrapper: any = None
+    additional_args: dict = {}
 
     def initialize(self):
         """
@@ -1016,8 +1022,44 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         }
         if self.data_selection is not ...:
             init_args["data_selection"] = self.data_selection
+        init_args = {
+            **self.additional_args,
+            **init_args,
+        }  # add any additional args to be passed, giving priority to explicitly named arguments
 
-        # Initialise the likelihood
+        # Check if a candl wrapper to an external likelihood is requested
+        if self.wrapper is not None:
+            try:
+                # Go through supported wrappers
+                if self.wrapper == "clipy":
+                    importlib.import_module("clipy")
+                    self.candl_like = clipy.clik_candl(
+                        self.data_set_file,
+                        **self.additional_args,
+                    )
+                    # Add a list of parameter names that have priors applied
+                    self.candl_like.required_prior_parameters = []
+                    for p in list(self.candl_like._prior.keys()):
+                        if (
+                            type(self.candl_like._prior[p]) == list
+                            or type(self.candl_like._prior[p]) == tuple
+                        ):  # Sometimes clipy returns lists or tuples here
+                            for pp in self.candl_like._prior[p]:
+                                self.candl_like.required_prior_parameters.append(pp)
+                        elif type(self.candl_like._prior[p]) == str:
+                            self.candl_like.required_prior_parameters.append(p)
+            except:
+                raise Exception(
+                    f"candl: wrapper likelihood {self.wrapper} could not be initialised!"
+                )
+            if self.candl_like is None:
+                raise Exception(
+                    f"candl: wrapper likelihood {self.wrapper} could not be initialised!"
+                )
+            else:
+                return
+
+        # Initialise the candl likelihood
         try:
             if self.lensing:
                 self.candl_like = candl.LensLike(
@@ -1040,7 +1082,7 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         """Return dictionary of parameters that are needed"""
         # Cls
         required_pars = {"Cl": {}}
-        for spec in np.unique(self.candl_like.spec_types):
+        for spec in self.candl_like.unique_spec_types:
             if spec == "kk":
                 required_pars["Cl"][
                     "pp"
@@ -1101,6 +1143,8 @@ def get_cobaya_info_dict_for_like(
     data_selection=...,
     clear_internal_priors=True,
     feedback=True,
+    wrapper=None,
+    additional_args={},
 ):
     """
     Thin wrapper for CandlCobayaLikelihood that returns the class with the requested data set in the format expected by Cobaya.
@@ -1121,6 +1165,10 @@ def get_cobaya_info_dict_for_like(
         Whether to clear internal priors.
     feedback : bool
         Whether to print feedback when initialising the likelihood.
+    wrapper : str
+        Identifier of a supported external wrapper likelihood.
+    additional_args: dict
+        Additional arguments to be passed to the likelihood at initialisation.
 
     Returns
     ---------------
@@ -1140,8 +1188,15 @@ def get_cobaya_info_dict_for_like(
             "data_set_file": like.data_set_file,
             "clear_internal_priors": clear_internal_priors,
             "feedback": feedback,
+            "wrapper": wrapper,
+            "additional_args": additional_args,
         }
     }
+
+    # Automatically detect some wrappers
+    if like.data_set_file[-5:] == ".clik":
+        if cobaya_info[name]["wrapper"] is None:
+            cobaya_info[name]["wrapper"] = "clipy"
 
     # Add data selection if requested
     if data_selection is not ...:
