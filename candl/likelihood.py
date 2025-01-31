@@ -321,7 +321,6 @@ class Like:
             else:
                 expanded_data_model_list.append(data_model_entry)
         self.data_set_dict["data_model"] = expanded_data_model_list
-        print(self.data_set_dict["data_model"])
 
         # Initialise the data model
         self.data_model = self.init_data_model()
