@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.6.0 (2025-01-31)
+
+Added support for clipy Planck likelihoods, which now ship with candl by default, including a tutorial notebook. Various tweaks to improve flexibility and usability of the code.
+
 ## v1.5.2 (2024-12-03)
 
 Added foreground-marginalised 'lite' version of the SPT-3G 2018 TT/TE/EE likelihood and a notebook showing its construction.
