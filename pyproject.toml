@@ -30,7 +30,7 @@ dependencies = [
 "sigfig >= 1.3.2",
 "tqdm >= 4.65.0",
 "matplotlib >= 3.7.1",
-"seaborn >= 0.12.2"
+"seaborn >= 0.12.2",
 "clipy-like >= 0.11",
 ]
 
