@@ -40,6 +40,7 @@ This will interface the likelihood with Cobaya and register all of its requireme
 You can then proceed to populate ``cobaya_dict`` with the the parameters to be sampled etc. and run Cobaya as usual.
 By default the candl internal priors are not applied, add ``"clear_internal_priors": False`` to the relevant likelihood block in the dictionary if you want to use them.
 Note that Cobaya prefers to initialise the likelihood itself, hence any modifications of ``candl_like`` won't be reflected in the Cobaya likelihood.
+To use a wrapper likelihood, such as `clipy`, be sure to set the ``"warpper"`` keyword.
 
 .. autofunction:: candl.interface.get_cobaya_info_dict_for_like
 
@@ -58,6 +59,8 @@ In order to run Cobaya from the command line it sufficies to include the followi
             feedback: True # Switch off to hide feedback from candl initialisation
             data_selection: ... # Select a subset of the data set
             clear_internal_priors: True # Switch off to use candl internal priors
+            wrapper: None # Use a wrapper likelihood, e.g. 'clipy'
+            additional_args: {} # Additional arguments to pass to the likelihood at initialisation
 
 Only ``data_set_file`` is required, the other arguments are optional.
 Again, by default the candl internal priors are not applied, set ``clear_internal_priors: False`` if you want to use them.
@@ -120,6 +123,8 @@ This will print the nuisance parameter block to the terminal, which you can then
 
 .. autofunction:: candl.interface.get_montepython_nuisance_param_block_for_like
 
+Note that the MontePython interface does not currently accept `clipy` wrapper likelihoods.
+
 
 CosmoSIS
 -------------------------------------------------
@@ -146,6 +151,8 @@ This wrapper was written by Y. Omori and L. Balkenhol, with help from J. Zuntz.
 .. note::
     By default the 1-dimensional internal priors declared in candl's data set ``.yaml`` file are ignored, while the multi-dimensional priors are applied.
     If you want to modify this behaviour, set ``clear_1d_internal_priors`` and ``clear_nd_internal_priors``.
+
+Note that the CosmoSIS interface does not currently accept `clipy` wrapper likelihoods.
 
 BlackJAX
 -------------------------------------------------

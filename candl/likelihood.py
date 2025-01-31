@@ -308,6 +308,21 @@ class Like:
             self.effective_ells,
         ) = self.get_ell_helpers()
 
+        # Expand any transformation blocks in the data model section of the .yaml file
+        expanded_data_model_list = []
+        for i, data_model_entry in enumerate(self.data_set_dict["data_model"]):
+            if len(data_model_entry) == 1 and list(data_model_entry.keys()) == [
+                "Block"
+            ]:
+                expanded_transformations = candl.io.expand_transformation_block(
+                    self.data_set_dict, data_model_entry["Block"]
+                )
+                expanded_data_model_list.extend(expanded_transformations)
+            else:
+                expanded_data_model_list.append(data_model_entry)
+        self.data_set_dict["data_model"] = expanded_data_model_list
+        print(self.data_set_dict["data_model"])
+
         # Initialise the data model
         self.data_model = self.init_data_model()
 

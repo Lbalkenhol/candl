@@ -29,6 +29,19 @@ In this example we add Poisson power to the ``TT 150x150`` and ``EE 150x150`` sp
 The amplitude parameters are normalised at ``ell_ref = 3000``.
 
 
+Transformation Blocks
+-------------------------------------------------
+
+To keep things tidy, you may chose to separate out a series of transformations into a block and store them in a separate file.
+For example, you could have ``TT_foregrounds.yaml`` file containing the list transformations to be applied to temperature spectra.
+In your main ``.yaml`` file you would then include this block as follows:
+
+.. code-block:: yaml
+
+      data_model:
+        - Block: "TT_foregrounds.yaml"
+
+
 Available Transformations
 ----------------------------------------
 

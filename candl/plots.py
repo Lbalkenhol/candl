@@ -200,6 +200,7 @@ def triangle_plot_from_cov(
     set_axlims=True,
     return_handle=False,
     show_ticks=True,
+    lw_1d=0.75,
     **kwargs,
 ):
     """
@@ -242,6 +243,8 @@ def triangle_plot_from_cov(
         Whether to return a handle to create a legend with.
     show_ticks : bool
         Whether to show ticks (switch off to blind results).
+    lw_1d: float
+        Linewidth for 1d panels.
     kwargs:
         Other arguments to be passed through to matplotlib.patches.Ellipse.
     """
@@ -310,7 +313,7 @@ def triangle_plot_from_cov(
                     color=line_colour,
                     alpha=alpha_1d,
                     ls=ls_1d,
-                    lw=0.75,
+                    lw=lw_1d,
                 )
 
             else:
