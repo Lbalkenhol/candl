@@ -40,7 +40,7 @@ This will interface the likelihood with Cobaya and register all of its requireme
 You can then proceed to populate ``cobaya_dict`` with the the parameters to be sampled etc. and run Cobaya as usual.
 By default the candl internal priors are not applied, add ``"clear_internal_priors": False`` to the relevant likelihood block in the dictionary if you want to use them.
 Note that Cobaya prefers to initialise the likelihood itself, hence any modifications of ``candl_like`` won't be reflected in the Cobaya likelihood.
-To use a wrapper likelihood, such as `clipy`, be sure to set the ``"warpper"`` keyword.
+To use a wrapper likelihood, such as clipy, be sure to set the ``"warpper"`` keyword.
 
 .. autofunction:: candl.interface.get_cobaya_info_dict_for_like
 
@@ -123,7 +123,7 @@ This will print the nuisance parameter block to the terminal, which you can then
 
 .. autofunction:: candl.interface.get_montepython_nuisance_param_block_for_like
 
-Note that the MontePython interface does not currently accept `clipy` wrapper likelihoods.
+Note that the MontePython interface does not currently accept clipy wrapper likelihoods.
 
 
 CosmoSIS
@@ -152,7 +152,7 @@ This wrapper was written by Y. Omori and L. Balkenhol, with help from J. Zuntz.
     By default the 1-dimensional internal priors declared in candl's data set ``.yaml`` file are ignored, while the multi-dimensional priors are applied.
     If you want to modify this behaviour, set ``clear_1d_internal_priors`` and ``clear_nd_internal_priors``.
 
-Note that the CosmoSIS interface does not currently accept `clipy` wrapper likelihoods.
+Note that the CosmoSIS interface does not currently accept clipy wrapper likelihoods.
 
 BlackJAX
 -------------------------------------------------
