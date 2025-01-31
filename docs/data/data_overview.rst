@@ -141,7 +141,7 @@ candl comes with ``clipy``, a pure Python implementation of the Planck likelihoo
 See the `clipy website <https://github.com/benabed/clipy>`_ to see which specific likelihoods supported and be sure to download the respective data files from the `Planck Legacy Archive <https://pla.esac.esa.int/pla>`_.
 
 The Planck likelihoods are not implemented as native candl likelihoods, but as wrappers.
-While they are differentiable and work with a lot of the `candl` tools and interface code, they do not support the full functionality.
+While they are differentiable and work with a lot of the candl tools and interface code, they do not support the full functionality.
 See the :ref:`clipy x candl tutorial<Tutorials>` for a demonstration of what's possible.
 
 

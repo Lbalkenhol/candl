@@ -54,11 +54,11 @@ This notebook accompagnies `Balkenhol 2024 <https://arxiv.org/abs/2412.00826>`__
 ``clipy_x_candl_tutorial.ipynb``
 --------------------------------------------
 
-This notebook shows how to access ``clipy`` Planck likelihoods through their `candl` wrapper. In particular it covers:
+This notebook shows how to access ``clipy`` Planck likelihoods through their candl wrapper. In particular it covers:
 
 * Initialising Planck likelihoods
 * Taking derivatives of Planck likelihoods
-* Interfacing the clipy with Cobaya through `candl` and running MCMC chains.
+* Interfacing the clipy with Cobaya through candl and running MCMC chains.
 
 This tutorial uses some optional packages.
 Make sure you have Cobaya and CosmoPower-JAX installed in order to run the whole notebook.
