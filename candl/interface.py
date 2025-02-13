@@ -1347,10 +1347,17 @@ def get_CosmoPowerJAX_pars_to_theory_specs_func(emulator_filenames):
 
     def pars_to_theory_specs(pars, ell_high_cut, ell_low_cut=2):
         # Hand-off to CosmoPower-JAX
-        pars_for_cp = [pars[p] for p in cp_pars]
+        pars_for_cp = jnp.zeros(len(cp_pars))
+        for p in pars:
+            if p in cp_pars:
+                pars_for_cp = jax_optional_set_element(
+                    pars_for_cp, cp_pars.index(p), pars[p]
+                )
+
         if "H0" in cp_pars:
-            pars_for_cp[cp_pars.index("H0")] /= 100
-        pars_for_cp = jnp.array(pars_for_cp)
+            pars_for_cp = jax_optional_set_element(
+                pars_for_cp, cp_pars.index("H0"), pars["H0"] / 100
+            )
 
         # Get CMB Dls
         Dls = {"ell": np.arange(ell_low_cut, ell_high_cut + 1)}
