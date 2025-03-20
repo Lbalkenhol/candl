@@ -236,7 +236,7 @@ class TemplateForeground(Foreground):
     template_ells : array (int)
         Template ells.
     ell_ref : int
-        Reference ell for normalisation.
+        Reference ell for normalisation. If zero, do not normalise.
     ells : array (float)
         The ell range the transformation acts on.
     descriptor : str
@@ -270,7 +270,7 @@ class TemplateForeground(Foreground):
         """
         Initialise a new instance of the TemplateForeground class.
         Intended to be expanded upon by subclasses.
-        Crops template to required ell range and normalised to amplitude of 1 at ell_ref.
+        Crops template to required ell range and normalised to amplitude of 1 at ell_ref, unless ell_ref is zero, in which case no normalisation is performed.
 
         Parameters
         --------------
@@ -310,9 +310,10 @@ class TemplateForeground(Foreground):
         self.ell_ref = ell_ref
 
         # Normalise
-        self.template_spec /= self.template_spec[
-            jnp.argwhere(self.template_ells == self.ell_ref)[0][0]
-        ]
+        if self.ell_ref > 0:
+            self.template_spec /= self.template_spec[
+                jnp.argwhere(self.template_ells == self.ell_ref)[0][0]
+            ]
 
         # Trim template for ell range
         start_ix = jnp.argwhere(self.template_ells == jnp.amin(self.ells))[0][0]
