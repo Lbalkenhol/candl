@@ -1883,7 +1883,7 @@ class FGSpectraInterfaceFactorizedCrossSpectrum(
 class CalibrationSingleScalar(candl.transformations.abstract_base.Calibration):
     """
     Simple calibration model for spectra.
-    Scales all model spectra by :math:`1/X`, where :math:`X` is specified in the spec_param_dict.
+    Scales all model spectra by :math:`1/X`, where :math:`X` is specified as `cal_param`.
 
     Methods
     ----------------
@@ -1925,6 +1925,53 @@ class CalibrationSingleScalar(candl.transformations.abstract_base.Calibration):
         """
 
         return Dls / sample_params[self.cal_param]
+
+
+class CalibrationSingleScalarSquared(candl.transformations.abstract_base.Calibration):
+    """
+    Simple calibration model for spectra.
+    Scales all model spectra by :math:`1/X^2`, where :math:`X` is specified as `cal_param`.
+
+    Methods
+    ----------------
+    __init__ :
+        initialises an instance of the class.
+    transform :
+        transforms an input spectrum.
+
+    Attributes
+    --------------
+    descriptor : str
+        A short descriptor.
+    cal_param : str
+        Name of the calibration parameter.
+    par_names : list
+        Names of parameters involved in transformation.
+    """
+
+    def __init__(self, cal_param, descriptor="Calibration (single number"):
+        super().__init__(ells=None, descriptor=descriptor, param_names=[cal_param])
+        self.cal_param = cal_param
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        """
+        Transform the input spectrum.
+
+        Arguments
+        --------------
+        Dls : array (float)
+           The spectrum to transform in Dl.
+        sample_params : dict
+           A dictionary of parameters that are used in the transformation
+
+        Returns
+        --------------
+        array : float
+           The transformed spectrum in Dl.
+        """
+
+        return Dls / sample_params[self.cal_param] ** 2.0
 
 
 class CalibrationAuto(candl.transformations.abstract_base.IndividualCalibration):
@@ -2147,7 +2194,7 @@ class CalibrationCross(candl.transformations.abstract_base.IndividualCalibration
 class PolarisationCalibration(candl.transformations.abstract_base.Calibration):
     """
     Simple calibration model for spectra.
-    Scales all TE by :math:`X` and all EE by :math:`X^2`, where :math:`X` is specified in spec_param_dict.
+    Scales all TE by :math:`X` and all EE by :math:`X^2`, where :math:`X` is specified as `cal_param`.
     Used by ACT DR4 likelihood implementation.
 
     Attributes
@@ -2243,6 +2290,44 @@ class PolarisationCalibration(candl.transformations.abstract_base.Calibration):
         tiled_cal_vals = jnp.repeat(cal_vals, len(self.ells))
 
         return Dls * tiled_cal_vals
+
+
+class PolarisationCalibrationDivision(PolarisationCalibration):
+    """
+    Simple calibration model for spectra. Same as PolarisationCalibration, but divides, rather than multiplies by the calibration parameter.
+    """
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        """
+        Transform the input spectrum.
+
+        Arguments
+        --------------
+        Dls : array (float)
+           The spectrum to transform in Dl.
+        sample_params : dict
+           A dictionary of parameters that are used in the transformation
+
+        Returns
+        --------------
+        array : float
+           The transformed spectrum in Dl.
+        """
+
+        # amplitude part
+        cal_vals = jnp.ones(len(self.spec_order))
+        for ix in self.TE_affected_specs_ix:
+            cal_vals = jax_optional_set_element(
+                cal_vals, ix, sample_params[self.cal_param]
+            )
+        for ix in self.EE_affected_specs_ix:
+            cal_vals = jax_optional_set_element(
+                cal_vals, ix, sample_params[self.cal_param] ** 2.0
+            )
+        tiled_cal_vals = jnp.repeat(cal_vals, len(self.ells))
+
+        return Dls / tiled_cal_vals
 
 
 # --------------------------------------#

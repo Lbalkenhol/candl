@@ -49,6 +49,7 @@ The pip installation of candl currently ships with the following data sets:
 
 * SPT-3G 2018 TT/TE/EE (`Balkenhol et al. 2023 <https://arxiv.org/abs/2212.05642>`__)
 * SPT-3G 2018 Lensing (`Pan et al. 2023 <https://arxiv.org/abs/2308.11608>`__)
+* ACT DR6 TT/TE/EE (`Naess et al. 2025 <https://arxiv.org/abs/2503.14451>`__, `Louis et al. 2025 <https://arxiv.org/abs/2503.14452>`__, `Calabrese et al. 2025 <https://arxiv.org/abs/2503.14454>`__)
 * ACT DR4 TT/TE/EE (`Aiola et al. 2020 <https://arxiv.org/abs/2007.07288>`__, `Choi et al. 2020 <https://arxiv.org/abs/2007.07289>`__)
 * ACT DR6 Lensing (`Madhavacheril et al. 2023 <https://arxiv.org/abs/2304.05203>`__, `Qu et al. 2023 <https://arxiv.org/abs/2304.05202>`__)
 * Planck likelihoods available through `clipy <https://github.com/benabed/clipy>`__

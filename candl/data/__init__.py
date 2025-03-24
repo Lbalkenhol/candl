@@ -36,6 +36,9 @@ SPT3G_2018_Lens_and_CMB = (
 # ACT DR4 TT/TE/EE
 ACT_DR4_TTTEEE = f"{data_path}/ACT_DR4_CMB_only_v0/ACT_DR4_CMB_only.yaml"
 
+# ACT DR6 TT/TE/EE
+ACT_DR6_TTTEEE = f"{data_path}/ACT_DR6_CMB_only_v0/ACT_DR6_CMB_only.yaml"
+
 # ACT DR6 Lensing
 ACT_DR6_Lens = f"{data_path}/ACT_DR6_Lens_v0/ACT_DR6_KK_index.yaml"
 ACT_DR6_Lens_only = f"{data_path}/ACT_DR6_Lens_v0/ACT_DR6_KK_lens_only.yaml"
@@ -54,6 +57,7 @@ shortcuts = {
         "use_cmb": "SPT3G_2018_Lens_and_CMB",
     },
     "ACT DR4 TT/TE/EE": "ACT_DR4_TTTEEE",
+    "ACT DR6 TT/TE/EE": "ACT_DR6_TTTEEE",
     "ACT DR6 Lensing": {
         "index": "ACT_DR6_Lens",
         "lens_only": "ACT_DR6_Lens_only",
@@ -74,6 +78,7 @@ info = {
         "use_cmb": "for combining with primary CMB",
     },
     "ACT DR4 TT/TE/EE": None,
+    "ACT DR6 TT/TE/EE": None,
     "ACT DR6 Lensing": {
         "index": None,
         "lens_only": "default",

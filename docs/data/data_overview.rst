@@ -71,6 +71,42 @@ SPT-3G 2018 PP
 *Note*: this data set uses the lensing power spectrum in :math:`\phi\phi`.
 Use ``candl.data.SPT3G_2018_Lens`` with ``variant = 'lens_only'`` or ``candl.data.SPT3G_2018_Lens_only`` when only working with lensing data, use ``candl.data.SPT3G_2018_Lens`` with ``variant = 'use_CMB'`` or ``candl.data.SPT3G_2018_Lens_and_CMB`` when combining lensing and primary CMB data.
 
+ACT DR6 TT/TE/EE
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. |actdr4ttteee_naess| image:: https://img.shields.io/badge/arXiv-2503.14451-b31b1b.svg
+   :target: https://arxiv.org/abs/2503.14451
+
+.. |actdr4ttteee_louis| image:: https://img.shields.io/badge/arXiv-2503.14452-b31b1b.svg
+   :target: https://arxiv.org/abs/2503.14452
+
+.. |actdr4ttteee_calabrese| image:: https://img.shields.io/badge/arXiv-2503.14454-b31b1b.svg
+   :target: https://arxiv.org/abs/2503.14454
+
+:Paper(s):
+   | Naess, Guan, Duivenvoorden, Hasselfield, Wang et al. (ACT Collaboration)
+   | |actdr4ttteee_naess|
+   | Louis, La Posta, Atkins, Jense et al. (ACT Collaboration)
+   | |actdr4ttteee_louis|
+   | Calabrese, Hill, Jense, La Posta et al. (ACT Collaboration)
+   | |actdr4ttteee_calabrese|
+
+:Type:
+   Primary power spectrum measurement (:math:`TT/TE/EE`)
+
+:LAMBDA:
+   `NASA archive <https://lambda.gsfc.nasa.gov/product/act/act_dr4_likelihood_get.html>`__
+
+:Short cut(s):
+   ``candl.data.ACT_DR4_TTTEEE``
+
+:Latest version:
+   ``v0``
+
+*Note*: This is the CMB-only, foreground marginalised (lite) version of the likelihood.
+The ACT collaboration suggests to combine with the sroll2 likelihood to constrain the optical depth to reionisation.
+This implementation of the likelihood contains by default their suggested alternative :math:`\tau` prior of :math:`0.0566 \pm 0.0058`.
+
 ACT DR4 TT/TE/EE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -98,7 +134,7 @@ ACT DR4 TT/TE/EE
 :Latest version:
    ``v0``
 
-*Note*: This is the CMB-only, foreground marginalised version of the likelihood.
+*Note*: This is the CMB-only, foreground marginalised (lite) version of the likelihood.
 The likelihood refers to the deep data as ``dxd`` and the wide data as ``wxw``.
 
 ACT DR6 PP
