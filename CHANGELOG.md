@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.7.0 (2025-03-24)
+
+Added ACT DR6 CMB-only likelihood.
+
 ## v1.6.0 (2025-01-31)
 
 Added support for clipy Planck likelihoods, which now ship with candl by default, including a tutorial notebook. Various tweaks to improve flexibility and usability of the code.
