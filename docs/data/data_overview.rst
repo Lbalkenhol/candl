@@ -98,7 +98,7 @@ ACT DR6 TT/TE/EE
    `NASA archive <https://lambda.gsfc.nasa.gov/product/act/act_dr4_likelihood_get.html>`__
 
 :Short cut(s):
-   ``candl.data.ACT_DR4_TTTEEE``
+   ``candl.data.ACT_DR6_TTTEEE``
 
 :Latest version:
    ``v0``
