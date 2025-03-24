@@ -74,28 +74,32 @@ Use ``candl.data.SPT3G_2018_Lens`` with ``variant = 'lens_only'`` or ``candl.dat
 ACT DR6 TT/TE/EE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. |actdr4ttteee_naess| image:: https://img.shields.io/badge/arXiv-2503.14451-b31b1b.svg
+.. |actdr6ttteee_naess| image:: https://img.shields.io/badge/arXiv-2503.14451-b31b1b.svg
    :target: https://arxiv.org/abs/2503.14451
 
-.. |actdr4ttteee_louis| image:: https://img.shields.io/badge/arXiv-2503.14452-b31b1b.svg
+.. |actdr6ttteee_louis| image:: https://img.shields.io/badge/arXiv-2503.14452-b31b1b.svg
    :target: https://arxiv.org/abs/2503.14452
 
-.. |actdr4ttteee_calabrese| image:: https://img.shields.io/badge/arXiv-2503.14454-b31b1b.svg
+.. |actdr6ttteee_calabrese| image:: https://img.shields.io/badge/arXiv-2503.14454-b31b1b.svg
    :target: https://arxiv.org/abs/2503.14454
 
 :Paper(s):
    | Naess, Guan, Duivenvoorden, Hasselfield, Wang et al. (ACT Collaboration)
-   | |actdr4ttteee_naess|
+   | |actdr6ttteee_naess|
    | Louis, La Posta, Atkins, Jense et al. (ACT Collaboration)
-   | |actdr4ttteee_louis|
+   | |actdr6ttteee_louis|
    | Calabrese, Hill, Jense, La Posta et al. (ACT Collaboration)
-   | |actdr4ttteee_calabrese|
+   | |actdr6ttteee_calabrese|
 
 :Type:
    Primary power spectrum measurement (:math:`TT/TE/EE`)
 
+:Website:
+   `ACT Website <https://act.princeton.edu/act-dr6-data-products>`__
+   `ACT DR6 Notebooks <https://github.com/ACTCollaboration/DR6_Notebooks/tree/main>`__
+
 :LAMBDA:
-   `NASA archive <https://lambda.gsfc.nasa.gov/product/act/act_dr4_likelihood_get.html>`__
+   `NASA archive <https://lambda.gsfc.nasa.gov/product/act/actadv_prod_table.html>`__
 
 :Short cut(s):
    ``candl.data.ACT_DR6_TTTEEE``
@@ -104,8 +108,9 @@ ACT DR6 TT/TE/EE
    ``v0``
 
 *Note*: This is the CMB-only, foreground marginalised (lite) version of the likelihood.
-The ACT collaboration suggests to combine with the sroll2 likelihood to constrain the optical depth to reionisation.
-This implementation of the likelihood contains by default their suggested alternative :math:`\tau` prior of :math:`0.0566 \pm 0.0058`.
+The ACT collaboration suggests to combine with the sroll2 likelihood to constrain the optical depth to reionisation; this implementation of the likelihood contains by default their suggested alternative :math:`\tau` prior of :math:`0.0566 \pm 0.0058`.
+If you use ACT data via candl, please see the attribution instructions in the ACT DR6 notebooks `README <https://github.com/ACTCollaboration/DR6_Notebooks/tree/main>`__.
+
 
 ACT DR4 TT/TE/EE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
