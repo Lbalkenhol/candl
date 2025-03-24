@@ -31,3 +31,6 @@ priors:
   - par_names: "tau"
     central_value: 0.0566
     prior_std: 0.0058
+  - par_names: "A_act"
+    central_value: 1.0
+    prior_std: 0.003
