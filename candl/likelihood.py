@@ -1401,7 +1401,7 @@ class LensLike:
         # Output info on initialisation
         candl.io.like_init_output(self)
 
-    @partial(jit, static_argnums=(0,))
+    #@partial(jit, static_argnums=(0,))
     def log_like(self, params):
         """
         Returns the negative log likelihood for a given set of theory Dls and nuisance parameter values.
@@ -1432,7 +1432,7 @@ class LensLike:
 
         return -(logl + prior_logl)
 
-    @partial(jit, static_argnums=(0,))
+    #@partial(jit, static_argnums=(0,))
     def log_like_for_bdp(self, params, bdp):
         """
         Returns the negative log likelihood for a given set of theory Dls and nuisance parameter values.
@@ -1543,7 +1543,7 @@ class LensLike:
 
         return chisq
 
-    @partial(jit, static_argnums=(0,))
+    #@partial(jit, static_argnums=(0,))
     def get_model_specs(self, params):
         """
         Returns the theory spectra adjusted for the foreground/nuisance model.
@@ -1737,8 +1737,51 @@ class LensLike:
 
                     # Clean up arguments
                     del tr_arg_dict["M_matrices_folder"]
-                    del tr_arg_dict["Mmodes"]
+                    if "Dl_data" not in tr_all_args: del tr_arg_dict["Mmodes"]
                     del tr_arg_dict["fiducial_correction_file"]
+
+                if arg == "Dl_data":
+                    
+                    #read in data bandpowers (per-ell interpolated)
+                    bp = candl.io.read_file_from_path(
+                        self.data_set_dict["data_set_path"]
+                        + tr_arg_dict["Dl_data_file"],
+                    )
+                    #Dl_data_file format: ell, TT, TE, EE
+                    spec_ix = {
+                            "TT": 1,
+                            "TE": 2,
+                            "EE": 3,
+                            }
+                    Dl_data = dict()
+                    for s in tr_arg_dict["Mmodes"]:
+                        if s in ["TT", "TE", "EE"]:
+                            Dl_data[s] = bp[:,spec_ix[s]]
+                    tr_arg_dict["Dl_data"] = Dl_data
+
+                    #Clean up
+                    del tr_arg_dict["Mmodes"]
+                    del tr_arg_dict["Dl_data_file"]
+                
+                if arg == "trainpars":
+
+                    #read in GP emulator training params
+                    #and Cl files
+                    trainpars = np.loadtxt( 
+                            self.data_set_dict["data_set_path"]
+                            + tr_arg_dict["emu_par_file"]
+                            )[1:,:]
+                    tr_arg_dict["trainpars"] = trainpars
+
+                    Cls_samples = np.load(
+                            self.data_set_dict["data_set_path"]
+                            + tr_arg_dict["emu_Cls_file"] 
+                            )['arr_0'].T
+                    tr_arg_dict['Cls_samples'] = Cls_samples
+
+                    #Clean up
+                    del tr_arg_dict["emu_par_file"]
+                    del tr_arg_dict["emu_Cls_file"]
 
             # Initialise the transformation
             this_transformation = tr_module.__dict__[tr_name](**tr_arg_dict)
