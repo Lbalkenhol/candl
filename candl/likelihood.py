@@ -1678,6 +1678,42 @@ class LensLike:
                 if arg in self.__dict__:
                     tr_arg_dict[arg] = self.__dict__[arg]
 
+                # Read in beam parameterization files
+                if arg == "beam_files":
+                    assert "ilcweights" in tr_all_args, "both beam_files and ilcweights have to be defined"
+                    beam_files = {}
+                    beam_files["mainbeam"] = np.load(
+                                            self.data_set_dict["data_set_path"]
+                                            + tr_arg_dict["mainbeam_file"]
+                                            )
+                    beam_files["Tbeam"]    = np.load(
+                                            self.data_set_dict["data_set_path"]
+                                            + tr_arg_dict["Tbeam_file"]
+                                            )
+                    beam_files["Tbeameigmodes"] = np.loadtxt(
+                                            self.data_set_dict["data_set_path"]
+                                            + tr_arg_dict["Tbeameigmodes_file"]
+                                            )
+                    tr_arg_dict['beam_files'] = beam_files
+                    #Clean up
+                    del tr_arg_dict["mainbeam_file"]
+                    del tr_arg_dict["Tbeam_file"]
+                    del tr_arg_dict["Tbeameigmodes_file"]
+
+                    ilcweights = {}
+                    ilcweights["T"] = np.load(
+                                            self.data_set_dict["data_set_path"]
+                                            + tr_arg_dict["ilcTweight_file"]
+                                            )
+                    ilcweights["E"] = np.load(
+                                            self.data_set_dict["data_set_path"]
+                                            + tr_arg_dict["ilcEweight_file"]
+                                            )
+                    tr_arg_dict['ilcweights'] = ilcweights
+                    #Clean up
+                    del tr_arg_dict["ilcTweight_file"]
+                    del tr_arg_dict["ilcEweight_file"]
+
                 # Read in any templates
                 if arg == "template_arr":
                     try:
