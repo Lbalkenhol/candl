@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.8.0 (2025-05-29)
+
+* Updated ACT DR6 lensing likelihood
+* Added flexibility to read in files for transformations
+* Added npy io option
+
 ## v1.7.0 (2025-03-24)
 
 Added ACT DR6 CMB-only likelihood.
