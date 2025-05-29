@@ -40,9 +40,9 @@ ACT_DR4_TTTEEE = f"{data_path}/ACT_DR4_CMB_only_v0/ACT_DR4_CMB_only.yaml"
 ACT_DR6_TTTEEE = f"{data_path}/ACT_DR6_CMB_only_v0/ACT_DR6_CMB_only.yaml"
 
 # ACT DR6 Lensing
-ACT_DR6_Lens = f"{data_path}/ACT_DR6_Lens_v0/ACT_DR6_KK_index.yaml"
-ACT_DR6_Lens_only = f"{data_path}/ACT_DR6_Lens_v0/ACT_DR6_KK_lens_only.yaml"
-ACT_DR6_Lens_and_CMB = f"{data_path}/ACT_DR6_Lens_v0/ACT_DR6_KK_lens_and_CMB.yaml"
+ACT_DR6_Lens = f"{data_path}/ACT_DR6_Lens_v1/ACT_DR6_KK_index.yaml"
+ACT_DR6_Lens_only = f"{data_path}/ACT_DR6_Lens_v1/ACT_DR6_KK_lens_only.yaml"
+ACT_DR6_Lens_and_CMB = f"{data_path}/ACT_DR6_Lens_v1/ACT_DR6_KK_lens_and_CMB.yaml"
 
 # Define Shortcuts
 shortcuts = {

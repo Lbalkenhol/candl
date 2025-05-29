@@ -1,0 +1,5 @@
+data_set_file: "data/ACT_DR6_CMB_only_v0/ACT_DR6_CMB_only.yaml"
+lensing: False
+test_spectrum: "tests/ACT_DR6_TTTEEE_test_spec.txt"
+param_values: {"A_act": 1.01, "P_act": 0.95}
+test_chisq: 695.5870410399649

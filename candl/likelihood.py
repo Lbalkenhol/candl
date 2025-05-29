@@ -732,21 +732,21 @@ class Like:
                     tr_arg_dict["bandpass_info"] = bandpass_info
 
                 # Read in any templates
-                if arg == "template_arr":
+                if "template_arr" in arg:
                     try:
-                        tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
-                            f"{candl_path}/{tr_arg_dict['template_file']}"
+                        tr_arg_dict[arg] = candl.io.read_file_from_path(
+                            f"{candl_path}/{tr_arg_dict[arg.replace('template_arr', 'template_file')]}"
                         )
                     except:
                         try:
-                            tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
-                                f"{self.data_set_dict['data_set_path']}{tr_arg_dict['template_file']}"
+                            tr_arg_dict[arg] = candl.io.read_file_from_path(
+                                f"{self.data_set_dict['data_set_path']}{arg.replace('template_arr', 'template_file')}"
                             )
                         except:
-                            tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
-                                f"{tr_arg_dict['template_file']}"
+                            tr_arg_dict[arg] = candl.io.read_file_from_path(
+                                f"{arg.replace('template_arr', 'template_file')}"
                             )
-                    del tr_arg_dict["template_file"]
+                    del tr_arg_dict[arg.replace("template_arr", "template_file")]
 
                 # Link any already initialised transformations
                 if arg[:26] == "link_transformation_module":
@@ -1679,21 +1679,21 @@ class LensLike:
                     tr_arg_dict[arg] = self.__dict__[arg]
 
                 # Read in any templates
-                if arg == "template_arr":
+                if "template_arr" in arg:
                     try:
-                        tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
-                            f"{candl_path}/{tr_arg_dict['template_file']}"
+                        tr_arg_dict[arg] = candl.io.read_file_from_path(
+                            f"{candl_path}/{tr_arg_dict[arg.replace('template_arr', 'template_file')]}"
                         )
                     except:
                         try:
-                            tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
-                                f"{self.data_set_dict['data_set_path']}{tr_arg_dict['template_file']}"
+                            tr_arg_dict[arg] = candl.io.read_file_from_path(
+                                f"{self.data_set_dict['data_set_path']}{arg.replace('template_arr', 'template_file')}"
                             )
                         except:
-                            tr_arg_dict["template_arr"] = candl.io.read_file_from_path(
-                                f"{tr_arg_dict['template_file']}"
+                            tr_arg_dict[arg] = candl.io.read_file_from_path(
+                                f"{arg.replace('template_arr', 'template_file')}"
                             )
-                    del tr_arg_dict["template_file"]
+                    del tr_arg_dict[arg.replace("template_arr", "template_file")]
 
                 # Read in M matrices and fiducial correction, if needed
                 if arg == "M_matrices":

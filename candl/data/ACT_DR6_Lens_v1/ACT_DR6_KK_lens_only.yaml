@@ -1,0 +1,20 @@
+# ACT DR6 Lensing
+# Use for lensing constraints only
+# Madhavacheril, Qu, Sherwin, MacCrann, Li et al ACT Collaboration (2023), arxiv:2304.05203
+# Qu, Sherwin, Madhavacheril, Han, Crowley et al ACT Collaboration (2023), arxiv:2304.05202
+# Carron, Mirmelstein, Lewis (2022), arxiv:2206.07773, JCAP09(2022)039
+
+# BASE INFORMATION
+name: "ACT DR6 PP (Madhavacheril et al. 2023, Qu et al. 2023, Carron et al. 2023)"
+
+# KEY FILES
+band_power_file: "ACT_DR6_kk_bdp.txt"# Band power file name
+covariance_file: "ACT_DR6_kk_cov_lens_only.txt"# Band power covariance file name
+window_functions_folder: "windows/"# Window folder
+
+hartlap_correction:
+  N_sims: 792
+
+# DATA INFORMATION
+spectra_info:
+  - kk: 10

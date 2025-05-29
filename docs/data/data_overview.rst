@@ -168,7 +168,7 @@ ACT DR6 PP
    | ``candl.data.ACT_DR6_Lens_and_CMB`` (or ``variant = 'use_CMB'``)
 
 :Latest version:
-   ``v0``
+   ``v1`
 
 *Note*: this data set uses the lensing power spectrum in :math:`\kappa\kappa`.
 For the ACT + Planck lensing combination see also `Carron, Mirmelstein, Lewis 2023 <https://arxiv.org/abs/2206.07773>`_.

@@ -72,7 +72,7 @@ class BinnedTemplateForeground(candl.transformations.abstract_base.Foreground):
     Examples
     ----------------
 
-    Example yaml block to a template foreground: ::
+    Example yaml block to use a template foreground: ::
 
         - Module: "common_lensing.BinnedTemplateForeground"
         template_file: "foreground_templates/spt3g_2018_lensing_foreground_template.txt"
@@ -192,7 +192,7 @@ class ResponseFunctionM(candl.transformations.abstract_base.Transformation):
     Examples
     ----------------
 
-    Example yaml block to a template foreground: ::
+    Example yaml block: ::
 
         - Module: "common_lensing.ResponseFunctionM"
           M_matrices_folder: "lens_delta_windows_phionly/"
@@ -202,7 +202,14 @@ class ResponseFunctionM(candl.transformations.abstract_base.Transformation):
           fiducial_correction_file: "spt3g_2018_pp_lensing_fiducial_correction_phionly.txt"
     """
 
-    def __init__(self, ells, M_matrices, fiducial_correction, crop_mask, descriptor=""):
+    def __init__(
+        self,
+        ells,
+        M_matrices,
+        fiducial_correction,
+        crop_mask,
+        descriptor="ResponseFunctionM",
+    ):
         """
         Initialise the ResponseFunctionM transformation.
 
@@ -350,7 +357,7 @@ class LensingAmplitude(candl.transformations.abstract_base.Transformation):
             ells=ells,
             descriptor=descriptor,
             param_names=[amp_param],
-            operation_hint="additive",
+            operation_hint="multiplicative",
         )
 
         # Grab other args
@@ -394,3 +401,139 @@ class LensingAmplitude(candl.transformations.abstract_base.Transformation):
         """
 
         return Dls * self.output(sample_params)
+
+
+class NormCorr(candl.transformations.abstract_base.Transformation):
+    """
+    Calculates :math:`-2 \\frac{\\frac{d A}{d C} \Delta C}{f} C^{fid}`.
+
+    Used in the ACT DR6 Lensing likelihood.
+
+    Attributes
+    ----------------
+    ells : array (float)
+        The ell range the transformation acts on.
+    descriptor : str
+        A short descriptor.
+    cl2dl : array (float)
+        Conversion helper.
+    dAL_dC : array (bool)
+        Array for matrix multiplication (see equation in docs).
+    fAl : array (bool)
+        Array for normalisation (see equation in docs).
+    template_arr_fiducial_Cl_kk : array (bool)
+        Fiducial lensing spectrum.
+    fiducial_correction : array (bool)
+        Fiducial correction.
+    window_functions : list
+        List of window functions to use for binning.
+    operation_hint : str
+        Type of the 'transform' operation: 'additive'.
+
+    Methods
+    ---------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive contribution.
+    transform :
+        Returns a transformed spectrum.
+
+    Notes
+    ----------------
+
+    User required arguments in data set yaml file:
+
+    * M_matrices_folder (str) : path to folder with M matrices.
+    * Mmodes (list) : list of spectra to use in M matrices.
+    * fiducial_correction_file (str) : path to file with the fiducial correction.
+
+    Examples
+    ----------------
+
+    Example yaml block: ::
+
+        - Module: "common_lensing.NormCorr"
+          template_file_dAL_dC_TT: "data/ACT_DR6_Lens_v1/dAL_dC_TT.txt"
+          template_file_dAL_dC_TE: "data/ACT_DR6_Lens_v1/dAL_dC_TE.txt"
+          template_file_dAL_dC_EE: "data/ACT_DR6_Lens_v1/dAL_dC_EE.txt"
+          template_file_dAL_dC_BB: "data/ACT_DR6_Lens_v1/dAL_dC_BB.txt"
+          template_file_fAL: "data/ACT_DR6_Lens_v1/fAL.txt"
+          template_file_fiducial_correction: "data/ACT_DR6_Lens_v1/norm_corr_fiducial_correction.txt"
+          template_file_fiducial_Cl_kk: "data/ACT_DR6_Lens_v1/fiducial_Cl_kk.txt"
+
+    """
+
+    def __init__(
+        self,
+        ells,
+        template_arr_dAL_dC_TT,
+        template_arr_dAL_dC_TE,
+        template_arr_dAL_dC_EE,
+        template_arr_dAL_dC_BB,
+        template_arr_fAL,
+        template_arr_fiducial_Cl_kk,
+        template_arr_fiducial_correction,
+        window_functions,
+        descriptor="NormCorr",
+    ):
+        """
+        Initialise a new instance of the LensingAmplitude class.
+
+        Attributes
+        ----------------
+        ells : array (float)
+            The ell range the transformation acts on.
+        descriptor : str
+            A short descriptor.
+        amp_param : str
+            The name of the amplitude parameter.
+
+        Returns
+        ----------------
+        Foreground
+            A new instance of the LensingAmplitude class.
+        """
+
+        super().__init__(
+            ells=ells,
+            descriptor=descriptor,
+            operation_hint="additive",
+        )
+
+        # Grab other args
+        self.ells = ells
+        self.cl2dl = ells * (ells + 1) / (2.0 * np.pi)
+        self.dAL_dC = {
+            "TT": template_arr_dAL_dC_TT,
+            "TE": template_arr_dAL_dC_TE,
+            "EE": template_arr_dAL_dC_EE,
+            "BB": template_arr_dAL_dC_BB,
+        }
+        self.fAL = template_arr_fAL
+        self.template_arr_fiducial_Cl_kk = template_arr_fiducial_Cl_kk
+        self.fiducial_correction = template_arr_fiducial_correction
+        self.window_functions = window_functions
+
+    @partial(jit, static_argnums=(0,))
+    def output(self, sample_params):
+        """ """
+
+        # multiply arrays according to length of theory spectra
+        norm_corr = 0
+        for i, spec in enumerate(["TT", "TE", "EE", "BB"]):
+            norm_corr += -2.0 * (
+                self.dAL_dC[spec] @ (sample_params["Dl"][spec] / self.cl2dl)
+            )
+        norm_corr = norm_corr / self.fAL
+        norm_corr = norm_corr * self.template_arr_fiducial_Cl_kk
+
+        # now bin
+        binned_norm_corr = self.window_functions[0].T @ norm_corr
+        binned_norm_corr -= self.fiducial_correction
+
+        return binned_norm_corr
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        return Dls + self.output(sample_params)

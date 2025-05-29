@@ -192,9 +192,10 @@ def read_file_from_path(full_path):
     """
     Read in a file (array) from a path.
     Method used to read in band powers and covariance matrix.
-    Can read two types:
+    Can read three types:
     (1) Text files. Ending must be ".txt" or ".dat".
     (2) Binary files. These must end in ".bin" and be stored as float64s. Will be turned into a square array if possible.
+    (3) Numpy files. These must end in ".npy" and will be read in as a numpy array.
 
     Parameters
     --------------
@@ -218,6 +219,9 @@ def read_file_from_path(full_path):
         square_dim = np.sqrt(float(len(arr)))
         if square_dim.is_integer():
             arr = arr.reshape((int(square_dim), int(square_dim)))
+    elif file_ending == "npy":
+        # numpy file
+        arr = jnp.array(np.load(full_path))
 
     return arr
 
