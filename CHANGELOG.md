@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.8.0 (2025-05-30)
+
+Made cobaya wrapper more flexible.
+
 ## v1.8.0 (2025-05-29)
 
 * Updated ACT DR6 lensing likelihood
