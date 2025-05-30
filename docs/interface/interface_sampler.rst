@@ -11,6 +11,7 @@ Moreover, we show how the likelihood can be interfaced with tools that explicitl
     When interfacing candl with Cobaya and MontePython these will be turned off by default and you are expected to specify them within the relevant framework.
     However, this may not be available for all samplers (e.g. BlackJAX).
     Look out for ``clear_internal_priors`` flags in the interface functions and take care not to double count information.
+    Also see ``clear_specific_priors`` for more fine-grained control.
 
 
 .. tip::
