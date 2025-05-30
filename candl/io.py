@@ -21,6 +21,7 @@ Overview:
 # --------------------------------------#
 
 from candl.lib import *
+from astropy.io import fits
 
 # --------------------------------------#
 # PROCESS YAML INPUT
@@ -192,10 +193,11 @@ def read_file_from_path(full_path):
     """
     Read in a file (array) from a path.
     Method used to read in band powers and covariance matrix.
-    Can read three types:
+    Can read four types:
     (1) Text files. Ending must be ".txt" or ".dat".
     (2) Binary files. These must end in ".bin" and be stored as float64s. Will be turned into a square array if possible.
     (3) Numpy files. These must end in ".npy" and will be read in as a numpy array.
+    (4) FITS files. These must end in ".fits".
 
     Parameters
     --------------
@@ -222,6 +224,9 @@ def read_file_from_path(full_path):
     elif file_ending == "npy":
         # numpy file
         arr = jnp.array(np.load(full_path))
+    elif file_ending == "fits":
+        with fits.open(full_path) as hdul:
+            arr = jnp.array(hdul[1].data)
 
     return arr
 
