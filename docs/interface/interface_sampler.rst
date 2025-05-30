@@ -39,7 +39,9 @@ For example:
 This will interface the likelihood with Cobaya and register all of its requirements.
 You can then proceed to populate ``cobaya_dict`` with the the parameters to be sampled etc. and run Cobaya as usual.
 By default the candl internal priors are not applied, add ``"clear_internal_priors": False`` to the relevant likelihood block in the dictionary if you want to use them.
+If you only want to clear some internal priors, you can supply a string or list of strings to ``clear_specific_priors``, e.g. ``"clear_internal_priors": "tau"``. Note that any priors that feature the specified parameters will be ignored, i.e. an entire multi-dimensional prior is ignored if any of its parameters are specified in ``clear_specific_priors``.
 Note that Cobaya prefers to initialise the likelihood itself, hence any modifications of ``candl_like`` won't be reflected in the Cobaya likelihood.
+The exception are data selections, which are usually propagated correctly. It doesn't hurt checking the output of the initialisation though to be sure.
 To use a wrapper likelihood, such as clipy, be sure to set the ``"warpper"`` keyword.
 
 .. autofunction:: candl.interface.get_cobaya_info_dict_for_like
@@ -59,12 +61,18 @@ In order to run Cobaya from the command line it sufficies to include the followi
             feedback: True # Switch off to hide feedback from candl initialisation
             data_selection: ... # Select a subset of the data set
             clear_internal_priors: True # Switch off to use candl internal priors
+            clear_specific_priors: [] # Specify a string or list of strings to clear specific internal priors, e.g. 'tau'
             wrapper: None # Use a wrapper likelihood, e.g. 'clipy'
             additional_args: {} # Additional arguments to pass to the likelihood at initialisation
 
 Only ``data_set_file`` is required, the other arguments are optional.
 Again, by default the candl internal priors are not applied, set ``clear_internal_priors: False`` if you want to use them.
+If you only want to clear some internal priors, you can supply a string or list of strings to ``clear_specific_priors``, e.g. ``"clear_internal_priors": "tau"``. Note that any priors that feature the specified parameters will be ignored, i.e. an entire multi-dimensional prior is ignored if any of its parameters are specified in ``clear_specific_priors``.
 If you are pointing to an index file with ``data_set_file``, use ``variant`` to select the desired variant.
+
+.. tip::
+
+    If you are encountering issues pointing to ``candl.interface.CandlCobayaLikelihood`` this way, try adding ``external: !!python/name:candl.interface.CandlCobayaLikelihood ''`` to the block and replacing ``candl.interface.CandlCobayaLikelihood`` by a name of your choice, e.g. ``candl_like``.
 
 Connecting Theory Codes to Cobaya
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

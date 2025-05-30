@@ -970,6 +970,8 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         Variant of the likelihood (if requested).
     clear_internal_priors : bool
         Whether to clear internal priors.
+    clear_specific_priors : str or list
+        String of list of strings of specific priors to clear. If a given parameter appears in an internal prior, the full prior will be cleared (beware for multi-dimensional priors). Doesn't do anything if clear_internal_priors is True.
     lensing : bool
         Whether to use the lensing likelihood.
     feedback : bool
@@ -999,6 +1001,7 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
     data_set_file: str = "./"
     variant: str = None
     clear_internal_priors: bool = True
+    clear_specific_priors: list = []
     lensing: bool = False
     feedback: bool = True
     data_selection: any = ...
@@ -1077,6 +1080,18 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         # by default clear internal priors and assume these are taken care off by Cobaya
         if self.clear_internal_priors:
             self.candl_like.priors = []
+        else:
+            if len(self.clear_specific_priors) > 0:
+                if isinstance(self.clear_specific_priors, str):
+                    self.clear_specific_priors = [self.clear_specific_priors]
+                new_priors = []
+                for ignore_par in self.clear_specific_priors:
+                    for i, prior in enumerate(self.candl_like.priors):
+                        if ignore_par in prior.par_names:
+                            continue
+                        else:
+                            new_priors.append(prior)
+                self.candl_like.priors = new_priors
 
     def get_requirements(self):
         """Return dictionary of parameters that are needed"""
@@ -1142,6 +1157,7 @@ def get_cobaya_info_dict_for_like(
     name="candl_like",
     data_selection=...,
     clear_internal_priors=True,
+    clear_specific_priors=[],
     feedback=True,
     wrapper=None,
     additional_args={},
@@ -1150,6 +1166,7 @@ def get_cobaya_info_dict_for_like(
     Thin wrapper for CandlCobayaLikelihood that returns the class with the requested data set in the format expected by Cobaya.
     Note that since Cobaya prefers to instantiate likelihoods itself, this will instantiate a new instance of the likelihood.
     That means, any modifications to the likelihood object you pass will not be reflected in the likelihood that Cobaya uses.
+    Still, the wrapper will try to copy over any data selection - it's worth double checking this with the feedback printout.
     Use the optional keywords to pass arguments to the new Cobaya likelihood object during initialisation.
     Note that candl internal priors are cleared by default, be sure to either apply these in the Cobaya parameter block or override the default behaviour.
 
@@ -1163,6 +1180,8 @@ def get_cobaya_info_dict_for_like(
         Data selection to be used. None, string, list of string, binary mask, or path to a mask are supported.
     clear_internal_priors : bool
         Whether to clear internal priors.
+    clear_specific_priors : str or list
+        String or list of strings of specific priors to clear. If a given parameter appears in an internal prior, the full prior will be cleared (beware for multi-dimensional priors). Doesn't do anything if clear_internal_priors is True.
     feedback : bool
         Whether to print feedback when initialising the likelihood.
     wrapper : str
@@ -1178,7 +1197,7 @@ def get_cobaya_info_dict_for_like(
 
     # Throw up a warning about how Cobaya re-instantiates likelihoods
     print(
-        "Warning: Cobaya will re-instantiate the likelihood object and any earlier modifications you may have done to your instance (such as data selection) will therefore not apply unless you have specified them here again."
+        "Warning: Cobaya will re-instantiate the likelihood object and earlier modifications (such as manually overwriting attributes, the data model, or the priors) you may have done to your instance will likely not apply unless you have specified them here again."
     )
 
     # Construct Cobaya dictionary
@@ -1187,6 +1206,7 @@ def get_cobaya_info_dict_for_like(
             "external": CandlCobayaLikelihood,
             "data_set_file": like.data_set_file,
             "clear_internal_priors": clear_internal_priors,
+            "clear_specific_priors": clear_specific_priors,
             "feedback": feedback,
             "wrapper": wrapper,
             "additional_args": additional_args,
@@ -1198,9 +1218,21 @@ def get_cobaya_info_dict_for_like(
         if cobaya_info[name]["wrapper"] is None:
             cobaya_info[name]["wrapper"] = "clipy"
 
-    # Add data selection if requested
-    if data_selection is not ...:
-        cobaya_info[name]["data_selection"] = data_selection
+    # Try to copy over existing data selection
+    if "data_selection" in like.data_set_dict:
+        # Some data selection has already been done
+        if data_selection is not ...:
+            # Overwrite manually if requested
+            print(
+                "Warning: overwriting the data selection that was already set in the likelihood with the one provided to the cobaya dictionary generation function."
+            )
+            cobaya_info[name]["data_selection"] = data_selection
+        else:
+            cobaya_info[name]["data_selection"] = like.data_set_dict["data_selection"]
+    else:
+        # No data selection in the likelihood, but perhaps here
+        if data_selection is not ...:
+            cobaya_info[name]["data_selection"] = data_selection
 
     # Add flag for lensing likelihoods
     if isinstance(like, candl.LensLike):
