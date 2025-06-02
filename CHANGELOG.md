@@ -1,6 +1,10 @@
 # Changelog
 
-## v1.8.0 (2025-05-30)
+## v1.8.2 (2025-06-02)
+
+Fixed bug in file template file reading.
+
+## v1.8.1 (2025-05-30)
 
 Made cobaya wrapper more flexible.
 
