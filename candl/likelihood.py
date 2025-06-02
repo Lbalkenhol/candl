@@ -740,11 +740,11 @@ class Like:
                     except:
                         try:
                             tr_arg_dict[arg] = candl.io.read_file_from_path(
-                                f"{self.data_set_dict['data_set_path']}{arg.replace('template_arr', 'template_file')}"
+                                f"{self.data_set_dict['data_set_path']}{tr_arg_dict[arg.replace('template_arr', 'template_file')]}"
                             )
                         except:
                             tr_arg_dict[arg] = candl.io.read_file_from_path(
-                                f"{arg.replace('template_arr', 'template_file')}"
+                                f"{tr_arg_dict[arg.replace('template_arr', 'template_file')]}"
                             )
                     del tr_arg_dict[arg.replace("template_arr", "template_file")]
 
@@ -1687,11 +1687,11 @@ class LensLike:
                     except:
                         try:
                             tr_arg_dict[arg] = candl.io.read_file_from_path(
-                                f"{self.data_set_dict['data_set_path']}{arg.replace('template_arr', 'template_file')}"
+                                f"{self.data_set_dict['data_set_path']}{tr_arg_dict[arg.replace('template_arr', 'template_file')]}"
                             )
                         except:
                             tr_arg_dict[arg] = candl.io.read_file_from_path(
-                                f"{arg.replace('template_arr', 'template_file')}"
+                                f"{tr_arg_dict[arg.replace('template_arr', 'template_file')]}"
                             )
                     del tr_arg_dict[arg.replace("template_arr", "template_file")]
 
