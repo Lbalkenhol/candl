@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.0.0 (2025-06-03)
+
+Separated code and data. To download and install data sets, go to the `candl_data` repository (https://github.com/Lbalkenhol/candl_data).
+
 ## v1.8.2 (2025-06-02)
 
 Fixed bug in file template file reading.
