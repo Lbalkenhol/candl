@@ -1,11 +1,22 @@
 Data Sets
 =================================================
 
-The following data sets are available for use with candl.
-For the default data sets that ship with the release there are shortcuts available to access them easily (see below).
+Data sets for candl need to be installed via the :code:`candl_data` `repository <https://github.com/Lbalkenhol/candl_data>`__.
+Simply clone the repo to get the data and run :code:`pip install .` to install the shortcuts.
+More details can be found in the :code:`candl_data` `readme <https://github.com/Lbalkenhol/candl_data>`__.
+You can still use candl without the data repo on your own or third-party likelihoods.
+
+The following data sets are available in :code:`candl_data` and can be accessed via handy short cuts, provided you :code:`import candl_data` (see below).
 For data sets that have multiple variants (for the moment lensing data sets), you can either point to the specific data set you want or you can point to the (more generally named) index file and add ``variant = <your_desired_variant>`` during initialisation.
-You can also use :func:`candl.data.print_all_shortcuts` to list all available shortcuts.
+You can also use :func:`candl_data.print_all_shortcuts` to list all available shortcuts.
 New data sets will be uploaded as they become available.
+
+.. warning::
+
+    For versions of candl prior to :code:`v2.0.0`, data came directly with the pip installation.
+    This is no longer the case (due to the growing size of amazing CMB data sets we have!) and the data need to be installed separately of the code.
+    To do so, check out the :code:`candl_data` `repository <https://github.com/Lbalkenhol/candl_data>`__.
+
 
 Default Data Sets
 -------------------------------------------------
@@ -35,9 +46,9 @@ SPT-3G 2018 TT/TE/EE
 
 :Short cut(s):
    ````
-   | ``candl.data.SPT3G_2018_TTTEEE`` (index file),
-   | ``candl.data.SPT3G_2018_TTTEEE_multifreq`` (or ``variant = 'multifreq'``),
-   | ``candl.data.SPT3G_2018_TTTEEE_lite`` (or ``variant = 'lite'``)
+   | ``candl_data.SPT3G_2018_TTTEEE`` (index file),
+   | ``candl_data.SPT3G_2018_TTTEEE_multifreq`` (or ``variant = 'multifreq'``),
+   | ``candl_data.SPT3G_2018_TTTEEE_lite`` (or ``variant = 'lite'``)
 
 :Latest version:
    ``v0``
@@ -61,15 +72,15 @@ SPT-3G 2018 PP
    Lensing power spectrum measurement (:math:`\phi\phi`)
 
 :Short cut(s):
-   | ``candl.data.SPT3G_2018_Lens`` (index file),
-   | ``candl.data.SPT3G_2018_Lens_only`` (or ``variant = 'lens_only'``),
-   | ``candl.data.SPT3G_2018_Lens_and_CMB`` (or ``variant = 'use_CMB'``)
+   | ``candl_data.SPT3G_2018_Lens`` (index file),
+   | ``candl_data.SPT3G_2018_Lens_only`` (or ``variant = 'lens_only'``),
+   | ``candl_data.SPT3G_2018_Lens_and_CMB`` (or ``variant = 'use_CMB'``)
 
 :Latest version:
    ``v0``
 
 *Note*: this data set uses the lensing power spectrum in :math:`\phi\phi`.
-Use ``candl.data.SPT3G_2018_Lens`` with ``variant = 'lens_only'`` or ``candl.data.SPT3G_2018_Lens_only`` when only working with lensing data, use ``candl.data.SPT3G_2018_Lens`` with ``variant = 'use_CMB'`` or ``candl.data.SPT3G_2018_Lens_and_CMB`` when combining lensing and primary CMB data.
+Use ``candl_data.SPT3G_2018_Lens`` with ``variant = 'lens_only'`` or ``candl_data.SPT3G_2018_Lens_only`` when only working with lensing data, use ``candl_data.SPT3G_2018_Lens`` with ``variant = 'use_CMB'`` or ``candl_data.SPT3G_2018_Lens_and_CMB`` when combining lensing and primary CMB data.
 
 ACT DR6 TT/TE/EE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -102,7 +113,7 @@ ACT DR6 TT/TE/EE
    `NASA archive <https://lambda.gsfc.nasa.gov/product/act/actadv_prod_table.html>`__
 
 :Short cut(s):
-   ``candl.data.ACT_DR6_TTTEEE``
+   ``candl_data.ACT_DR6_TTTEEE``
 
 :Latest version:
    ``v0``
@@ -134,7 +145,7 @@ ACT DR4 TT/TE/EE
    `NASA archive <https://lambda.gsfc.nasa.gov/product/act/act_dr4_likelihood_get.html>`__
 
 :Short cut(s):
-   ``candl.data.ACT_DR4_TTTEEE``
+   ``candl_data.ACT_DR4_TTTEEE``
 
 :Latest version:
    ``v0``
@@ -163,16 +174,16 @@ ACT DR6 PP
 :Website: `Github <https://github.com/ACTCollaboration/act_dr6_lenslike>`__
 
 :Short cut(s):
-   | ``candl.data.ACT_DR6_Lens`` (index file),
-   | ``candl.data.ACT_DR6_Lens_only`` (or ``variant = 'lens_only'``),
-   | ``candl.data.ACT_DR6_Lens_and_CMB`` (or ``variant = 'use_CMB'``)
+   | ``candl_data.ACT_DR6_Lens`` (index file),
+   | ``candl_data.ACT_DR6_Lens_only`` (or ``variant = 'lens_only'``),
+   | ``candl_data.ACT_DR6_Lens_and_CMB`` (or ``variant = 'use_CMB'``)
 
 :Latest version:
    ``v1``
 
 *Note*: this data set uses the lensing power spectrum in :math:`\kappa\kappa`.
 For the ACT + Planck lensing combination see also `Carron, Mirmelstein, Lewis 2023 <https://arxiv.org/abs/2206.07773>`_.
-Use ``candl.data.ACT_DR6_Lens`` with ``variant = 'lens_only'`` or ``candl.data.ACT_DR6_Lens_only`` when only working with lensing data, use ``candl.data.ACT_DR6_Lens`` with ``variant = 'use_CMB'`` or ``candl.data.ACT_DR6_Lens_and_CMB`` when combining lensing and primary CMB data.
+Use ``candl_data.ACT_DR6_Lens`` with ``variant = 'lens_only'`` or ``candl_data.ACT_DR6_Lens_only`` when only working with lensing data, use ``candl_data.ACT_DR6_Lens`` with ``variant = 'use_CMB'`` or ``candl_data.ACT_DR6_Lens_and_CMB`` when combining lensing and primary CMB data.
 
 
 Planck

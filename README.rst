@@ -45,7 +45,13 @@ This well test all data sets included in candl.
 Data Sets
 ------------
 
-The pip installation of candl currently ships with the following data sets:
+candl data sets are kept in the `clipy <https://github.com/lbalkenhol/candl_data>`__ repository. Detailed installation instructions for the data can be found on the dedicated repo page, but in short, you navigate to where you would like to store the data and then run::
+
+    git clone https://github.com/Lbalkenhol/candl_data.git
+    cd candl_data
+    pip install .
+
+The following data sets are available:
 
 * SPT-3G 2018 TT/TE/EE (`Balkenhol et al. 2023 <https://arxiv.org/abs/2212.05642>`__)
 * SPT-3G 2018 Lensing (`Pan et al. 2023 <https://arxiv.org/abs/2308.11608>`__)
@@ -54,7 +60,7 @@ The pip installation of candl currently ships with the following data sets:
 * ACT DR6 Lensing (`Madhavacheril et al. 2023 <https://arxiv.org/abs/2304.05203>`__, `Qu et al. 2023 <https://arxiv.org/abs/2304.05202>`__)
 * Planck likelihoods available through `clipy <https://github.com/benabed/clipy>`__
 
-Detailed information on these data sets, how to install data sets separately from the likelihood code, and instructions on how you can add your own data sets can be found `in the docs <https://candl.readthedocs.io/en/latest/data/data_overview.html>`__.
+Detailed information on these data sets and instructions on how you can add your own can be found `in the docs <https://candl.readthedocs.io/en/latest/data/data_overview.html>`__.
 
 JAX
 ---

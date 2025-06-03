@@ -485,14 +485,28 @@ def like_init_output(like):
     write_msg(line_width * "-")
 
     # Data Model
-    dat_model_str = f"A data model consisting of {len(like.data_model)} transformations has been initialised.\n"
-    if len(like.data_model) > 0:
+    if len(like.data_model) == 0:
+        dat_model_str = f"No transformation have been initialised in the data model.\n"
+    else:
+        dat_model_str = f"A data model consisting of {len(like.data_model)} transformations has been initialised.\n"
         dat_model_str += f"The following transformations will be applied to the theory spectra in this order:\n"
 
     write_msg(dat_model_str)
     for i, tr in enumerate(like.data_model):
         write_msg(f"({i+1}) Name: {tr.descriptor}")
         write_msg(len(str(i)) * " " + f"   Type: {type(tr)}")
+    write_msg(line_width * "-")
+
+    # Priors
+    if len(like.priors) == 0:
+        prior_str = f"No priors will be added to the likelihood.\n"
+    else:
+        prior_str = f"A total of {len(like.priors)} Gaussian priors will be added to the likelihood.\n"
+        prior_str += f"The priors affect the following parameters:\n"
+
+    write_msg(prior_str)
+    for i, prior in enumerate(like.priors):
+        write_msg(", ".join(prior.par_names))
     write_msg(line_width * "-")
 
     return

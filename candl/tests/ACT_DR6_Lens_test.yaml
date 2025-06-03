@@ -1,4 +1,4 @@
-data_set_file: "data/ACT_DR6_Lens_v1/ACT_DR6_KK_lens_only.yaml"
+data_set_file: "candl_data.ACT_DR6_Lens_only"
 lensing: True
 test_spectrum: "tests/ACT_DR6_Lens_test_spec.txt"
 param_values: {}

@@ -9,6 +9,13 @@ import numpy as np
 from copy import deepcopy
 import sigfig
 
+try:
+    import candl_data
+except:
+    print(
+        "Failed to import candl_data, some tests may not find their respective likelihoods."
+    )
+
 # --------------------------------------#
 # TEST FUNCTIONS
 # --------------------------------------#
@@ -53,14 +60,19 @@ def run_test(test_file):
         test_dict = yaml.load(f, Loader=yaml.loader.SafeLoader)
 
     # Initialise likelihood
-    if test_dict["lensing"]:
-        candl_like = candl.LensLike(
-            f"{candl.__path__[0]}/{test_dict['data_set_file']}", feedback=False
+    try:
+        data_set_str = test_dict["data_set_file"]
+        if not ".yaml" in data_set_str:
+            data_set_str = eval(data_set_str)
+        if test_dict["lensing"]:
+            candl_like = candl.LensLike(data_set_str, feedback=False)
+        else:
+            candl_like = candl.Like(data_set_str, feedback=False)
+    except:
+        print(
+            f"!!! -> Failed to initialise likelihood for {test_file} pointing to {data_set_str}"
         )
-    else:
-        candl_like = candl.Like(
-            f"{candl.__path__[0]}/{test_dict['data_set_file']}", feedback=False
-        )
+        return
 
     # Load test spectrum, juggle into dictionary, grab test parameter values
     test_spec = np.loadtxt(f"{candl.__path__[0]}/{test_dict['test_spectrum']}")

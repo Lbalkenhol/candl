@@ -1,4 +1,4 @@
-data_set_file: "data/SPT3G_2018_Lens_v0/SPT3G_2018_PP_lens_only.yaml"
+data_set_file: "candl_data.SPT3G_2018_Lens_only"
 lensing: True
 test_spectrum: "tests/SPT3G_2018_Lens_test_spec.txt"
 param_values: {"A_fg": 0.1859124984062065}
