@@ -45,7 +45,7 @@ This well test all data sets included in candl.
 Data Sets
 ------------
 
-candl data sets are kept in the `clipy <https://github.com/lbalkenhol/candl_data>`__ repository. Detailed installation instructions for the data can be found on the dedicated repo page, but in short, you navigate to where you would like to store the data and then run::
+candl data sets are kept in the `candl_data <https://github.com/lbalkenhol/candl_data>`__ repository. Detailed installation instructions for the data can be found on the dedicated repo page, but in short, you navigate to where you would like to store the data and then run::
 
     git clone https://github.com/Lbalkenhol/candl_data.git
     cd candl_data
