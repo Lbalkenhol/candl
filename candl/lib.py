@@ -133,3 +133,11 @@ try:
     import clipy
 except:
     pass
+
+# Optional candl_data import
+try:
+    import candl_data
+except:
+    print(
+        "Failed to import candl_data, if you want to use the candl data sets follow the instructions on: https://github.com/Lbalkenhol/candl_data."
+    )
