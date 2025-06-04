@@ -1219,20 +1219,29 @@ def get_cobaya_info_dict_for_like(
             cobaya_info[name]["wrapper"] = "clipy"
 
     # Try to copy over existing data selection
-    if "data_selection" in like.data_set_dict:
-        # Some data selection has already been done
-        if data_selection is not ...:
-            # Overwrite manually if requested
-            print(
-                "Warning: overwriting the data selection that was already set in the likelihood with the one provided to the cobaya dictionary generation function."
-            )
-            cobaya_info[name]["data_selection"] = data_selection
+    if isinstance(like, candl.Like) or isinstance(like, candl.LensLike):
+        # For native candl likelihoods
+        if "data_selection" in like.data_set_dict:
+            # Some data selection has already been done
+            if data_selection is not ...:
+                # Overwrite manually if requested
+                print(
+                    "Warning: overwriting the data selection that was already set in the likelihood with the one provided to the cobaya dictionary generation function."
+                )
+                cobaya_info[name]["data_selection"] = data_selection
+            else:
+                cobaya_info[name]["data_selection"] = like.data_set_dict["data_selection"]
         else:
-            cobaya_info[name]["data_selection"] = like.data_set_dict["data_selection"]
+            # No data selection in the likelihood, but perhaps here
+            if data_selection is not ...:
+                cobaya_info[name]["data_selection"] = data_selection
     else:
-        # No data selection in the likelihood, but perhaps here
-        if data_selection is not ...:
-            cobaya_info[name]["data_selection"] = data_selection
+        # For wrapper likelihoods
+        try:
+            options = like.init_options
+        except:
+            options = {}
+        cobaya_info[name]["additional_args"] = options | cobaya_info[name]["additional_args"]
 
     # Add flag for lensing likelihoods
     if isinstance(like, candl.LensLike):
