@@ -12,8 +12,8 @@ class candl_mp(Likelihood):
         Likelihood.__init__(self, path, data, command_line)
 
         # Grab the correct data set
-        if self.data_set_file.startswith("candl.data."):
-            importlib.import_module("candl.data")
+        if self.data_set_file.startswith("candl_data."):
+            importlib.import_module("candl_data")
             self.data_set_file = eval(self.data_set_file)
 
         # Grab optional arguments
@@ -65,8 +65,12 @@ class candl_mp(Likelihood):
 
                 # Catch lensing spectra and account for their unique normalisation convention
                 if ky == "pp":
-                    like_Cls[ky] = (class_Cls[ky] * ((class_Cls["ell"] * (class_Cls["ell"] + 1))**2.0)/(2.0*np.pi))[2 : self.candl_like.ell_max + 1]
-                    like_Cls["kk"] = like_Cls["pp"]*np.pi/2.0
+                    like_Cls[ky] = (
+                        class_Cls[ky]
+                        * ((class_Cls["ell"] * (class_Cls["ell"] + 1)) ** 2.0)
+                        / (2.0 * np.pi)
+                    )[2 : self.candl_like.ell_max + 1]
+                    like_Cls["kk"] = like_Cls["pp"] * np.pi / 2.0
                     continue
 
                 # Handle primary CMB
@@ -76,7 +80,9 @@ class candl_mp(Likelihood):
                     * (class_Cls["ell"] + 1.0)
                     / (2.0 * np.pi)
                 )
-                like_Cls[ky.upper()] = like_Cls[ky.upper()][2 : self.candl_like.ell_max + 1]
+                like_Cls[ky.upper()] = like_Cls[ky.upper()][
+                    2 : self.candl_like.ell_max + 1
+                ]
 
         # Grab all parameter values
         pars_for_like = {}

@@ -18,6 +18,10 @@ Moreover, we show how the likelihood can be interfaced with tools that explicitl
 
     See :ref:`Data Selection <Data Selection>` for info on how to select subsets of the data.
 
+The examples in the section below use the candl likelihoods made available through the :code:`candl_data` `repository <https://github.com/Lbalkenhol/candl_data>`__.
+Simply clone the repo to get the data and run :code:`pip install .` to install the shortcuts.
+More details can be found in the :code:`candl_data` `readme <https://github.com/Lbalkenhol/candl_data>`__.
+
 
 Cobaya
 -------------------------------------------------
@@ -31,10 +35,10 @@ For example:
 .. code-block:: python
 
     import candl
-    import candl.data
     import candl.interface
+    import candl_data
     
-    candl_like = candl.Like(candl.data.SPT3G_2018_TTTEEE)
+    candl_like = candl.Like(candl_data.SPT3G_2018_TTTEEE)
     cobaya_dict = {"likelihood": candl.interface.get_cobaya_info_dict_for_like(candl_like)}
 
 This will interface the likelihood with Cobaya and register all of its requirements.
@@ -56,7 +60,7 @@ In order to run Cobaya from the command line it sufficies to include the followi
 
     likelihood:
         candl.interface.CandlCobayaLikelihood:
-            data_set_file: candl.data.SPT3G_2018_TTTEEE # Data set or path to .yaml file
+            data_set_file: candl_data.SPT3G_2018_TTTEEE # Data set or path to .yaml file
             variant: None # Select a variant of the data set if pointing to an index file
             lensing: False # Switch on for lensing likelihoods
             feedback: True # Switch off to hide feedback from candl initialisation
@@ -101,7 +105,7 @@ The provided template for the latter looks like this:
 
 .. code-block::
 
-    candl_mp.data_set_file = #"candl.data.the_data_set_you_want" or "path/to/info.yaml"
+    candl_mp.data_set_file = #"candl_data.the_data_set_you_want" or "path/to/info.yaml"
     candl_mp.lensing = False
     candl_mp.feedback = True
     candl_mp.data_selection = ...
@@ -122,10 +126,10 @@ For example, for the SPT-3G 2018 TTTEEE likelihood, run the following python cod
 .. code-block:: python
     
     import candl
-    import candl.data
+    import candl_data
     import candl.interface
 
-    candl_like = candl.Like(candl.data.SPT3G_2018_TTTEEE)
+    candl_like = candl.Like(candl_data.SPT3G_2018_TTTEEE)
     candl.interface.get_montepython_nuisance_param_block_for_like(candl_like)
 
 This will print the nuisance parameter block to the terminal, which you can then copy over to your ``.param`` file.
@@ -146,7 +150,7 @@ Either way, in order run chains with e.g. the SPT-3G 2018 lensing likelihood, in
 .. code-block:: INI
     
     file = ./likelihood/candl/candl_cosmosis_interface.py ; Location of interface code - change depending on the location of your .ini file
-    data_set = 'candl.data.SPT3G_2018_Lens' ; Data set or path to .yaml file
+    data_set = 'candl_data.SPT3G_2018_Lens' ; Data set or path to .yaml file
     variant = 'use_CMB' ; Select a variant of the data set if pointing to an index file
     lensing = T ; Switch on for lensing likelihoods
     feedback = T ; Switch on to request feedback from candl initialisation
@@ -175,11 +179,11 @@ First, we initialise the likelihood and the theory code:
 .. code-block:: python
 
     import candl
-    import candl.data
     import candl.interface
     import candl.tools
+    import candl_data
 
-    candl_like = candl.Like(candl.data.ACT_DR4_TTTEEE)
+    candl_like = candl.Like(candl_data.ACT_DR4_TTTEEE)
     cp_emulator_filenames = {"TT": "cmb_spt_TT_NN",
                             "TE": "cmb_spt_TE_PCAplusNN",
                             "EE": "cmb_spt_EE_NN"}
@@ -255,11 +259,11 @@ Like before, we initialise the likelihood and the theory code:
 .. code-block:: python
 
     import candl
-    import candl.data
     import candl.interface
     import candl.tools
+    import candl_data
 
-    candl_like = candl.Like(candl.data.ACT_DR4_TTTEEE)
+    candl_like = candl.Like(candl_data.ACT_DR4_TTTEEE)
     cp_emulator_filenames = {"TT": "cmb_spt_TT_NN",
                             "TE": "cmb_spt_TE_PCAplusNN",
                             "EE": "cmb_spt_EE_NN"}

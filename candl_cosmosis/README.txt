@@ -9,7 +9,7 @@ Usage
 In order run chains with e.g. the SPT-3G 2018 lensing likelihood, include the following block in your ``.ini`` file:
 
 file = ./likelihood/candl/candl_cosmosis_interface.py ; Location of interface code - change depending on the location of your .ini file
-data_set = 'candl.data.SPT3G_2018_Lens' ; Data set or path to .yaml file
+data_set = 'candl_data.SPT3G_2018_Lens' ; Data set or path to .yaml file
 variant = 'use_CMB' ; Select a variant of the data set if pointing to an index file
 lensing = T ; Switch on for lensing likelihoods
 feedback = T ; Switch on to request feedback from candl initialisation

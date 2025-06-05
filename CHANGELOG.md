@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.0.2 (2025-06-05)
+
+Removed more occurences of deprecated candl.data.
+
+## v2.0.1 (2025-06-04)
+
+Fixed bug in cobaya wrapper when loading clipy likelihoods.
+
 ## v2.0.0 (2025-06-03)
 
 Separated code and data. To download and install data sets, go to the `candl_data` repository (https://github.com/Lbalkenhol/candl_data).

@@ -63,7 +63,6 @@
    api/transformations_api
    api/plots_api
    api/tests_api
-   api/data_api
    api/io_api
    api/constants_api
    api/lib_api

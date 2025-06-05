@@ -21,8 +21,8 @@ Instantiating Likelihoods
 There are three options for instantiating likelihoods. In ``candl.Like()`` or ``candl.LensLike()`` you can:
 
 1. point directly to the data set info ``.yaml`` file.
-2. use the short cut for released data sets, e.g. ``candl.data.SPT3G_2018_TTTEEE``.
-3. point to an index file and specify the variant, e.g. ``candl.data.SPT3G_2018_Lens`` with ``variant = 'lens_only'``.
+2. use the short cut for released data sets from the :code:`candl_data` `repository <https://github.com/Lbalkenhol/candl_data>`__, e.g. ``candl_data.SPT3G_2018_TTTEEE``.
+3. point to an index file and specify the variant, e.g. ``candl_data.SPT3G_2018_Lens`` with ``variant = 'lens_only'``.
 
 
 Working With Instantiated Likelihoods

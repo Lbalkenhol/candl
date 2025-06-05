@@ -16,15 +16,18 @@ Quickstart
 ------------------------------
 
 To initialise the likelihood, point it to the data set ``yaml`` file.
-Short cuts exist for released data sets.
-For example, let's say we want to work with the SPT-3G 2018 TT/TE/EE data set.
+Short cuts exist for data sets released through the :code:`candl_data` `repository <https://github.com/Lbalkenhol/candl_data>`__.
+Simply clone the repo to get the data and run :code:`pip install .` to install the shortcuts.
+More details can be found in the :code:`candl_data` `readme <https://github.com/Lbalkenhol/candl_data>`__.
+
+Let's say we want to work with the SPT-3G 2018 TT/TE/EE data set.
 
 .. code-block:: python
 
     import candl
-    import candl.data
+    import candl_data
     
-    candl_like = candl.Like(candl.data.SPT3G_2018_TTTEEE)
+    candl_like = candl.Like(candl_data.SPT3G_2018_TTTEEE)
 
 and that's it! You can now access aspects of the data, for example the band powers ``candl_like.data_bandpowers`` and the covariance matrix ``candl_like.covariance``.
 

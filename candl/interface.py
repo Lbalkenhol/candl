@@ -1014,8 +1014,8 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         Loads the candl likelihood.
         """
         # Grab the correct data set
-        if self.data_set_file.startswith("candl.data."):
-            importlib.import_module("candl.data")
+        if self.data_set_file.startswith("candl_data."):
+            importlib.import_module("candl_data")
             self.data_set_file = eval(self.data_set_file)
 
         # Collect arguments
@@ -1230,7 +1230,9 @@ def get_cobaya_info_dict_for_like(
                 )
                 cobaya_info[name]["data_selection"] = data_selection
             else:
-                cobaya_info[name]["data_selection"] = like.data_set_dict["data_selection"]
+                cobaya_info[name]["data_selection"] = like.data_set_dict[
+                    "data_selection"
+                ]
         else:
             # No data selection in the likelihood, but perhaps here
             if data_selection is not ...:
@@ -1241,7 +1243,9 @@ def get_cobaya_info_dict_for_like(
             options = like.init_options
         except:
             options = {}
-        cobaya_info[name]["additional_args"] = options | cobaya_info[name]["additional_args"]
+        cobaya_info[name]["additional_args"] = (
+            options | cobaya_info[name]["additional_args"]
+        )
 
     # Add flag for lensing likelihoods
     if isinstance(like, candl.LensLike):
