@@ -82,6 +82,10 @@ except:
         func.defjvp = lambda *args: None
         return func
 
+    # define jacfwd to do nothing
+    def jacfwd(func, **kwargs):
+        return func
+
 
 # Optional pycapse import
 try:

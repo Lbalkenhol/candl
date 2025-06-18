@@ -2,15 +2,12 @@ try:
     from candl.lib import *
     import candl
 except ImportError:
-    raise RuntimeError("Can not find candl. Try running: pip install candl-like")
-try:
-    import candl_data
-except:
-    pass
+    raise RuntimeError("Can not find candl. Try running: pip install candl-like=1.*")
 
 from cosmosis.datablock import names, SectionOptions
 import numpy as np
 import os
+import importlib
 
 
 class CandlCosmoSISLikelihood:
@@ -23,7 +20,6 @@ class CandlCosmoSISLikelihood:
         Read in options from CosmoSIS ini file and initialise requested candl likelihood.
         """
 
-        # Read requested data set from ini and grab a name under which the logl value will be recorded
         # Grab the correct data set
         data_set_str = options.get_string("data_set", default="")
         try:
@@ -31,11 +27,10 @@ class CandlCosmoSISLikelihood:
             module_name, data_set_name = data_set_str.split(".")
             data_module = importlib.import_module(module_name)
             self.data_set_file = getattr(data_module, data_set_name)
-            self.name = data_set_str
-        except:
-            # Assume this to be a path pointing directly to a data set .yaml file
-            self.data_set_file = data_set_str
             self.name = "candl." + self.data_set_file.split("/")[-1][:-5]
+        except:
+            self.data_set_file = data_set_str
+            self.name = data_set_str
 
         # Read in other options from ini
         self.lensing = options.get_bool("lensing", default=True)
