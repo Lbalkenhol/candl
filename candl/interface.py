@@ -1013,10 +1013,15 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         Called from __init__ to initialise and complete the setup.
         Loads the candl likelihood.
         """
+
         # Grab the correct data set
-        if self.data_set_file.startswith("candl_data."):
-            importlib.import_module("candl_data")
-            self.data_set_file = eval(self.data_set_file)
+        try:
+            # Check whether a short cut from a library of the style module.data_set_name is being passed
+            module_name, data_set_name = self.data_set_file.split(".")
+            data_module = importlib.import_module(module_name)
+            self.data_set_file = getattr(data_module, data_set_name)
+        except:
+            pass
 
         # Collect arguments
         init_args = {

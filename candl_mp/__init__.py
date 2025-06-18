@@ -12,9 +12,13 @@ class candl_mp(Likelihood):
         Likelihood.__init__(self, path, data, command_line)
 
         # Grab the correct data set
-        if self.data_set_file.startswith("candl_data."):
-            importlib.import_module("candl_data")
-            self.data_set_file = eval(self.data_set_file)
+        try:
+            # Check whether a short cut from a library of the style module.data_set_name is being passed
+            module_name, data_set_name = self.data_set_file.split(".")
+            data_module = importlib.import_module(module_name)
+            self.data_set_file = getattr(data_module, data_set_name)
+        except:
+            pass
 
         # Grab optional arguments
         init_args = {"feedback": self.feedback, "variant": self.variant}

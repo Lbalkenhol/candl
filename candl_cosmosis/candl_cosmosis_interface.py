@@ -24,12 +24,15 @@ class CandlCosmoSISLikelihood:
         """
 
         # Read requested data set from ini and grab a name under which the logl value will be recorded
+        # Grab the correct data set
         data_set_str = options.get_string("data_set", default="")
-        if data_set_str[:11] == "candl_data.":
-            # This looks like a short-cut to a pre-installed data set, e.g. "candl_data.SPT3G_2018_Lens"
-            self.data_set_file = eval(data_set_str)
-            self.name = "candl." + data_set_str.split(".")[-1]
-        else:
+        try:
+            # Check whether a short cut from a library of the style module.data_set_name is being passed
+            module_name, data_set_name = data_set_str.split(".")
+            data_module = importlib.import_module(module_name)
+            self.data_set_file = getattr(data_module, data_set_name)
+            self.name = data_set_str
+        except:
             # Assume this to be a path pointing directly to a data set .yaml file
             self.data_set_file = data_set_str
             self.name = "candl." + self.data_set_file.split("/")[-1][:-5]
