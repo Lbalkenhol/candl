@@ -75,10 +75,10 @@ However, if JAX is installed, the likelihood is fully differentiable thanks to a
 Packages and Versions
 ---------------------------
 
-candl has been built on python 3.10.
-You may be able to get it running on 3.9, but this is not officially supported - run it at your own risk.
+candl has been built on python ``3.10``.
+You may be able to get it running on ``3.9``, but this is not officially supported - run it at your own risk.
 
-candl has been tested on JAX versions 0.4.31 and 0.4.24.
+candl has been tested on JAX versions ``0.5.1``, ``0.4.31``, and ``0.4.24``.
 
 Documentation
 --------------
