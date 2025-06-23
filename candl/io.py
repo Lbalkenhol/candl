@@ -501,8 +501,9 @@ def like_init_output(like):
     if len(like.priors) == 0:
         prior_str = f"No priors will be added to the likelihood.\n"
     else:
-        prior_str = f"A total of {len(like.priors)} Gaussian priors will be added to the likelihood.\n"
-        prior_str += f"The priors affect the following parameters:\n"
+        prior_str = f"By default, a total of {len(like.priors)} Gaussian priors will be added to the likelihood.\n"
+        prior_str += "If you are loading the likelihood in sampler wrapper the default priors below will overwritten or replaced according to your selection after initialisation.\n"
+        prior_str += f"The default priors affect the following parameters:\n"
 
     write_msg(prior_str)
     for i, prior in enumerate(like.priors):
