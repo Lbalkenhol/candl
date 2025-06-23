@@ -8,33 +8,11 @@ import candl
 import numpy as np
 from copy import deepcopy
 import sigfig
-
-try:
-    import candl_data
-except:
-    print(
-        "Failed to import candl_data, some tests may not find their respective likelihoods."
-    )
+import importlib
 
 # --------------------------------------#
 # TEST FUNCTIONS
 # --------------------------------------#
-
-
-def run_all_tests():
-    """
-    Runs all tests in the candl/tests directory.
-    See run_test() for details.
-    """
-
-    # Grab all test yaml files
-    all_test_yaml_files = [
-        f for f in listdir(f"{candl.__path__[0]}/tests/") if f.endswith(".yaml")
-    ]
-
-    # Loop over all tests
-    for test_file in all_test_yaml_files:
-        run_test(f"{candl.__path__[0]}/tests/{test_file}")
 
 
 def run_test(test_file):
@@ -62,8 +40,13 @@ def run_test(test_file):
     # Initialise likelihood
     try:
         data_set_str = test_dict["data_set_file"]
-        if not ".yaml" in data_set_str:
-            data_set_str = eval(data_set_str)
+        try:
+            # Check whether a short cut from a library of the style module.data_set_name is being passed
+            module_name, data_set_name = data_set_str.split(".")
+            data_module = importlib.import_module(module_name)
+            data_set_str = getattr(data_module, data_set_name)
+        except:
+            pass
         if test_dict["lensing"]:
             candl_like = candl.LensLike(data_set_str, feedback=False)
         else:
@@ -75,7 +58,18 @@ def run_test(test_file):
         return
 
     # Load test spectrum, juggle into dictionary, grab test parameter values
-    test_spec = np.loadtxt(f"{candl.__path__[0]}/{test_dict['test_spectrum']}")
+    try:
+        try:
+            test_spec = np.loadtxt(
+                "/".join(test_file.split("/")[:-1]) + f"/{test_dict['test_spectrum']}"
+            )
+        except:
+            test_spec = np.loadtxt(test_dict["test_spectrum"])
+    except:
+        print(
+            f"!!! -> Failed to load test spectrum for {test_file} pointing to {test_dict['test_spectrum']}"
+        )
+        return
     pars_for_like = deepcopy(test_dict["param_values"])
     pars_for_like["Dl"] = {}
     test_spec_save_order = ["ell", "TT", "TE", "EE", "BB", "pp", "kk"]

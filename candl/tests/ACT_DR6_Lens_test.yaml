@@ -1,5 +1,0 @@
-data_set_file: "candl_data.ACT_DR6_Lens_only"
-lensing: True
-test_spectrum: "tests/ACT_DR6_Lens_test_spec.txt"
-param_values: {}
-test_logl: -7.028457181071917

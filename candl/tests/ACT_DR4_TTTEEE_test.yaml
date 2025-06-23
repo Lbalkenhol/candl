@@ -1,5 +1,0 @@
-data_set_file: "candl_data.ACT_DR4_TTTEEE"
-lensing: False
-test_spectrum: "tests/ACT_DR4_TTTEEE_test_spec.txt"
-param_values: {"yp": 1.003}
-test_chisq: 288.252869629064

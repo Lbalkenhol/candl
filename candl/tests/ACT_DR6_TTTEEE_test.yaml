@@ -1,5 +1,0 @@
-data_set_file: "candl_data.ACT_DR6_TTTEEE"
-lensing: False
-test_spectrum: "tests/ACT_DR6_TTTEEE_test_spec.txt"
-param_values: {"A_act": 1.01, "P_act": 0.95}
-test_chisq: 695.5870410399649
