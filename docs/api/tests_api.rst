@@ -19,5 +19,3 @@ Instead of ``test_chisq``, you can also supply ``test_logl``, which will test th
 A test is considered to pass if the returned chi-squared or log-likelihood value is within 0.1% of the expected value.
 
 .. autofunction:: candl.tests.run_test
-
-.. autofunction:: candl.tests.run_all_tests

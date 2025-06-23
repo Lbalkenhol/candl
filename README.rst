@@ -35,12 +35,7 @@ candl can be installed with pip::
 
     pip install candl-like
 
-After installation, we recommend testing by executing the following python code::
-
-    import candl.tests
-    candl.tests.run_all_tests()
-
-This well test all data sets included in candl.
+or alternatively you can clone and ``pip install -e .`` this repository.
 
 Data Sets
 ------------
