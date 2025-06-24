@@ -1,12 +1,15 @@
 try:
-    from candl.lib import *
+    from candl.lib import jnp, jax_optional_set_element
     import candl
+    import candl_data
 except ImportError:
-    raise RuntimeError("Can not find candl. Try running: pip install candl-like=1.*")
+    raise RuntimeError(
+        'Cannot import candl. Try running: pip install "candl-like=2.*" '
+        "git+https://github.com/Lbalkenhol/candl_data.git"
+    )
 
 from cosmosis.datablock import names, SectionOptions
 import numpy as np
-import os
 import importlib
 
 
@@ -37,9 +40,11 @@ class CandlCosmoSISLikelihood:
         self.clear_1d_internal_priors = options.get_bool(
             "clear_1d_internal_priors", default=True
         )
+
+        # CosmoSIS only has 1d priors implemented
         self.clear_nd_internal_priors = options.get_bool(
             "clear_nd_internal_priors", default=False
-        )  # CosmoSIS only has 1d priors implemented
+        )
         self.feedback = options.get_bool("feedback", default=True)
 
         # Optional entries
@@ -81,8 +86,14 @@ class CandlCosmoSISLikelihood:
                     self.data_set_file,
                     **init_args,
                 )
-        except:
-            raise Exception("candl: likelihood could not be initialised!")
+        except FileNotFoundError as e:
+            print("\nValid candl data set names:")
+            candl_data.print_all_shortcuts()
+            print("\n")
+            msg = f"Data set file {self.data_set_file} not found. Valid shortcuts printed above."
+            raise FileNotFoundError(msg) from e
+        except Exception as e:
+            raise Exception("candl: likelihood could not be initialised!") from e
 
         # By default clear internal priors and assume these are taken care off by CosmoSIS
         keep_prior_ix = []
@@ -186,9 +197,17 @@ class CandlCosmoSISLikelihood:
         return model_dict
 
     def likelihood(self, block):
-        """Computes loglike"""
-        logl = self.candl_like.log_like(self.reformat(block))
-        return float(logl)
+        """
+        Computes the log-likelihood.
+
+        Also returns the theory and data vector for the likelihood.
+        This is useful for post-processing and plotting.
+        """
+        model_dict = self.reformat(block)
+        theory = self.candl_like.get_model_specs(model_dict)
+        data = self.candl_like._data_bandpowers
+        logl = self.candl_like.log_like(model_dict)
+        return float(logl), np.array(theory), np.array(data)
 
 
 def setup(options):
@@ -197,6 +216,8 @@ def setup(options):
 
 
 def execute(block, config):
-    like = config.likelihood(block)
-    block[names.likelihoods, "%s_like" % config.name] = like
+    like, theory, data = config.likelihood(block)
+    block[names.likelihoods, f"{config.name}_like"] = like
+    block[names.data_vector, f"{config.name}_theory"] = theory
+    block[names.data_vector, f"{config.name}_data"] = data
     return 0
