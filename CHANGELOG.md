@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.0.3 (2025-06-25)
+
+Small tweaks preparing for SPT release.
+
 ## v2.0.2 (2025-06-05)
 
 Removed more occurences of deprecated candl.data.
