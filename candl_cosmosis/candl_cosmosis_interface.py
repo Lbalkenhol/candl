@@ -204,9 +204,8 @@ class CandlCosmoSISLikelihood:
         This is useful for post-processing and plotting.
         """
         model_dict = self.reformat(block)
-        theory = self.candl_like.get_model_specs(model_dict)
         data = self.candl_like._data_bandpowers
-        logl = self.candl_like.log_like(model_dict)
+        logl, theory = self.candl_like.log_like(model_dict, return_binned_theory=True)
         return float(logl), np.array(theory), np.array(data)
 
 

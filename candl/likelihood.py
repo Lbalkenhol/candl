@@ -347,8 +347,8 @@ class Like:
         # Output info on initialisation
         candl.io.like_init_output(self)
 
-    @partial(jit, static_argnums=(0,))
-    def log_like(self, params):
+    @partial(jit, static_argnums=(0,), static_argnames=("return_binned_theory",))
+    def log_like(self, params, return_binned_theory=False):
         """
         Returns the negative log likelihood for a given set of theory Dls and nuisance parameter values.
 
@@ -374,6 +374,9 @@ class Like:
 
         # Apply priors
         prior_logl = self.prior_logl(params)
+
+        if return_binned_theory:
+            return -(logl + prior_logl), binned_theory_Dls
 
         return -(logl + prior_logl)
 
