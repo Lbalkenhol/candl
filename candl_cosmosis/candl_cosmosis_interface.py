@@ -1,11 +1,9 @@
 try:
     from candl.lib import jnp, jax_optional_set_element
     import candl
-    import candl_data
 except ImportError:
     raise RuntimeError(
         'Cannot import candl. Try running: pip install "candl-like=2.*" '
-        "git+https://github.com/Lbalkenhol/candl_data.git"
     )
 
 from cosmosis.datablock import names, SectionOptions
@@ -87,10 +85,7 @@ class CandlCosmoSISLikelihood:
                     **init_args,
                 )
         except FileNotFoundError as e:
-            print("\nValid candl data set names:")
-            candl_data.print_all_shortcuts()
-            print("\n")
-            msg = f"Data set file {self.data_set_file} not found. Valid shortcuts printed above."
+            msg = f"Data set file {self.data_set_file} not found."
             raise FileNotFoundError(msg) from e
         except Exception as e:
             raise Exception("candl: likelihood could not be initialised!") from e
