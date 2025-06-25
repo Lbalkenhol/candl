@@ -58,7 +58,7 @@ Together these provide access to the following data:
 
    * - SPT-3G D1 T&E
      - `spt_candl_data <https://github.com/lbalkenhol/candl_data>`__
-     - `Camphuis et al. 2025 <REPLACE LINK>`__
+     - `Camphuis et al. 2025 <https://pole.uchicago.edu/public/Home.html>`__
 
    * - Planck 2018 likelihoods
      - `clipy <https://github.com/benabed/clipy>`__
