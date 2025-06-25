@@ -57,7 +57,7 @@ Together these provide access to the following data:
      - Papers
 
    * - SPT-3G D1 T&E
-     - `spt_candl_data <https://github.com/lbalkenhol/candl_data>`__
+     - `spt_candl_data <https://github.com/SouthPoleTelescope/spt_candl_data>`__
      - `Camphuis et al. 2025 <https://pole.uchicago.edu/public/Home.html>`__
 
    * - Planck 2018 likelihoods
