@@ -60,6 +60,8 @@ Together these provide access to the following data:
      - `spt_candl_data <https://github.com/SouthPoleTelescope/spt_candl_data>`__
      - `Camphuis et al. 2025 <https://pole.uchicago.edu/public/Home.html>`__
 
+       Quan et al. 2025 (in prep.)
+
    * - Planck 2018 likelihoods
      - `clipy <https://github.com/benabed/clipy>`__
      - `Planck 2018 V <https://arxiv.org/abs/1907.12875>`__
