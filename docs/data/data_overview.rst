@@ -22,8 +22,7 @@ SPT-3G D1 T&E
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :Paper(s):
-   | E. Camphuis, W. Quan, L. Balkenhol, A. R. Khalife, F. Ge, F. Guidi, N. Huang, G. P. Lynch, Y. Omori, C. Trendafilova et al. 2025 (SPT-3G Collaboration)
-   Paper available on the `SPT website <https://pole.uchicago.edu/public/Home.html>`_.
+   | E. Camphuis, W. Quan, L. Balkenhol, A. R. Khalife, F. Ge, F. Guidi, N. Huang, G. P. Lynch, Y. Omori, C. Trendafilova et al. 2025 (SPT-3G Collaboration, paper available on the `SPT website <https://pole.uchicago.edu/public/Home.html>`_)
    | W. Quan et al. (SPT-3G Collaboration), in prep.
 
 :Type:

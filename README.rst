@@ -42,7 +42,7 @@ Data Sets
 
 candl data sets are kept separately from the code. There currently exist three online libraries with compatible data:
 
-* `spt_candl_data <https://github.com/lbalkenhol/candl_data>`__: official repository of the South Pole Telescope collaboration.
+* `spt_candl_data <https://github.com/SouthPoleTelescope/spt_candl_data>`__: official repository of the South Pole Telescope collaboration.
 * `candl_data <https://github.com/lbalkenhol/candl_data>`__: repository of CMB data sets re-implemented in candl.
 * `clipy <https://github.com/benabed/clipy>`__: 2018 Planck likelihoods available through a wrapper with the python, JAX-friendly clipy implementation.
 
