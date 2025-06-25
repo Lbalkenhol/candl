@@ -46,6 +46,13 @@ It covers in three parts:
 
 You can run this tutorial locally or on `google colab <https://github.com/Lbalkenhol/candl/blob/main/notebooks/SPT_ACT_summer_school_2024/SPT_ACT_summer_school_2024_candl_colab.ipynb>`_.
 
+``SPT3G_D1_TnE_tutorial.ipynb``
+--------------------------------------------
+
+`This notebook <https://github.com/SouthPoleTelescope/spt_candl_data/blob/main/tutorial_notebooks/SPT3G_D1_TnE_tutorial.ipynb>`_ from the SPT-3G collaboration shows how to interact with the SPT-3G D1 T&E data using candl in two parts.
+The first part shows you how to initialize the multifrequency likelihood, evaluate it, visualize the data, and helps you understand the data model.
+The second part uses the `SPTlite` likelihood and leverages the differentiability of `candl`. This part shows how to translate biases from the band-power level to the parameter-level and how to perform gradient-based minimization and sampling.
+
 ``CMBlite_using_autodiff.ipynb``
 --------------------------------------------
 

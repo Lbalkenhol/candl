@@ -1,27 +1,61 @@
 Data Sets
 =================================================
 
-Data sets for candl need to be installed via the :code:`candl_data` `repository <https://github.com/Lbalkenhol/candl_data>`__.
-Simply clone the repo to get the data and run :code:`pip install .` to install the shortcuts.
-More details can be found in the :code:`candl_data` `readme <https://github.com/Lbalkenhol/candl_data>`__.
-You can still use candl without the data repo on your own or third-party likelihoods.
-
-The following data sets are available in :code:`candl_data` and can be accessed via handy short cuts, provided you :code:`import candl_data` (see below).
-For data sets that have multiple variants (for the moment lensing data sets), you can either point to the specific data set you want or you can point to the (more generally named) index file and add ``variant = <your_desired_variant>`` during initialisation.
-You can also use :func:`candl_data.print_all_shortcuts` to list all available shortcuts.
-New data sets will be uploaded as they become available.
+Data sets for candl are kept separately from the code.
+There currently exist three library repositories with compatible data and you can find detailed information on them below.
+You can still use candl without any data library for the different tools supplied or to create your own likelihoods.
 
 .. warning::
 
-    For versions of candl prior to :code:`v2.0.0`, data came directly with the pip installation.
-    This is no longer the case (due to the growing size of amazing CMB data sets we have!) and the data need to be installed separately of the code.
-    To do so, check out the :code:`candl_data` `repository <https://github.com/Lbalkenhol/candl_data>`__.
+    For versions :code:`v1.*` of candl data came directly with the pip installation.
+    This is no longer the case (due to the growing size of amazing CMB data we have!) and the data need to be installed separately of the code.
 
-
-Default Data Sets
+``spt_candl_data``
 -------------------------------------------------
 
-The following data sets are available in the :code:`candl_data` repository.
+`Official repository <https://github.com/SouthPoleTelescope/spt_candl_data>`__ of the South Pole Telescope collaboration featuring the latest SPT-3G data.
+Simply clone the repo to get the data and run :code:`pip install .` inside the folder to install.
+You can use :code:`spt_candl_data.print_all_shortcuts` to list all available shortcuts to data sets.
+More details can be found in the :code:`spt_candl_data` `readme <https://github.com/SouthPoleTelescope/spt_candl_data>`__.
+
+SPT-3G D1 T&E
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:Paper(s):
+   | E. Camphuis, W. Quan, L. Balkenhol, A. R. Khalife, F. Ge, F. Guidi, N. Huang, G. P. Lynch, Y. Omori, C. Trendafilova et al. 2025 (SPT-3G Collaboration)
+   Paper available on the `SPT website <https://pole.uchicago.edu/public/Home.html>`_.
+   | W. Quan et al. (SPT-3G Collaboration), in prep.
+
+:Type:
+   Primary power spectrum measurement (:math:`TT/TE/EE`)
+
+:Website:
+   `SPT Website <https://pole.uchicago.edu/public/data/camphuis25/>`__
+
+:LAMBDA:
+   To come.
+
+:Short cut(s):
+   ````
+   | ``spt_candl_data.SPT3G_D1_TnE`` (index file),
+   | ``spt_candl_data.SPT3G_D1_TnE_multifreq`` (or ``variant = 'multifreq'``),
+   | ``spt_candl_data.SPT3G_D1_TnE_lite`` (or ``variant = 'lite'``)
+
+:Latest version:
+   ``v0``
+
+.. tip::
+
+    For this likelihood, please use dedicated variants if you are only fitting a subset of the data (e.g. only EE spectra or only 90GHz) and only use the candl functionality :code:`data_selection` for multipole cuts. See all available variants via :code:`spt_candl_data.print_all_shortcuts()`.
+
+
+``candl_data``
+-------------------------------------------------
+
+The data below are made available through the :code:`candl_data` `repository <https://github.com/Lbalkenhol/candl_data>`__.
+Simply clone the repo to get the data and run :code:`pip install .` inside the folder to install.
+You can use :func:`candl_data.print_all_shortcuts` to list all available shortcuts to data sets.
+More details can be found in the :code:`candl_data` `readme <https://github.com/Lbalkenhol/candl_data>`__.
 
 SPT-3G 2018 TT/TE/EE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -37,7 +71,7 @@ SPT-3G 2018 TT/TE/EE
    Primary power spectrum measurement (:math:`TT/TE/EE`)
 
 :Website:
-   `SPT-3G Website <https://pole.uchicago.edu/public/data/balkenhol22/>`__
+   `SPT Website <https://pole.uchicago.edu/public/data/balkenhol22/>`__
 
 :LAMBDA:
    `NASA Archive <https://lambda.gsfc.nasa.gov/product/spt/spt3g_likelihood_v2_get.html>`__
@@ -185,9 +219,9 @@ Use ``candl_data.ACT_DR6_Lens`` with ``variant = 'lens_only'`` or ``candl_data.A
 
 
 Planck
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------------
 
-candl comes with ``clipy``, a pure Python implementation of the Planck likelihoods.
+candl comes with ``clipy``, a pure Python implementation of the 2018 Planck likelihoods.
 See the `clipy website <https://github.com/benabed/clipy>`_ to see which specific likelihoods supported and be sure to download the respective data files from the `Planck Legacy Archive <https://pla.esac.esa.int/pla>`_.
 
 The Planck likelihoods are not implemented as native candl likelihoods, but as wrappers.
@@ -195,7 +229,7 @@ While they are differentiable and work with a lot of the candl tools and interfa
 See the :ref:`clipy x candl tutorial<Tutorials>` for a demonstration of what's possible.
 
 
-Adding Data Sets
+Adding Your Own Data Sets
 -------------------------------------------------
 
 If you wish to install data sets separately from the code, please download the desired folders individually from the GitHub repo.

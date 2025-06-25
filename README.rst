@@ -35,27 +35,78 @@ candl can be installed with pip::
 
     pip install candl-like
 
-or alternatively you can clone and ``pip install -e .`` this repository.
+or alternatively you can clone and ``pip install .`` this repository.
 
 Data Sets
 ------------
 
-candl data sets are kept in the `candl_data <https://github.com/lbalkenhol/candl_data>`__ repository. Detailed installation instructions for the data can be found on the dedicated repo page, but in short, you navigate to where you would like to store the data and then run::
+candl data sets are kept separately from the code. There currently exist three online libraries with compatible data:
+
+* `spt_candl_data <https://github.com/lbalkenhol/candl_data>`__: official repository of the South Pole Telescope collaboration.
+* `candl_data <https://github.com/lbalkenhol/candl_data>`__: repository of CMB data sets re-implemented in candl.
+* `clipy <https://github.com/benabed/clipy>`__: 2018 Planck likelihoods available through a wrapper with the python, JAX-friendly clipy implementation.
+
+Together these provide access to the following data:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 20
+
+   * - Data set
+     - Library
+     - Papers
+
+   * - SPT-3G D1 T&E
+     - `spt_candl_data <https://github.com/lbalkenhol/candl_data>`__
+     - `Camphuis et al. 2025 <REPLACE LINK>`__
+
+   * - Planck 2018 likelihoods
+     - `clipy <https://github.com/benabed/clipy>`__
+     - `Planck 2018 V <https://arxiv.org/abs/1907.12875>`__
+
+   * - SPT-3G 2018 TT/TE/EE
+     - `candl_data <https://github.com/lbalkenhol/candl_data>`__
+     - | `Balkenhol et al. 2023 <https://arxiv.org/abs/2212.05642>`__
+
+       `Dutcher et al. 2021 <https://arxiv.org/abs/2101.01684>`__
+
+   * - SPT-3G 2018 :math:`\phi\phi`
+     - `candl_data <https://github.com/lbalkenhol/candl_data>`__
+     - `Pan et al. 2023 <https://arxiv.org/abs/2308.11608>`__
+
+   * - ACT DR6 TT/TE/EE
+     - `candl_data <https://github.com/lbalkenhol/candl_data>`__
+     - | `Naess et al. 2025 <https://arxiv.org/abs/2503.14451>`__
+       
+       `Louis et al. 2025 <https://arxiv.org/abs/2503.14452>`__
+       
+       `Calabrese et al. 2025 <https://arxiv.org/abs/2503.14454>`__
+
+   * - ACT DR6 :math:`\phi\phi`
+     - `candl_data <https://github.com/lbalkenhol/candl_data>`__
+     - | `Madhavacheril et al. 2023 <https://arxiv.org/abs/2304.05203>`__
+       
+       `Qu et al. 2023 <https://arxiv.org/abs/2304.05202>`__
+
+   * - ACT DR4 TT/TE/EE
+     - `candl_data <https://github.com/lbalkenhol/candl_data>`__ 
+     - | `Aiola et al. 2020 <https://arxiv.org/abs/2007.07288>`__
+       
+       `Choi et al. 2020 <https://arxiv.org/abs/2007.07289>`__
+
+Detailed, installation instructions for the data sets can be found on the dedicated repo pages, but in short, for the ``spt_candl_data`` and the ``candl_data`` libraries you navigate to where you would like to store the data and then run::
+
+    git clone https://github.com/SouthPoleTelescope/spt_candl_data.git
+    cd spt_candl_data
+    pip install .
+
+or::
 
     git clone https://github.com/Lbalkenhol/candl_data.git
     cd candl_data
     pip install .
 
-The following data sets are available:
-
-* SPT-3G 2018 TT/TE/EE (`Balkenhol et al. 2023 <https://arxiv.org/abs/2212.05642>`__)
-* SPT-3G 2018 Lensing (`Pan et al. 2023 <https://arxiv.org/abs/2308.11608>`__)
-* ACT DR6 TT/TE/EE (`Naess et al. 2025 <https://arxiv.org/abs/2503.14451>`__, `Louis et al. 2025 <https://arxiv.org/abs/2503.14452>`__, `Calabrese et al. 2025 <https://arxiv.org/abs/2503.14454>`__)
-* ACT DR4 TT/TE/EE (`Aiola et al. 2020 <https://arxiv.org/abs/2007.07288>`__, `Choi et al. 2020 <https://arxiv.org/abs/2007.07289>`__)
-* ACT DR6 Lensing (`Madhavacheril et al. 2023 <https://arxiv.org/abs/2304.05203>`__, `Qu et al. 2023 <https://arxiv.org/abs/2304.05202>`__)
-* Planck likelihoods available through `clipy <https://github.com/benabed/clipy>`__
-
-Detailed information on these data sets and instructions on how you can add your own can be found `in the docs <https://candl.readthedocs.io/en/latest/data/data_overview.html>`__.
+Instructions on how you can add your own data sets can be found `in the docs <https://candl.readthedocs.io/en/latest/data/data_overview.html>`__.
 
 JAX
 ---

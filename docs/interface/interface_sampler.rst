@@ -1,7 +1,7 @@
 Samplers and Minimisers
 =================================================
 
-We provide tools to interface the likelihood with the two most commonly used MCMC samplers in cosmology: `Cobaya <https://github.com/CobayaSampler/cobaya>`_, `MontePython <https://baudren.github.io/montepython.html>`_, and `CosmoSIS <https://cosmosis.readthedocs.io/en/latest/index.html>`_.
+We provide tools to interface the likelihood with the most commonly used MCMC samplers in cosmology: `Cobaya <https://github.com/CobayaSampler/cobaya>`_, `MontePython <https://baudren.github.io/montepython.html>`_, and `CosmoSIS <https://cosmosis.readthedocs.io/en/latest/index.html>`_.
 Moreover, we show how the likelihood can be interfaced with tools that explicitly exploit its differentiability: `BlackJAX <https://github.com/blackjax-devs/blackjax>`_ and `Optax <https://github.com/google-deepmind/optax>`_.
 
 .. warning::

@@ -499,15 +499,12 @@ def like_init_output(like):
 
     # Priors
     if len(like.priors) == 0:
-        prior_str = f"No priors will be added to the likelihood.\n"
+        prior_str = f"No priors will be added to the likelihood in candl internally.\n"
     else:
-        prior_str = f"By default, a total of {len(like.priors)} Gaussian priors will be added to the likelihood.\n"
-        prior_str += "If you are loading the likelihood in sampler wrapper the default priors below will overwritten or replaced according to your selection after initialisation.\n"
-        prior_str += f"The default priors affect the following parameters:\n"
+        prior_str = f"By default, a total of {len(like.priors)} Gaussian priors will be added to the likelihood in candl internally.\n"
+        prior_str += "If you are loading the likelihood in sampler wrapper these default priors below will overwritten or replaced according to your selection after initialisation."
 
     write_msg(prior_str)
-    for i, prior in enumerate(like.priors):
-        write_msg(", ".join(prior.par_names))
     write_msg(line_width * "-")
 
     return

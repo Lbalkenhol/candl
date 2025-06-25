@@ -1083,11 +1083,11 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
             raise Exception("candl: likelihood could not be initialised!")
 
         # by default clear internal priors and assume these are taken care off by Cobaya
+        line_width = 80
         if self.clear_internal_priors:
-            print(
-                "candl: clearing internal priors (everything listed during initialisation)."
-            )
+            print("candl: clearing all internal priors.")
             self.candl_like.priors = []
+            print(line_width * "-")
         else:
             if len(self.clear_specific_priors) > 0:
                 if isinstance(self.clear_specific_priors, str):
@@ -1100,9 +1100,15 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
                         else:
                             new_priors.append(prior)
                 self.candl_like.priors = new_priors
-                print(
-                    f"candl: narrowed internal priors to {len(new_priors)} selected ones."
-                )
+
+        # Feedback on priors
+        if len(self.candl_like.priors) > 0:
+            print(
+                f"candl: internal priors will be applied on the following parameters:"
+            )
+            for i, prior in enumerate(self.candl_like.priors):
+                print(", ".join(prior.par_names))
+            print(line_width * "-")
 
     def get_requirements(self):
         """Return dictionary of parameters that are needed"""
