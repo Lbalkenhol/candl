@@ -72,6 +72,10 @@ class CandlCosmoSISLikelihood:
                 self.force_ignore_transformations
             )
 
+        self.likelihood_only = options.get_bool(
+            "likelihood_only", default=False
+        )
+
         # Initialise the likelihood
         try:
             if self.lensing:
@@ -199,9 +203,35 @@ class CandlCosmoSISLikelihood:
         This is useful for post-processing and plotting.
         """
         model_dict = self.reformat(block)
+
+        # If we only want the likelihood then we can skip
+        # separately getting the model spectra and data vector.
+        # This is slightly faster in some cases.
+        if self.likelihood_only:
+            return self.candl_like.log_like(model_dict)
+
+        # Get model spectra also.
+        modified_theory_Dls = self.get_model_specs(model_dict)
+        binned_theory_Dls = self.bin_model_specs(modified_theory_Dls)
+        logl = self.candl_like.log_like(model_dict)
+        # And the data vector
         data = self.candl_like._data_bandpowers
-        logl, theory = self.candl_like.log_like(model_dict, return_binned_theory=True)
-        return float(logl), np.array(theory), np.array(data)
+
+        return float(logl), np.array(binned_theory_Dls), np.array(data)
+
+    def execute(self, block):
+        """
+        Execute the likelihood and store the results in the block.
+        """
+        if self.likelihood_only:
+            like = self.likelihood(block)
+            block[names.likelihoods, f"{self.name}_like"] = like
+        else:
+            like, theory, data = self.likelihood(block)
+            block[names.likelihoods, f"{self.name}_like"] = like
+            block[names.data_vector, f"{self.name}_theory"] = theory
+            block[names.data_vector, f"{self.name}_data"] = data
+        return 0
 
 
 def setup(options):
@@ -210,8 +240,4 @@ def setup(options):
 
 
 def execute(block, config):
-    like, theory, data = config.likelihood(block)
-    block[names.likelihoods, f"{config.name}_like"] = like
-    block[names.data_vector, f"{config.name}_theory"] = theory
-    block[names.data_vector, f"{config.name}_data"] = data
-    return 0
+    return config.execute(block)
