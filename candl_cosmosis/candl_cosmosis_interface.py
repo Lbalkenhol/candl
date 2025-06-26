@@ -109,7 +109,6 @@ class CandlCosmoSISLikelihood:
             ):
                 keep_prior_ix.append(i)
         self.candl_like.priors = [self.candl_like.priors[i] for i in keep_prior_ix]
-        print(self.candl_like.required_nuisance_parameters)
 
     def reformat(self, block):
         """
