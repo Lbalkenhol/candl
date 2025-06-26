@@ -15,6 +15,7 @@ class CandlCosmoSISLikelihood:
     """
     A thin wrapper to use candl likelihoods in CosmoSIS.
     """
+    nuisance_section = "candl_nuisance_parameters"
 
     def __init__(self, options):
         """
@@ -108,6 +109,7 @@ class CandlCosmoSISLikelihood:
             ):
                 keep_prior_ix.append(i)
         self.candl_like.priors = [self.candl_like.priors[i] for i in keep_prior_ix]
+        print(self.candl_like.required_nuisance_parameters)
 
     def reformat(self, block):
         """
@@ -134,7 +136,7 @@ class CandlCosmoSISLikelihood:
         nuisance_par_names = [
             param_name
             for param_sec, param_name in block.keys()
-            if param_sec == "nuisance_parameters"
+            if param_sec == self.nuisance_section
         ]
 
         # Match any nuisance parameters in candl and restore right cases
@@ -147,9 +149,13 @@ class CandlCosmoSISLikelihood:
                     like_nuisance_pars_lowered.index(par)
                 ]
 
+        for par in self.candl_like.required_nuisance_parameters:
+            if par not in nuisance_par_names:
+                raise ValueError(f"Required nuisance parameter {par} not specified.")
+
         for par in nuisance_par_names:
             model_dict[par] = block[
-                ("nuisance_parameters", par)
+                (self.nuisance_section, par)
             ]  # CosmoSIS doesn't care about cases, so putting them in is easy
 
         # Read in Cls from CosmoSIS and save them in dict.
@@ -201,6 +207,8 @@ class CandlCosmoSISLikelihood:
 
         Also returns the theory and data vector for the likelihood.
         This is useful for post-processing and plotting.
+        This can be switched off for speed by setting
+        `likelihood_only` to True in the options.
         """
         model_dict = self.reformat(block)
 
@@ -211,13 +219,19 @@ class CandlCosmoSISLikelihood:
             return self.candl_like.log_like(model_dict)
 
         # Get model spectra also.
-        modified_theory_Dls = self.get_model_specs(model_dict)
-        binned_theory_Dls = self.bin_model_specs(modified_theory_Dls)
         logl = self.candl_like.log_like(model_dict)
+
+        # In candl the LensLike class get_model_specs method
+        # returns theory values already binned into bandpowers.
+        # The Like class does not do this, so we need to.
+        theory = self.candl_like.get_model_specs(model_dict)
+        if not self.lensing:
+            theory = self.candl_like.bin_model_specs(theory)
+
         # And the data vector
         data = self.candl_like._data_bandpowers
 
-        return float(logl), np.array(binned_theory_Dls), np.array(data)
+        return float(logl), np.array(theory), np.array(data)
 
     def execute(self, block):
         """
