@@ -1,12 +1,13 @@
 try:
-    from candl.lib import *
+    from candl.lib import jnp, jax_optional_set_element
     import candl
 except ImportError:
-    raise RuntimeError("Can not find candl. Try running: pip install candl-like=1.*")
+    raise RuntimeError(
+        'Cannot import candl. Try running: pip install "candl-like=2.*" '
+    )
 
 from cosmosis.datablock import names, SectionOptions
 import numpy as np
-import os
 import importlib
 
 
@@ -14,6 +15,7 @@ class CandlCosmoSISLikelihood:
     """
     A thin wrapper to use candl likelihoods in CosmoSIS.
     """
+    nuisance_section = "candl_nuisance_parameters"
 
     def __init__(self, options):
         """
@@ -37,9 +39,11 @@ class CandlCosmoSISLikelihood:
         self.clear_1d_internal_priors = options.get_bool(
             "clear_1d_internal_priors", default=True
         )
+
+        # CosmoSIS only has 1d priors implemented
         self.clear_nd_internal_priors = options.get_bool(
             "clear_nd_internal_priors", default=False
-        )  # CosmoSIS only has 1d priors implemented
+        )
         self.feedback = options.get_bool("feedback", default=True)
 
         # Optional entries
@@ -69,6 +73,10 @@ class CandlCosmoSISLikelihood:
                 self.force_ignore_transformations
             )
 
+        self.likelihood_only = options.get_bool(
+            "likelihood_only", default=False
+        )
+
         # Initialise the likelihood
         try:
             if self.lensing:
@@ -81,8 +89,11 @@ class CandlCosmoSISLikelihood:
                     self.data_set_file,
                     **init_args,
                 )
-        except:
-            raise Exception("candl: likelihood could not be initialised!")
+        except FileNotFoundError as e:
+            msg = f"Data set file {self.data_set_file} not found."
+            raise FileNotFoundError(msg) from e
+        except Exception as e:
+            raise Exception("candl: likelihood could not be initialised!") from e
 
         # By default clear internal priors and assume these are taken care off by CosmoSIS
         keep_prior_ix = []
@@ -124,7 +135,7 @@ class CandlCosmoSISLikelihood:
         nuisance_par_names = [
             param_name
             for param_sec, param_name in block.keys()
-            if param_sec == "nuisance_parameters"
+            if param_sec == self.nuisance_section
         ]
 
         # Match any nuisance parameters in candl and restore right cases
@@ -137,9 +148,13 @@ class CandlCosmoSISLikelihood:
                     like_nuisance_pars_lowered.index(par)
                 ]
 
+        for par in self.candl_like.required_nuisance_parameters:
+            if par not in nuisance_par_names:
+                raise ValueError(f"Required nuisance parameter {par} not specified.")
+
         for par in nuisance_par_names:
             model_dict[par] = block[
-                ("nuisance_parameters", par)
+                (self.nuisance_section, par)
             ]  # CosmoSIS doesn't care about cases, so putting them in is easy
 
         # Read in Cls from CosmoSIS and save them in dict.
@@ -186,9 +201,50 @@ class CandlCosmoSISLikelihood:
         return model_dict
 
     def likelihood(self, block):
-        """Computes loglike"""
-        logl = self.candl_like.log_like(self.reformat(block))
-        return float(logl)
+        """
+        Computes the log-likelihood.
+
+        Also returns the theory and data vector for the likelihood.
+        This is useful for post-processing and plotting.
+        This can be switched off for speed by setting
+        `likelihood_only` to True in the options.
+        """
+        model_dict = self.reformat(block)
+
+        # If we only want the likelihood then we can skip
+        # separately getting the model spectra and data vector.
+        # This is slightly faster in some cases.
+        if self.likelihood_only:
+            return self.candl_like.log_like(model_dict)
+
+        # Get model spectra also.
+        logl = self.candl_like.log_like(model_dict)
+
+        # In candl the LensLike class get_model_specs method
+        # returns theory values already binned into bandpowers.
+        # The Like class does not do this, so we need to.
+        theory = self.candl_like.get_model_specs(model_dict)
+        if not self.lensing:
+            theory = self.candl_like.bin_model_specs(theory)
+
+        # And the data vector
+        data = self.candl_like._data_bandpowers
+
+        return float(logl), np.array(theory), np.array(data)
+
+    def execute(self, block):
+        """
+        Execute the likelihood and store the results in the block.
+        """
+        if self.likelihood_only:
+            like = self.likelihood(block)
+            block[names.likelihoods, f"{self.name}_like"] = like
+        else:
+            like, theory, data = self.likelihood(block)
+            block[names.likelihoods, f"{self.name}_like"] = like
+            block[names.data_vector, f"{self.name}_theory"] = theory
+            block[names.data_vector, f"{self.name}_data"] = data
+        return 0
 
 
 def setup(options):
@@ -197,6 +253,4 @@ def setup(options):
 
 
 def execute(block, config):
-    like = config.likelihood(block)
-    block[names.likelihoods, "%s_like" % config.name] = like
-    return 0
+    return config.execute(block)
