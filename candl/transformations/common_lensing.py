@@ -170,6 +170,8 @@ class ResponseFunctionM(candl.transformations.abstract_base.Transformation):
         Mask of which bins to use.
     operation_hint : str
         Type of the 'transform' operation: 'additive'.
+    required_spectra : dict
+        Dictionary of spectra required for the transformation (may be primary CMB!)
 
     Methods
     ---------
@@ -236,8 +238,12 @@ class ResponseFunctionM(candl.transformations.abstract_base.Transformation):
 
         # Crop down fiducial correction and M_matrices for bin selection
         self.M_matrices = {}
+        self.required_spectra = {"Dl": {}}
         for mode in list(M_matrices.keys()):
             self.M_matrices[mode] = jnp.array(M_matrices[mode][:, crop_mask])
+            self.required_spectra["Dl"][mode] = (
+                np.shape(self.M_matrices[mode])[0] + 1
+            )  # expected to start at ell=2
         self.fiducial_correction = jnp.array(fiducial_correction[crop_mask])
 
     @partial(jit, static_argnums=(0,))
@@ -429,6 +435,8 @@ class NormCorr(candl.transformations.abstract_base.Transformation):
         List of window functions to use for binning.
     operation_hint : str
         Type of the 'transform' operation: 'additive'.
+    required_spectra : dict
+        Dictionary of spectra required for the transformation (may be primary CMB!)
 
     Methods
     ---------
@@ -514,6 +522,10 @@ class NormCorr(candl.transformations.abstract_base.Transformation):
         self.template_arr_fiducial_Cl_kk = template_arr_fiducial_Cl_kk
         self.fiducial_correction = template_arr_fiducial_correction
         self.window_functions = window_functions
+
+        self.required_spectra = {
+            "Dl": {st: self.ells[-1]} for st in list(self.dAL_dC.keys())
+        }
 
     @partial(jit, static_argnums=(0,))
     def output(self, sample_params):

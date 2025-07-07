@@ -1112,26 +1112,16 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
 
     def get_requirements(self):
         """Return dictionary of parameters that are needed"""
-        # Cls
-        required_pars = {"Cl": {}}
-        for spec in self.candl_like.unique_spec_types:
+
+        required_pars = deepcopy(self.candl_like.requirements_dict)
+        required_pars["Cl"] = required_pars["Dl"]
+        del required_pars["Dl"]
+        for spec in list(required_pars["Cl"].keys()):
             if spec == "kk":
-                required_pars["Cl"][
-                    "pp"
-                ] = (
-                    self.candl_like.ell_max
-                )  # Cobaya works with pp for lensing by default rather than kk
-            else:
-                required_pars["Cl"][spec] = self.candl_like.ell_max
-
-        # Nuisance parameters
-        for par in self.candl_like.required_nuisance_parameters:
-            required_pars[par] = None
-
-        # Any additional priors
-        for par in self.candl_like.required_prior_parameters:
-            if not par in list(required_pars.keys()):
-                required_pars[par] = None
+                required_pars["Cl"]["pp"] = required_pars["Cl"][
+                    "kk"
+                ]  # Cobaya works with pp for lensing by default rather than kk
+                del required_pars["Cl"]["kk"]
 
         return required_pars
 

@@ -344,6 +344,21 @@ class Like:
                 self.required_prior_parameters.append(prior_par)
         self.required_prior_parameters = list(np.unique(self.required_prior_parameters))
 
+        # Build a dictionary and a list of all requirements (parameters and spectra)
+        # The dictionary is "Cobaya style", so a dict with keys of par names and None for scalars, a sub-dictionary with ell_max for spectra
+        self.requirements_list = list(
+            np.unique(
+                self.required_nuisance_parameters + self.required_prior_parameters
+            )
+        )
+        self.requirements_list.append(
+            {"Dl": {st: self.ell_max for st in self.spec_types}}
+        )
+        self.requirements_dict = {
+            par: None for par in self.requirements_list if isinstance(par, str)
+        }
+        self.requirements_dict["Dl"] = {st: self.ell_max for st in self.spec_types}
+
         # Output info on initialisation
         candl.io.like_init_output(self)
 
@@ -1394,6 +1409,38 @@ class LensLike:
             for prior_par in prior.par_names:
                 self.required_prior_parameters.append(prior_par)
         self.required_prior_parameters = list(np.unique(self.required_prior_parameters))
+
+        # Build a dictionary and a list of all requirements (parameters and spectra)
+        # The dictionary is "Cobaya style", so a dict with keys of par names and None for scalars, a sub-dictionary with ell_max for spectra
+        self.requirements_list = list(
+            np.unique(
+                self.required_nuisance_parameters + self.required_prior_parameters
+            )
+        )
+        required_specs = {"Dl": {st: self.ell_max for st in self.spec_types}}
+        for transformation in self.data_model:
+            if hasattr(transformation, "required_spectra"):
+                for spec in list(transformation.required_spectra["Dl"].keys()):
+                    if spec in required_specs["Dl"]:
+                        # If the spectrum is already in the dictionary, check if the ell_max is larger
+                        if (
+                            transformation.required_spectra["Dl"][spec]
+                            > required_specs["Dl"][spec]
+                        ):
+                            required_specs["Dl"][spec] = (
+                                transformation.required_spectra["Dl"][spec]
+                            )
+                    else:
+                        # If the spectrum is not in the dictionary, add it
+                        required_specs["Dl"][spec] = transformation.required_spectra[
+                            "Dl"
+                        ][spec]
+        self.requirements_list.append(required_specs)
+
+        self.requirements_dict = {
+            par: None for par in self.requirements_list if isinstance(par, str)
+        }
+        self.requirements_dict["Dl"] = required_specs["Dl"]
 
         # Assert Likelihood form
         self.data_set_dict["likelihood_form"] = "gaussian"
