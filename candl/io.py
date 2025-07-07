@@ -221,9 +221,13 @@ def read_file_from_path(full_path):
         square_dim = np.sqrt(float(len(arr)))
         if square_dim.is_integer():
             arr = arr.reshape((int(square_dim), int(square_dim)))
-    elif file_ending == "npy":
+    elif file_ending == "npy" or file_ending == "npz":
         # numpy file
-        arr = jnp.array(np.load(full_path))
+        arr = np.load(full_path)
+        try:
+            arr = jnp.array(arr)
+        except:
+            pass
     elif file_ending == "fits":
         with fits.open(full_path) as hdul:
             arr = jnp.array(hdul[1].data)

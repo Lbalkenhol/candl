@@ -172,6 +172,8 @@ class ResponseFunctionM(candl.transformations.abstract_base.Transformation):
         Type of the 'transform' operation: 'additive'.
     required_spectra : dict
         Dictionary of spectra required for the transformation (may be primary CMB!)
+    overwrite_ell_max : dict
+        Dictionary with the maximum ell for each spectrum mode (otherwise full range will be used).
 
     Methods
     ---------
@@ -211,6 +213,7 @@ class ResponseFunctionM(candl.transformations.abstract_base.Transformation):
         fiducial_correction,
         crop_mask,
         descriptor="ResponseFunctionM",
+        overwrite_ell_max={},
     ):
         """
         Initialise the ResponseFunctionM transformation.
@@ -246,6 +249,15 @@ class ResponseFunctionM(candl.transformations.abstract_base.Transformation):
             )  # expected to start at ell=2
         self.fiducial_correction = jnp.array(fiducial_correction[crop_mask])
 
+        # Check if fewer ells have been requested for some modes
+        for mode in list(overwrite_ell_max.keys()):
+            if mode not in self.required_spectra["Dl"]:
+                raise ValueError(
+                    f"Mode {mode} not found in M_matrices, but requested in ell_max."
+                )
+            if overwrite_ell_max[mode] != self.required_spectra["Dl"][mode]:
+                self.required_spectra["Dl"][mode] = overwrite_ell_max[mode]
+
     @partial(jit, static_argnums=(0,))
     def output(self, sample_params):
         """
@@ -272,8 +284,12 @@ class ResponseFunctionM(candl.transformations.abstract_base.Transformation):
         # multiply arrays according to length of theory spectra
         for mode in M_modes:
             M_correction += jnp.dot(
-                np.transpose(self.M_matrices[mode][: len(self.ells)]),
-                jnp.block(sample_params["Dl"][mode]),
+                np.transpose(
+                    self.M_matrices[mode][: self.required_spectra["Dl"][mode] - 1]
+                ),
+                jnp.block(
+                    sample_params["Dl"][mode][: self.required_spectra["Dl"][mode] - 1]
+                ),
             )
         return M_correction
 
