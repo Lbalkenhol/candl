@@ -480,7 +480,7 @@ def like_init_output(like):
     for i, spec in enumerate(like.spec_order):
         write_msg(
             "{:<12}".format(spec)
-            + f" ({like.N_bins[i]} bins, bin centres spanning ell = {sigfig.round(float(like.effective_ells[like.bins_start_ix[i]]), decimals=1)} - {sigfig.round(float(like.effective_ells[like.bins_stop_ix[i]-1]), decimals=1)})"
+            + f" ({like.N_bins[i]} bins, bin centres spanning ell = {np.around(float(like.effective_ells[like.bins_start_ix[i]]), decimals=1)} - {np.around(float(like.effective_ells[like.bins_stop_ix[i]-1]), decimals=1)})"
         )
     write_msg(line_width * "-")
 

@@ -23,15 +23,12 @@ import scipy as sp
 
 from copy import deepcopy
 
-import sigfig
 from textwrap import wrap
-from tqdm.notebook import tqdm
 
 from matplotlib.patches import Ellipse
 import matplotlib.transforms as transforms
 import matplotlib.pyplot as plt
 from matplotlib import rc
-import seaborn as sns
 
 # --------------------------------------#
 # OPTIONAL

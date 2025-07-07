@@ -7,7 +7,6 @@ import yaml
 import candl
 import numpy as np
 from copy import deepcopy
-import sigfig
 import importlib
 
 # --------------------------------------#
@@ -94,11 +93,9 @@ def run_test(test_file):
     # Print results
     if abs(rel_diff) < 1e-3:
         print(f"Test passed for {candl_like.name}:")
-        print(
-            f"  (relative difference = {sigfig.round(float(rel_diff), sigfigs = 2)})!"
-        )
+        print(f"  (relative difference = {np.around(float(rel_diff), decimals=6)})!")
     else:
         print(f"!!! -> Test failed for {candl_like.name}:")
         print(
-            f"  !!! -> (relative difference = {sigfig.round(float(rel_diff), sigfigs = 2)})!"
+            f"  !!! -> (relative difference = {np.around(float(rel_diff), decimals=6)})!"
         )

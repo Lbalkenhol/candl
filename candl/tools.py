@@ -50,6 +50,13 @@ import candl
 import candl.transformations.abstract_base
 import candl.io
 
+# Optional tqdm import (progress bars)
+try:
+    from tqdm.notebook import tqdm
+except:
+    print("candl: tqdm not installed, do not request progress bars.")
+    pass
+
 # --------------------------------------#
 # FISHER MATRIX
 # --------------------------------------#

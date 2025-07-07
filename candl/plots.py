@@ -37,6 +37,13 @@ Other:
 
 from candl.lib import *
 
+# Optional seaborn import
+try:
+    import seaborn as sns
+except:
+    print("candl: seaborn not installed, some plotting functions will not work.")
+    pass
+
 # --------------------------------------#
 # CONSTANTS AND HELPERS
 # --------------------------------------#
