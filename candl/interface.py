@@ -544,6 +544,12 @@ class CobayaTheoryBBTemplate(cobaya_theory_Theory):
 
     # I know having this be a class variable is not super elegant, but it's the easiest way to interface with Cobaya
     template_filenames: dict = {}
+    ix_in_file: dict = {
+        "ell": 0,
+        "BB": 3,
+    }  # indices in the template files (default is the CAMB output)
+    A_L_par_name: str = "A_L_BB"  # name of the lensing amplitude parameter
+    r_par_name: str = "r"  # name of the tensor-to-scalar ratio parameter
 
     def initialize(self):
         """
@@ -564,8 +570,8 @@ class CobayaTheoryBBTemplate(cobaya_theory_Theory):
         # Determine common ell range
         common_ell = np.sort(
             list(
-                set(r_template_arr[0, :]).intersection(
-                    set(lensing_B_modes_template_arr[0, :])
+                set(r_template_arr[self.ix_in_file["ell"], :]).intersection(
+                    set(lensing_B_modes_template_arr[self.ix_in_file["ell"], :])
                 )
             )
         )
@@ -578,10 +584,14 @@ class CobayaTheoryBBTemplate(cobaya_theory_Theory):
         for kw, template_arr in zip(
             ["r", "lensing_B_modes"], [r_template_arr, lensing_B_modes_template_arr]
         ):
-            low_ell_ix = list(template_arr[0, :]).index(int(smallest_common_ell))
-            high_ell_ix = list(template_arr[0, :]).index(int(largest_common_ell))
+            low_ell_ix = list(template_arr[self.ix_in_file["ell"], :]).index(
+                int(smallest_common_ell)
+            )
+            high_ell_ix = list(template_arr[self.ix_in_file["ell"], :]).index(
+                int(largest_common_ell)
+            )
             self.templates[kw] = jnp.array(
-                template_arr[3, low_ell_ix : high_ell_ix + 1]
+                template_arr[self.ix_in_file["BB"], low_ell_ix : high_ell_ix + 1]
             )
 
     def initialize_with_provider(self, provider):
@@ -597,11 +607,11 @@ class CobayaTheoryBBTemplate(cobaya_theory_Theory):
         Return dictionary of derived parameters or other quantities that are needed
         by this component and should be calculated by another theory class.
         """
-        return {"r": None, "A_L_BB": None}
+        return {self.r_par_name: None, self.A_L_par_name: None}
 
     def must_provide(self, **requirements):
         """Return dictionary of parameters that must be provided."""
-        return {"r": None, "A_L_BB": None}
+        return {self.r_par_name: None, self.A_L_par_name: None}
 
     def get_can_provide(self):
         """Return list of quantities that can be provided."""
@@ -611,8 +621,8 @@ class CobayaTheoryBBTemplate(cobaya_theory_Theory):
         """Calculate the CMB spectra. Sums the two templates with their respective amplitudes."""
         # Scale templates and return sum
         BB_spec = (
-            state["params"]["r"] * self.templates["r"]
-            + state["params"]["A_L_BB"] * self.templates["lensing_B_modes"]
+            state["params"][self.r_par_name] * self.templates["r"]
+            + state["params"][self.A_L_par_name] * self.templates["lensing_B_modes"]
         )
         state["Dl"] = {"BB": BB_spec, "ell": self.ells}
         state["Cl"] = {

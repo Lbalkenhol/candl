@@ -229,6 +229,196 @@ class PoissonPower(candl.transformations.abstract_base.Foreground):
         return Dls + self.output(sample_params)
 
 
+class RadioPoisson(candl.transformations.abstract_base.DustyForeground):
+    """
+    Adds Radio Poisson power enforcing a powerlaw SED (synchrotron dust).
+
+    Attributes
+    --------------
+    ells : array (float)
+        The ell range the transformation acts on.
+    descriptor : str
+        A short descriptor.
+    par_names : list
+        Names of parameters involved in transformation.
+    spec_order : array (str)
+        Identifiers of spectra in the order in which spectra are handled in the long data vector.
+    freq_info : list
+        List of lists, where each sublist contains the two effective frequencies for a given spectrum.
+    affected_specs : list (str)
+        List of the spectra to apply this foreground to.
+    ell_ref : int
+        Reference ell for normalisation.
+    nu_ref : float
+        Reference frequency.
+    spec_mask : array (int)
+        Masks which spectra of the long data vector are affected by the transformation.
+    full_mask : array (int)
+        Masks which elements of the long data vector are affected by the transformation.
+    N_spec : int
+        The total number of spectra in the long data vector.
+    amp_param : str
+        The name of the amplitude parameter.
+    beta_val : float
+        The value of the beta frequency scaling parameter.
+    sigmasq_val : float
+        The value of the sigmasq frequency scaling parameter.
+
+    Methods
+    ----------------
+    __init__ :
+        initialises an instance of the class.
+    output :
+        gives the additive foreground contribution.
+    transform :
+        transforms an input spectrum.
+
+    Notes
+    ----------------
+
+    User required arguments in data set yaml file:
+
+    * ell_ref (float) : Reference ell.
+    * nu_ref (float) : Reference frequency.
+    * amp_param (str) : The name of the amplitude parameter.
+    * beta_val (float) : The value of the frequency scaling parameter.
+    * sigmasq_val (float) : The value of the sigmasq frequency scaling parameter.
+    * effective_frequencies (str) : Keyword to look for in effective frequencies yaml file.
+    * affected_specs (str) : List of spectrum identifiers the transformation is applied to.
+
+    """
+
+    def __init__(
+        self,
+        ells,
+        spec_order,
+        freq_info,
+        affected_specs,
+        amp_param,
+        beta_val,
+        sigmasq_val,
+        ell_ref,
+        nu_ref,
+        descriptor="Radio Poisson",
+    ):
+        """
+        Initialise a new instance of the GalacticDust class.
+
+        Arguments
+        --------------
+        ells : array (float)
+            The ell range the transformation acts on.
+        descriptor : str
+            A short descriptor.
+        spec_order : array (str)
+            Identifiers of spectra in the order in which spectra are handled in the long data vector.
+        freq_info : list
+            List of lists, where each sublist contains the two effective frequencies for a given spectrum.
+        affected_specs : list (str)
+            List of the spectra to apply this foreground to.
+        ell_ref : int
+            Reference ell for normalisation.
+        nu_ref : float
+            Reference frequency.
+        amp_param : str
+            The name of the amplitude parameter.
+        beta_val : float
+            The value of the frequency scaling parameter.
+        sigmasq_val : float
+            The value of the sigmasq frequency scaling parameter.
+
+        Returns
+        --------------
+        RadioPoisson
+            A new instance of the class.
+        """
+
+        super().__init__(
+            ells=ells,
+            spec_order=spec_order,
+            freq_info=freq_info,
+            affected_specs=affected_specs,
+            ell_ref=ell_ref,
+            nu_ref=nu_ref,
+            T_dust=0.0,
+            descriptor=descriptor,
+            param_names=[amp_param],
+        )
+
+        # Hold onto names of parameters
+        self.amp_param = amp_param
+        self.beta_val = beta_val
+        self.sigmasq_val = sigmasq_val
+
+    @partial(jit, static_argnums=(0,))
+    def output(self, sample_params):
+        """
+        Return foreground spectrum.
+
+        Arguments
+        --------------
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        --------------
+        array, float
+            Foreground spectrum.
+        """
+
+        # amplitude part
+        amp_vals = jnp.array(
+            [
+                radio_frequency_scaling(
+                    self.beta_val,
+                    self.sigmasq_val,
+                    self.nu_ref,
+                    self.freq_info[i][0],
+                )
+                * radio_frequency_scaling(
+                    self.beta_val,
+                    self.sigmasq_val,
+                    self.nu_ref,
+                    self.freq_info[i][1],
+                )
+                for i in range(self.N_spec)
+            ]
+        )
+        amp_vals *= sample_params[self.amp_param]
+        tiled_amp_vals = jnp.repeat(amp_vals, len(self.ells))
+
+        # ell part
+        ell_dependence = (self.ells / self.ell_ref) ** 2
+
+        tiled_ell_dependence = jnp.tile(
+            ell_dependence, self.N_spec
+        )  # tiled ell dependence
+
+        # Complete foreground contribution and mask down
+        fg_pow = self.full_mask * tiled_amp_vals * tiled_ell_dependence
+        return fg_pow
+
+    @partial(jit, static_argnums=(0,))
+    def transform(self, Dls, sample_params):
+        """
+        Transform spectrum by adding foreground component (result of output method).
+
+        Arguments
+        --------------
+        Dls : array
+            Dls to transform.
+        sampled_params : dict
+            Dictionary of nuisance parameter values.
+
+        Returns
+        --------------
+        array, float
+            Transformed spectrum.
+        """
+
+        return Dls + self.output(sample_params)
+
+
 class CIBClustering(candl.transformations.abstract_base.DustyForeground):
     """
     Adds CIB clustering power using a power law with fixed index.
@@ -649,6 +839,7 @@ class GalacticDust(candl.transformations.abstract_base.DustyForeground):
         ell_dependence = (self.ells / self.ell_ref) ** (
             sample_params[self.alpha_param] + 2
         )
+
         tiled_ell_dependence = jnp.tile(
             ell_dependence, self.N_spec
         )  # tiled ell dependence
@@ -2001,6 +2192,8 @@ class CalibrationAuto(candl.transformations.abstract_base.IndividualCalibration)
         Masks which parts of the long data vector are affected by the transformation.
     affected_specs_ix : list (int)
         Indices in spectra_order of spectra the transformation is applied to.
+    inverse_calibration : bool
+        If True, the transformation will multiply the spectrum by the calibration factors instead of dividing. False by default.
 
     Methods
     ----------------
@@ -2029,6 +2222,24 @@ class CalibrationAuto(candl.transformations.abstract_base.IndividualCalibration)
             TT 150x150: ["cal_ext", "cal_ext"]
     """
 
+    def __init__(
+        self,
+        ells,
+        spec_order,
+        spec_param_dict,
+        descriptor="Calibration",
+        operation_hint="multiplicative",
+        inverse_calibration=False,
+    ):
+        super().__init__(
+            ells,
+            spec_order,
+            spec_param_dict,
+            descriptor=descriptor,
+            operation_hint=operation_hint,
+        )
+        self.inverse_calibration = inverse_calibration
+
     @partial(jit, static_argnums=(0,))
     def transform(self, Dls, sample_params):
         """
@@ -2055,6 +2266,9 @@ class CalibrationAuto(candl.transformations.abstract_base.IndividualCalibration)
                 this_cal_val *= sample_params[par]
             cal_vals = jax_optional_set_element(cal_vals, ix, this_cal_val)
         tiled_cal_vals = jnp.repeat(cal_vals, len(self.ells))
+
+        if self.inverse_calibration:
+            tiled_cal_vals = 1 / tiled_cal_vals
 
         return Dls / tiled_cal_vals
 
@@ -2763,6 +2977,39 @@ def tSZ_frequency_scaling(
     tSZfac = tSZfac / tSZfac0
 
     return tSZfac
+
+
+# Frequency scaling for radio galaxies
+@jit
+def radio_frequency_scaling(
+    beta: jnp.float64, sigmasq: jnp.float64, nu_0_rg: jnp.float64, nu: jnp.float64
+) -> jnp.float64:
+    """
+    Power law frequency scaling.
+    Based on code shared by Christian Reichardt - thank you!
+
+    Arguments
+    --------------
+    beta : float
+        Spectral index
+    Tdust : float
+        Dust temperature.
+    nu_0_dust : float
+        Reference frequency.
+    nu : float
+        Requested frequency.
+
+    Returns
+    --------------
+    float :
+        Frequency scaling
+    """
+
+    base = nu / nu_0_rg
+    first = base**beta
+    second = base ** (jnp.log(base) * sigmasq / 2)
+    bb = black_body_deriv(nu, nu_0_rg, candl.constants.T_CMB)
+    return (first * second) / bb
 
 
 @jit

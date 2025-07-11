@@ -42,6 +42,7 @@ USE_JAX = True
 JAX_IMPORT_SUCCEEDED = False
 try:
     if USE_JAX:
+        import jax
         import jax.numpy as jnp
         import jax.scipy as jsp
         from jax import jit, jacfwd, custom_jvp
@@ -50,6 +51,9 @@ try:
         # Unify syntax for setting array elements
         def jax_optional_set_element(arr, ix, el):
             return arr.at[ix].set(el)
+
+        def jax_optional_fori_loop(lower, upper, body_fun, init_val):
+            return jax.lax.fori_loop(lower, upper, body_fun, init_val)
 
         # Need JAX to run with 64bit for dynamic range in covmats
         try:
@@ -82,6 +86,13 @@ except:
     # define jacfwd to do nothing
     def jacfwd(func, **kwargs):
         return func
+
+    # define fori_loop
+    def jax_optional_fori_loop(lower, upper, body_fun, init_val):
+        val = init_val
+        for i in range(lower, upper):
+            val = body_fun(i, val)
+        return val
 
 
 # Optional pycapse import

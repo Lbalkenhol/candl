@@ -215,12 +215,28 @@ class Like:
                 self.data_set_dict, "beam_correlation_file"
             )
 
+        # Load in noise bias template if present
+        self.noise_model_bandpowers = None
+        if "noise_model_band_power_file" in self.data_set_dict:
+            self.noise_model_bandpowers = candl.io.read_file_from_yaml(
+                self.data_set_dict, "noise_model_band_power_file"
+            )
+
+        # Load in fiducial band powers if present
+        self.fiducial_bandpowers = None
+        if "fiducial_band_power_file" in self.data_set_dict:
+            self.fiducial_bandpowers = candl.io.read_file_from_yaml(
+                self.data_set_dict, "fiducial_band_power_file"
+            )
+
         # Set likelihood method to be used
         self.logl_function = self.gaussian_logl
         if "likelihood_form" in self.data_set_dict:
             if self.data_set_dict["likelihood_form"] == "gaussian_beam_detcov":
                 if not self.beam_correlation is None:
                     self.logl_function = self.gaussian_logl_beam_and_detcov
+            elif self.data_set_dict["likelihood_form"] == "hamimeche_lewis":
+                self.logl_function = self.HL_logl
         else:
             self.data_set_dict["likelihood_form"] = "gaussian"
 
@@ -307,6 +323,81 @@ class Like:
             self.long_ells,
             self.effective_ells,
         ) = self.get_ell_helpers()
+
+        # Additional setup for the Hamimeche-Lewis likelihood, if used
+        if self.data_set_dict["likelihood_form"] == "hamimeche_lewis":
+            # FirstCheck that the likelihood can be used. Two main conditions:
+            # (1) need all spectra to cover the same band power bins
+            # (2) the right number of spectra are there
+
+            # Checking the first one is easy
+            assert np.all(
+                np.asarray(self.N_bins) == self.N_bins[0]
+            ), "candl: HL likelihood requires all spectra to cover the same ell bins."
+
+            # Figure out how many unique maps the spectra are based on and define an order for them
+            spec_types = [list(k) for k in self.spec_types]
+            spec_tuples = []
+            for i in range(len(self.spec_freqs)):
+                spec_tuples.append([])
+                for j in range(len(self.spec_freqs[i])):
+                    spec_tuples[i].append(f"{spec_types[i][j]}{self.spec_freqs[i][j]}")
+            self.HL_map_order = list(np.unique(spec_tuples))
+
+            # Now check that the right number of spectra are present
+            assert self.N_spectra_total == int(
+                len(self.HL_map_order) * (len(self.HL_map_order) + 1) / 2
+            ), "candl: number of spectra incompatible with HL likelihood."
+
+            # Ensure that there is a noise bias spectrum
+            if self.noise_model_bandpowers is None:
+                self.noise_model_bandpowers = jnp.zeros_like(self.data_bandpowers)
+
+            # Create a matrix that maps a long vector of band powers to the matrix form (beware, candl.Like.spec_order loses meaning)
+            self.HL_mat_spec_to_map = jnp.zeros(
+                (
+                    len(self.HL_map_order),
+                    len(self.HL_map_order),
+                    len(spec_types),
+                )
+            )
+            for i, spec_tuple in enumerate(spec_tuples):
+                left, right = self.HL_map_order.index(
+                    spec_tuple[0]
+                ), self.HL_map_order.index(spec_tuple[1])
+                self.HL_mat_spec_to_map = jax_optional_set_element(
+                    self.HL_mat_spec_to_map, (left, right, i), 1
+                )
+                self.HL_mat_spec_to_map = jax_optional_set_element(
+                    self.HL_mat_spec_to_map, (right, left, i), 1
+                )
+
+            # Now come up with a way to transform back to a long vector
+            self.HL_map_nonzero = (
+                self.HL_mat_spec_to_map @ jnp.arange(1, len(self.spec_order) + 1)
+            )[jnp.triu_indices(len(self.HL_map_order))].nonzero()
+            self.HL_map_argsort = (
+                self.HL_mat_spec_to_map @ jnp.arange(1, len(self.spec_order) + 1)
+            )[jnp.triu_indices(len(self.HL_map_order))][self.HL_map_nonzero].argsort()
+
+            # Transform what can be transformed already
+            self.HL_data_bandpowers_map = self.HL_mat_spec_to_map @ (
+                self.data_bandpowers + self.noise_model_bandpowers
+            ).reshape(
+                -1, self.N_bins[0]
+            )  # need to account for noise bias - HL operates on auto spectra
+            fiducial_bandpowers_map = (
+                self.HL_mat_spec_to_map
+                @ self.fiducial_bandpowers.reshape(-1, self.N_bins[0])
+            )
+            self.HL_fiducial_bandpowers_map_sqrt = []
+            for i in range(self.N_bins[0]):
+                this_bdp_fid_map = fiducial_bandpowers_map[:, :, i]
+                this_bdp_fid_map_sqrt = get_matrix_sqrt(this_bdp_fid_map, inverse=False)
+                self.HL_fiducial_bandpowers_map_sqrt.append(this_bdp_fid_map_sqrt)
+            self.HL_fiducial_bandpowers_map_sqrt = jnp.asarray(
+                self.HL_fiducial_bandpowers_map_sqrt
+            )
 
         # Expand any transformation blocks in the data model section of the .yaml file
         expanded_data_model_list = []
@@ -523,6 +614,106 @@ class Like:
         logl += jnp.sum(
             jnp.log(jnp.diag(full_covariance_chol_dec))
         )  # covariance determinant term (only equal to half, but we are adding to the logl, not the chisq, so this is correct)
+
+        return logl
+
+    def HL_bin_loop(self, i, in_bundle):
+        """
+        Basic loop of the Hamimeche-Lewis likelihood approximation operating on a single bin.
+        Usees the Hamimeche-Lewis approximation for low ell spectra (https://arxiv.org/pdf/0801.0554).
+
+        Parameters
+        --------------
+        i : int
+            The index of the band power bin to operate on
+        in_bundle : tuple
+            Tuple of the input model spectrum (as a map-based 3d array) and the X vector that gets populated
+
+        Returns
+        --------------
+        float
+            Positive log likelihood.
+        """
+
+        in_bdp_model_map, X = in_bundle
+
+        # Grab the 2d matrices for the bin
+        this_bdp_data_map = self.HL_data_bandpowers_map[:, :, i]
+        this_bdp_model_map = in_bdp_model_map[:, :, i]
+
+        # Need inverse matrix square root of model
+        this_bdp_model_map_sqrt_inv = get_matrix_sqrt(this_bdp_model_map, inverse=True)
+
+        # Compute the argument for g
+        g_arg = (
+            this_bdp_model_map_sqrt_inv
+            @ this_bdp_data_map
+            @ this_bdp_model_map_sqrt_inv
+        )
+        evals, evecs = jnp.linalg.eigh(g_arg)
+        # evals = evals.at[evals < 0].set(jnp.amin(jnp.abs(evals))*1e-12)# make this extra safe
+
+        # Apply g
+        g_fac = jnp.sign(evals - 1) * jnp.sqrt(2 * (evals - jnp.log(evals) - 1))
+        g_mat = evecs @ jnp.diag(g_fac) @ evecs.T
+
+        # Calculate the X segment and slot it into the full vector
+        X_segment = (
+            self.HL_fiducial_bandpowers_map_sqrt[i]
+            @ g_mat
+            @ self.HL_fiducial_bandpowers_map_sqrt[i]
+        )
+        X_segment_unique = X_segment[jnp.triu_indices(len(self.HL_map_order))][
+            self.HL_map_nonzero
+        ][self.HL_map_argsort]
+        X = X.at[i + self.bins_start_ix].set(X_segment_unique)
+
+        return in_bdp_model_map, X
+
+    def HL_logl(self, data_bandpowers, binned_theory_Dls):
+        """
+        Calculate the positive log likelihood, i.e.:
+        logl = 0.5 * (x-m) @ C^-1 @ (x-m)
+        Uses the cholesky decomposition of the covariance for speed.
+        Usees the Hamimeche-Lewis approximation for low ell spectra (https://arxiv.org/pdf/0801.0554).
+        data_bandpowers argument is not needed, but requested here for a consistent call signature with other likelihoods.
+
+        Parameters
+        --------------
+        data_bandpowers : array, float
+            Data band powers
+        binned_theory_Dls : array, float
+            Model spectra
+
+        Returns
+        --------------
+        float
+            Positive log likelihood.
+        """
+
+        # Throw the model spectra into the 3d map-like space
+        # Need to add noise bias as HL operates on auto-spectra
+        binned_model_map = self.HL_mat_spec_to_map @ (
+            binned_theory_Dls + self.noise_model_bandpowers
+        ).reshape(-1, self.N_bins[0])
+
+        # Calculate difference between model and data
+        _, delta_bdp = jax_optional_fori_loop(
+            0,
+            self.N_bins[0],
+            self.HL_bin_loop,
+            (
+                binned_model_map,
+                jnp.zeros(self.N_bins_total),
+            ),
+        )
+
+        # Calculate logl
+        chol_fac = jnp.linalg.solve(self.covariance_chol_dec, delta_bdp)
+        chisq = jnp.dot(
+            chol_fac.T, chol_fac
+        )  # equivalent to the straightforward method, i.e. delta @ C^-1 @ delta
+        logl = chisq / 2
 
         return logl
 
@@ -2118,7 +2309,7 @@ class GaussianPrior:
 
     Attributes
     -----------------
-    central_value : array, float
+    central_value : array, float (optional)
         The central value of the prior.
     par_names : list, str
         The names of the parameters this prior acts on.
@@ -2126,6 +2317,8 @@ class GaussianPrior:
         The covariance matrix.
     prior_covariance_chol : array, float
         Cholesky decomposition of the covariance matrix.
+    multiplicative_par : bool
+        Whether the parameters this prior is placed on act as multiplicative factors - uses log of the parameters rather than calculating offset with the central values
 
     Methods
     ----------------
@@ -2136,7 +2329,9 @@ class GaussianPrior:
 
     """
 
-    def __init__(self, central_value, prior_covariance, par_names):
+    def __init__(
+        self, prior_covariance, par_names, central_value=None, multiplicative_par=False
+    ):
         """
         Initialise a new instance of the GaussianPrior class.
         Note that the order of parameters across arguments is expected to be the same, i.e. the [i] central value
@@ -2144,12 +2339,15 @@ class GaussianPrior:
 
         Parameters
         --------------
-        central_value : float or array (float)
-            Central values of the prior
+        central_value : float or array (float), optional
+            Central values of the prior. If not specified, defaults to zero.
         prior_covariance : float or array (float)
             Covariance of the prior
         par_names : str or list (str)
             List of names the prior acts on.
+        multiplicative_par : bool
+            Whether the parameters this prior is placed on act as multiplicative factors (e.g. calibration) - uses log of the parameters rather than calculating offset with the central values
+
 
         Returns
         --------------
@@ -2157,6 +2355,14 @@ class GaussianPrior:
             A new instance of the GaussianPrior class with the set-up completed.
         """
 
+        # par names needs to be a list of strings
+        if type(par_names) is str:
+            self.par_names = [par_names]
+        else:
+            self.par_names = par_names
+
+        if central_value is None:
+            central_value = jnp.zeros(len(self.par_names))
         self.central_value = jnp.atleast_1d(
             central_value
         )  # Make sure central value is a vector
@@ -2164,12 +2370,7 @@ class GaussianPrior:
             prior_covariance
         )  # Make sure covariance is a matrix
         self.prior_covariance_chol = jnp.linalg.cholesky(self.prior_covariance)
-
-        # par names needs to be a list of strings
-        if type(par_names) is str:
-            self.par_names = [par_names]
-        else:
-            self.par_names = par_names
+        self.multiplicative_par = multiplicative_par
 
     def log_like(self, sampled_pars):
         """
@@ -2186,10 +2387,19 @@ class GaussianPrior:
             The positive log likelihood of the prior evaluated for the sampled_params.
         """
 
-        delta_pars = (
-            jnp.atleast_1d([sampled_pars[par_name] for par_name in self.par_names])
-            - self.central_value
-        )
+        # For multiplicative parameters, want to give the same probability to *X as /X
+        # For others, take difference to central value
+        if self.multiplicative_par:
+            delta_pars = jnp.log(
+                jnp.atleast_1d([sampled_pars[par_name] for par_name in self.par_names])
+            )
+        else:
+            delta_pars = (
+                jnp.atleast_1d([sampled_pars[par_name] for par_name in self.par_names])
+                - self.central_value
+            )
+
+        # Calculate the likelihood
         chol_fac = jnp.linalg.solve(self.prior_covariance_chol, delta_pars)
         logl = (
             jnp.dot(chol_fac.T, chol_fac) / 2
@@ -2267,3 +2477,27 @@ def cholesky_decomposition(covariance, N_sims=None, N_bins=None):
         covariance_chol_dec /= np.sqrt((N_sims - N_bins - 2) / (N_sims - 1))
 
     return covariance_chol_dec
+
+
+def get_matrix_sqrt(in_matrix, inverse=False):
+    """
+    Matrix square-root function that forces eigenvalues to be positive
+
+    Parameters
+    --------------
+    in_matrix : 2d array (float)
+        The matrix to be be operated on
+    inverse : bool, optional
+        Whether to calculate the inverse, or not
+    Returns
+    --------------
+    array (float) :
+        (Inverse) square root of the original matrix
+    """
+    fac = -0.5 if inverse else 0.5
+    evals, evecs = jnp.linalg.eigh(in_matrix)
+    is_pos = evals >= 0
+    safe_evals = jnp.where(is_pos, evals, 0.0)
+    evals_pow = jnp.where(safe_evals > 0, safe_evals**fac, 0.0)
+    out = jnp.matmul(evecs, jnp.matmul(jnp.diag(evals_pow), evecs.T))
+    return out
