@@ -495,8 +495,144 @@ class CobayaTheoryPyCapse(cobaya_theory_Theory):
 
 
 # --------------------------------------#
-# BB TEMPLATE FOREGROUND - COBAYA INTERFACE
+# SCALED TEMPLATE - COBAYA INTERFACE
 # --------------------------------------#
+
+
+class CobayaTheoryTemplate(cobaya_theory_Theory):
+    """
+    Wrapper for a scaled template in a cobaya theory class.
+
+    To initialise, pass 'template_filenames' in the relevant cobaya block:
+    A string with the template file name.
+    Figures out spectrum types from the indices supplied as ix_in_file.
+    Template is assumed to be in Dls.
+
+    This code is taken from the Cobaya example for custom theory codes and only slightly modified.
+    See https://cobaya.readthedocs.io/en/latest/theories_and_dependencies.html.
+    Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290)
+
+    Attributes
+    ------------
+    template_filename : str
+        File name of the template.
+    ix_in_file : dict
+        Indices of the spectrum in the template files, e.g. {"ell": 0, "TT": 1, "TE":2}.
+    provider : Provider
+        Cobaya provider.
+    current_state : dict
+        Dict containing current parameters and results.
+    templates : dict
+        Template spectra.
+    ells : array (int)
+        Ell range provided.
+
+    Methods
+    ---------
+    initialize :
+        Complete set-up, loading templates.
+    initialize_with_provider :
+        Initialization after other components initialised.
+    get_requirements :
+        Returns what the theory code needs to run.
+    must_provide :
+        Returns what the theory code needs to run.
+    get_can_provide :
+        Return what the theory code can supply.
+    calculate :
+        Carry out the calculation.
+    get_Cl :
+        Return result of calculation.
+
+    """
+
+    # I know having this be a class variable is not super elegant, but it's the easiest way to interface with Cobaya
+    template_filename: str = ""
+    ix_in_file: dict = {
+        "ell": 0,
+        "TT": 1,
+    }  # indices in the template files (these are the spectra you request)
+    amp_par_name: str = "theory_amp"  # name of the amplitude parameter
+
+    def initialize(self):
+        """
+        Called from __init__ to initialise.
+        Loads the templates requested and crops them to the right ell range.
+        """
+
+        # Read in templates
+        # Assumes these are CAMB outputs, such that the first column is ell and the fourth one is BB
+        # Cast into numpy arrays for now to make ell slicing easier
+        template_arr = np.array(candl.io.read_file_from_path(self.template_filename).T)
+        self.spectrum_types = list(self.ix_in_file.keys())
+        del self.spectrum_types["ell"]
+
+        # Determine common ell range
+        common_ell = np.sort(
+            list(
+                set(template_arr[self.ix_in_file["ell"], :]).intersection(
+                    set(template_arr[self.ix_in_file["ell"], :])
+                )
+            )
+        )
+        smallest_common_ell = np.amin(common_ell)
+        largest_common_ell = np.amax(common_ell)
+        self.ells = np.arange(smallest_common_ell, largest_common_ell + 1)
+
+        # Crop to common ell range and hold onto templates
+        self.templates = {}
+        for spec in zip(self.spectrum_types):
+            low_ell_ix = list(template_arr[self.ix_in_file["ell"], :]).index(
+                int(smallest_common_ell)
+            )
+            high_ell_ix = list(template_arr[self.ix_in_file["ell"], :]).index(
+                int(largest_common_ell)
+            )
+            self.templates[spec] = jnp.array(
+                template_arr[self.ix_in_file[spec], low_ell_ix : high_ell_ix + 1]
+            )
+
+    def initialize_with_provider(self, provider):
+        """
+        Initialization after other components initialized, using Provider class
+        instance which is used to return any dependencies (see calculate below).
+        """
+
+        self.provider = provider
+
+    def get_requirements(self):
+        """
+        Return dictionary of derived parameters or other quantities that are needed
+        by this component and should be calculated by another theory class.
+        """
+        return {self.amp_par_name: None}
+
+    def must_provide(self, **requirements):
+        """Return dictionary of parameters that must be provided."""
+        return {self.amp_par_name: None}
+
+    def get_can_provide(self):
+        """Return list of quantities that can be provided."""
+        return ["Cl"]
+
+    def calculate(self, state, want_derived=True, **params_values_dict):
+        """Calculate the CMB spectra. Sums the two templates with their respective amplitudes."""
+        # Scale templates and return sum
+        state["Dl"] = {
+            spec: state["params"][self.amp_par_name] * self.templates[spec]
+            for spec in self.spectrum_types
+        }
+        state["Cl"] = {
+            spec: state["Dl"][spec] / (self.ells * (self.ells + 1.0))
+            for spec in self.spectrum_types
+        }
+
+    def get_Cl(self, ell_factor=False, **kwargs):
+        """Get the Cls or Dls."""
+        if ell_factor:
+            return self.current_state["Dl"].copy()
+        else:
+            return self.current_state["Cl"].copy()
 
 
 class CobayaTheoryBBTemplate(cobaya_theory_Theory):
@@ -508,7 +644,9 @@ class CobayaTheoryBBTemplate(cobaya_theory_Theory):
 
     This code is taken from the Cobaya example for custom theory codes and only slightly modified.
     See https://cobaya.readthedocs.io/en/latest/theories_and_dependencies.html.
-    Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290)
+    Torrado and Lewis, 2020 (https://arxiv.org/abs/2005.05290).
+
+    This is a specified version of CobayaTheoryTemplate.
 
     Attributes
     ------------
