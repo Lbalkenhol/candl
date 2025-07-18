@@ -231,7 +231,7 @@ class PoissonPower(candl.transformations.abstract_base.Foreground):
 
 class RadioPoisson(candl.transformations.abstract_base.DustyForeground):
     """
-    Adds Radio Poisson power enforcing a powerlaw SED (synchrotron dust).
+    Adds Radio Poisson power enforcing a powerlaw SED.
 
     Attributes
     --------------
@@ -302,7 +302,7 @@ class RadioPoisson(candl.transformations.abstract_base.DustyForeground):
         descriptor="Radio Poisson",
     ):
         """
-        Initialise a new instance of the GalacticDust class.
+        Initialise a new instance of the RadioPoisson class.
 
         Arguments
         --------------
