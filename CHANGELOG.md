@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.1.0 (2025-07-24)
+
+Support for Hamimeche-Lewis likelihood approximation. SPT BB release (Zebrowski et al. 2025 https://arxiv.org/abs/2505.02827).
+
 ## v2.0.3 (2025-06-25)
 
 Small tweaks preparing for SPT release.

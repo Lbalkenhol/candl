@@ -80,7 +80,7 @@ SPT-3G D1 BB
 
 .. tip::
 
-    This likelihood uses the Hamimeche-Lewis approximation. As such, not all subsets of the data set can be run.
+    This likelihood uses the `Hamimeche-Lewis <https://arxiv.org/abs/0801.0554>`__ approximation. As such, not all subsets of the data set can be run.
 
 
 ``candl_data``
