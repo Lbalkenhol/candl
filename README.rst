@@ -62,6 +62,10 @@ Together these provide access to the following data:
 
        Quan et al. 2025 (in prep.)
 
+   * - SPT-3G D1 BB
+     - `spt_candl_data <https://github.com/SouthPoleTelescope/spt_candl_data>`__
+     - `Zebrowski et al. 2025 <https://pole.uchicago.edu/public/data/zebrowski25>`__
+
    * - Planck 2018 likelihoods
      - `clipy <https://github.com/benabed/clipy>`__
      - `Planck 2018 V <https://arxiv.org/abs/1907.12875>`__

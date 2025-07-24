@@ -21,8 +21,13 @@ More details can be found in the :code:`spt_candl_data` `readme <https://github.
 SPT-3G D1 T&E
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. |spt3gd1tne| image:: https://img.shields.io/badge/arXiv-2506.20707-b31b1b.svg
+   :target: https://arxiv.org/abs/2506.20707
+
+
 :Paper(s):
-   | E. Camphuis, W. Quan, L. Balkenhol, A. R. Khalife, F. Ge, F. Guidi, N. Huang, G. P. Lynch, Y. Omori, C. Trendafilova et al. 2025 (SPT-3G Collaboration, paper available on the `SPT website <https://pole.uchicago.edu/public/Home.html>`_)
+   | E. Camphuis, W. Quan, L. Balkenhol, A. R. Khalife, F. Ge, F. Guidi, N. Huang, G. P. Lynch, Y. Omori, C. Trendafilova et al. 2025 (SPT-3G Collaboration)
+   | |spt3gd1tne|
    | W. Quan et al. (SPT-3G Collaboration), in prep.
 
 :Type:
@@ -46,6 +51,36 @@ SPT-3G D1 T&E
 .. tip::
 
     For this likelihood, please use dedicated variants if you are only fitting a subset of the data (e.g. only EE spectra or only 90GHz) and only use the candl functionality :code:`data_selection` for multipole cuts. See all available variants via :code:`spt_candl_data.print_all_shortcuts()`.
+
+SPT-3G D1 BB
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. |spt3gd1bb| image:: https://img.shields.io/badge/arXiv-2505.02827-b31b1b.svg
+   :target: https://arxiv.org/abs/2505.02827
+
+:Paper(s):
+   | J. A. Zebrowski, C. L. Reichardt et al. 2025 (SPT-3G Collaboration)
+   | |spt3gd1bb|
+
+:Type:
+   Primary power spectrum measurement (:math:`BB`)
+
+:Website:
+   `SPT Website <https://pole.uchicago.edu/public/data/zebrowski25/>`__
+
+:LAMBDA:
+   To come.
+
+:Short cut(s):
+   ````
+   | ``spt_candl_data.SPT3G_D1_BB``
+
+:Latest version:
+   ``v0``
+
+.. tip::
+
+    This likelihood uses the Hamimeche-Lewis approximation. As such, not all subsets of the data set can be run.
 
 
 ``candl_data``
