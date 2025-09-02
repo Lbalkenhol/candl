@@ -162,7 +162,7 @@ If you use candl please cite the `release paper <https://arxiv.org/abs/2401.1343
 .. |IAP| image:: https://github.com/Lbalkenhol/candl/raw/main/logos/IAP_logo.png
    :alt: IAP
    :height: 100px
-   :width: 104px
+   :width: 149px
 
 .. |Sorbonne| image:: https://github.com/Lbalkenhol/candl/raw/main/logos/sorbonne_logo.jpeg
    :alt: Sorbonne
