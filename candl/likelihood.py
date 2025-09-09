@@ -665,9 +665,8 @@ class Like:
         )
         X_segment_unique = X_segment[jnp.triu_indices(len(self.HL_map_order))][
             self.HL_map_nonzero
-        ][self.HL_map_argsort]
-        X = X.at[i + self.bins_start_ix].set(X_segment_unique)
-
+        ][self.HL_map_argsort]       
+        X = jax_optional_set_element(X,i + self.bins_start_ix,X_segment_unique)
         return in_bdp_model_map, X
 
     def HL_logl(self, data_bandpowers, binned_theory_Dls):
