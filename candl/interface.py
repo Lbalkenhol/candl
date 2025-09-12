@@ -1151,10 +1151,12 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
     clear_internal_priors: bool = True
     clear_specific_priors: list = []
     lensing: bool = False
+    add_logdet: bool = False
     feedback: bool = True
     data_selection: any = ...
     wrapper: any = None
     additional_args: dict = {}
+
 
     def initialize(self):
         """
@@ -1175,6 +1177,7 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         init_args = {
             "variant": self.variant,
             "feedback": self.feedback,
+            "add_logdet": self.add_logdet,
         }
         if self.data_selection is not ...:
             init_args["data_selection"] = self.data_selection
@@ -1218,6 +1221,7 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         # Initialise the candl likelihood
         try:
             if self.lensing:
+                assert self.add_logdet, 'For lensing logdet term should be added.'
                 self.candl_like = candl.LensLike(
                     self.data_set_file,
                     **init_args,

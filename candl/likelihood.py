@@ -1570,6 +1570,12 @@ class LensLike:
         else:
             self.covariance_chol_dec = cholesky_decomposition(self.covariance)
 
+        # Compute constants: 0.5logdet(Cov)+0.5Nlog(2pi)
+        self.add_logdet = kwargs.get("add_logdet", False)
+        self.N_data = int(self.N_bins_total)
+        self._logdet_cov = 2.0 * jnp.sum(jnp.log(jnp.diag(self.covariance_chol_dec)))
+        self._norm_const = 0.5 * (self._logdet_cov + self.N_data * jnp.log(2.0 * jnp.pi))
+
         # Define ell range and grab some helpers
         (
             self.ells,
@@ -1746,6 +1752,9 @@ class LensLike:
         )  # equivalent to the straightforward method, i.e. delta @ C^-1 @ delta
         logl = chisq / 2
 
+        if self.add_logdet:
+            logl = logl + self._norm_const
+            
         return logl
 
     def chi_square(self, params):
