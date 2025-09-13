@@ -1331,7 +1331,7 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         # Hand off to the likelihood
         logl = self.candl_like.log_like(pars_to_pass)
 
-        return np.float32(logl)
+        return np.float64(logl)
 
 
 def get_cobaya_info_dict_for_like(
