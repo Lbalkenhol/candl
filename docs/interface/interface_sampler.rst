@@ -82,7 +82,7 @@ If you are pointing to an index file with ``data_set_file``, use ``variant`` to 
 
 .. tip::
 
-    If you arere resuming a Cobaya run and encounter temperature mismatch errors or inconsistencies - especially when using lensing likelihoods - consider setting ``add_logdet: True``. This can help avoid numerical issues in Cobaya's internal checks.
+    If you are resuming a Cobaya run and encounter temperature mismatch errors or inconsistencies - especially when using lensing likelihoods - consider setting ``add_logdet: True``. This can help avoid numerical issues in Cobaya's internal checks.
 
 Connecting Theory Codes to Cobaya
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
