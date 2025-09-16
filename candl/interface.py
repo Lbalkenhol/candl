@@ -1221,7 +1221,8 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         # Initialise the candl likelihood
         try:
             if self.lensing:
-                assert self.add_logdet, 'For lensing logdet term should be added.'
+                if not self.add_logdet:
+                    print("candl: for lensing likelihoods adding the logdet term leads to better stability when resuming Cobaya runs. Consider setting add_logdet=True")
                 self.candl_like = candl.LensLike(
                     self.data_set_file,
                     **init_args,
@@ -1331,7 +1332,7 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         # Hand off to the likelihood
         logl = self.candl_like.log_like(pars_to_pass)
 
-        return np.float64(logl)
+        return np.float32(logl)
 
 
 def get_cobaya_info_dict_for_like(
