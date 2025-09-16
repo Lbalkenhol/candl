@@ -69,6 +69,7 @@ In order to run Cobaya from the command line it sufficies to include the followi
             clear_specific_priors: [] # Specify a string or list of strings to clear specific internal priors, e.g. 'tau'
             wrapper: None # Use a wrapper likelihood, e.g. 'clipy'
             additional_args: {} # Additional arguments to pass to the likelihood at initialisation
+            add_logdet: False # Whether to add the (constant) logdet term to the likelihood (applies only if the likelihood is a simple Gaussian)
 
 Only ``data_set_file`` is required, the other arguments are optional.
 Again, by default the candl internal priors are not applied, set ``clear_internal_priors: False`` if you want to use them.
@@ -78,6 +79,10 @@ If you are pointing to an index file with ``data_set_file``, use ``variant`` to 
 .. tip::
 
     If you are encountering issues pointing to ``candl.interface.CandlCobayaLikelihood`` this way, try adding ``external: !!python/name:candl.interface.CandlCobayaLikelihood ''`` to the block and replacing ``candl.interface.CandlCobayaLikelihood`` by a name of your choice, e.g. ``candl_like``.
+
+.. tip::
+
+    If you arere resuming a Cobaya run and encounter temperature mismatch errors or inconsistencies - especially when using lensing likelihoods - consider setting ``add_logdet: True``. This can help avoid numerical issues in Cobaya's internal checks.
 
 Connecting Theory Codes to Cobaya
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
