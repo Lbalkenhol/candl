@@ -119,6 +119,14 @@ class Like:
         Calculates the log_like contribution of the priors.
     gaussian_logl :
         Gaussian log likelihood (helper for log_like)
+    gaussian_logl_beam_and_detcov :
+        Gaussian log likelihood with flexible beam correlation term
+    HL_bin_loop :
+        Base loop for HL likelihood
+    HL_logl :
+        Hamimeche-Lewis likelihood
+    offset_lognorm_logl :
+        Offset log normal likelihood
     chi_square :
         Calculates the chi square given a theory CMB spectrum and nuisance parameter values.
     get_model_specs :
@@ -200,10 +208,15 @@ class Like:
         # Get start and stop indices of each spectrum
         self.bins_start_ix, self.bins_stop_ix = get_start_stop_ix(self.N_bins)
 
-        # Load band powers and covariance
-        self._data_bandpowers = candl.io.read_file_from_yaml(
-            self.data_set_dict, "band_power_file"
-        )
+        # Load band powers if present (some likelihood forms expect slightly different files)
+        if "band_power_file" in self.data_set_dict:
+            self._data_bandpowers = candl.io.read_file_from_yaml(
+                self.data_set_dict, "band_power_file"
+            )
+        else:
+            self._data_bandpowers = None
+
+        # Load covariance (this should always be present)
         self.covariance = candl.io.read_file_from_yaml(
             self.data_set_dict, "covariance_file"
         )
@@ -228,6 +241,20 @@ class Like:
             self.fiducial_bandpowers = candl.io.read_file_from_yaml(
                 self.data_set_dict, "fiducial_band_power_file"
             )
+        
+        # Load in lognorm offset if present
+        self.offset_lognorm_offset = None
+        if "offset_lognorm_offset" in self.data_set_dict:
+            self.offset_lognorm_offset = candl.io.read_file_from_yaml(
+                self.data_set_dict, "offset_lognorm_offset"
+            )
+
+        # Load in lognorm mean if present
+        self.offset_lognorm_mean = None
+        if "offset_lognorm_mean" in self.data_set_dict:
+            self.offset_lognorm_mean = candl.io.read_file_from_yaml(
+                self.data_set_dict, "offset_lognorm_mean"
+            )
 
         # Set likelihood method to be used
         self.logl_function = self.gaussian_logl
@@ -237,6 +264,8 @@ class Like:
                     self.logl_function = self.gaussian_logl_beam_and_detcov
             elif self.data_set_dict["likelihood_form"] == "hamimeche_lewis":
                 self.logl_function = self.HL_logl
+            elif self.data_set_dict["likelihood_form"] == "offset_lognorm":
+                self.logl_function = self.offset_lognorm_logl
         else:
             self.data_set_dict["likelihood_form"] = "gaussian"
 
@@ -406,6 +435,11 @@ class Like:
             self.HL_fiducial_bandpowers_map_sqrt = jnp.asarray(
                 self.HL_fiducial_bandpowers_map_sqrt
             )
+
+        # Additional check for offset log-normal likelihood
+        if self.data_set_dict["likelihood_form"] == "offset_lognorm":
+            assert self.offset_lognorm_mean is not None and self.offset_lognorm_offset is not None, \
+                "candl: offset_lognorm_mean and offset_lognorm_offset must be supplied for offset_lognorm likelihoods"
 
         # Expand any transformation blocks in the data model section of the .yaml file
         expanded_data_model_list = []
@@ -727,6 +761,42 @@ class Like:
 
         return logl
 
+    def offset_lognorm_logl(self, data_bandpowers, binned_theory_Dls):
+        """
+        Calculate the positive log likelihood for an offset lognormal distribution i.e.:
+        logl = 0.5 * (x-µ) @ C^-1 @ (x-µ) + ∑ln(x)
+        where x is ln(model-data_offset).
+        See eq. 7 in Prince, Calabrese, Dunkley for details (https://arxiv.org/pdf/2403.00085)
+        Uses the cholesky decomposition of the covariance for speed.
+        Data band powers not needed but maintained for consistent call signature.
+
+        Parameters
+        --------------
+        data_bandpowers : array, float
+            Data band powers
+        binned_theory_Dls : array, float
+            Model spectra
+
+        Returns
+        --------------
+        float
+            Positive log likelihood.
+        """
+
+        # Calculate difference between model and data (in log space)
+        delta_bdp = jnp.log(binned_theory_Dls - self.offset_lognorm_offset) - self.offset_lognorm_mean
+
+        # Calculate logl
+        chol_fac = jnp.linalg.solve(self.covariance_chol_dec, delta_bdp)
+        chisq = jnp.dot(
+            chol_fac.T, chol_fac
+        )  # equivalent to the straightforward method, i.e. delta @ C^-1 @ delta
+        logl = chisq / 2
+
+        logl += jnp.sum(jnp.log(binned_theory_Dls - self.offset_lognorm_offset))
+            
+        return logl
+    
     def chi_square(self, params):
         """
         Returns the chi squared for a given set of theory Dls and nuisance parameter values.

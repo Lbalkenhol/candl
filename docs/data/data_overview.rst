@@ -80,7 +80,7 @@ SPT-3G D1 BB
 
 .. tip::
 
-    This likelihood uses the `Hamimeche-Lewis <https://arxiv.org/abs/0801.0554>`__ approximation. As such, not all subsets of the data set can be run.
+    This likelihood uses the `Hamimeche-Lewis <https://arxiv.org/abs/0801.0554>`__ approximation. As such, not all subsets of the data set can be run. You may also consider the foreground-marginalised (CMB-only) version of this data set in :code:`candl_data`.
 
 
 ``candl_data``
@@ -147,6 +147,70 @@ SPT-3G 2018 PP
 
 *Note*: this data set uses the lensing power spectrum in :math:`\phi\phi`.
 Use ``candl_data.SPT3G_2018_Lens`` with ``variant = 'lens_only'`` or ``candl_data.SPT3G_2018_Lens_only`` when only working with lensing data, use ``candl_data.SPT3G_2018_Lens`` with ``variant = 'use_CMB'`` or ``candl_data.SPT3G_2018_Lens_and_CMB`` when combining lensing and primary CMB data.
+
+SPT-3G D1 BB lite
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. |spt3gd1bblite| image:: ARXIVTODO
+   :target: ARXIVTODO
+
+:Paper(s):
+   | J. A. Zebrowski, C. L. Reichardt et al. 2025 (SPT-3G Collaboration)
+   | |spt3gd1bb|
+   | L. Balkenhol, A. Coerver, C. L. Reichardt, and J. A. Zebrowski 2025
+   | [ARXIVTODO]
+
+:Type:
+   Primary power spectrum measurement (:math:`BB`)
+
+:Website:
+   `SPT Website <https://pole.uchicago.edu/public/data/zebrowski25/>`__
+
+:Short cut(s):
+   ````
+   | ``candl_data.SPT3G_D1_BB_lite``
+
+:Latest version:
+   ``v0``
+
+.. tip::
+
+*Note*: Foreground-marginalised (CMB-only) version of the ``spt_candl_data.SPT3G_D1_BB`` likelihood. This data set is not suited for constraining primordial signals that do not match the CMB black body SED.
+
+SPTpol BB
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. |sptpolbb| image:: https://img.shields.io/badge/arXiv-1910.05748-b31b1b.svg
+   :target: https://arxiv.org/abs/1910.05748
+
+:Paper(s):
+   | J. T. Sayre, C. L. Reichardt, J. W. Henninget al. 2020 (SPTpol Collaboration)
+   | |sptpolbb|
+   | L. Balkenhol, A. Coerver, C. L. Reichardt, and J. A. Zebrowski 2025
+   | [ARXIVTODO]
+
+:Type:
+   Primary power spectrum measurement (:math:`BB`)
+
+:Website:
+   `SPT Website <https://pole.uchicago.edu/public/data/sayre19/>`__
+
+:LAMBDA:
+   `NASA archive <https://lambda.gsfc.nasa.gov/product/spt/sptpol_bblh_2019_info.html>`__
+
+:Short cut(s):
+   ````
+   | ``candl_data.SPTpol_BB`` (index file),
+   | ``candl_data.SPTpol_BB_multifreq`` (or ``variant = 'multifreq'``),
+   | ``candl_data.SPTpol_BB_lite`` (or ``variant = 'lite'``)
+
+:Latest version:
+   ``v0``
+
+.. tip::
+
+*Note*: This is an implementation of the original Fortran likelihood. Please see Balkenhol et al. 2025 [ARXIVTODO]. for details, especially when analysing :math:`\chi^2` values in detail. Note that the CMB-only version of data set is not suited for constraining primordial signals that do not match the CMB black body SED.
+
 
 ACT DR6 TT/TE/EE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

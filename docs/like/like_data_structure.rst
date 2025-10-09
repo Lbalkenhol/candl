@@ -65,11 +65,12 @@ Along with the entries described above, the info file can contain the following 
 
 * ``feedback: <True/False>``: whether to print feedback when initialising the likelihood. Helps to review the data selection and data model.
 * ``log_file: <relative path to log file>``: forego printing of feedback in favour of writing to a log file.
-* ``beam_correlation_file: <relative path to beam correlation matrix>``: beam correlation matrix (if needed).
-* ``likelihood_form: <gaussian/gaussian_beam_detcov>``: alternative form of the likelihood if correction for beam covariance matrix is required (default: ``gaussian``).
+* ``likelihood_form: <gaussian/gaussian_beam_detcov/hamimeche_lewis/offset_lognorm>``: functional form of the likelihood (default: ``gaussian``).
 * ``bandpasses: <dictionary of frequency identifiers and band pass file names>``: needed if integrals over band passes are required for any transformations (typically only for :math:`BB`).
 * ``blinding: <True/False/int>``: whether to blind the band powers (through multiplication by a random oscillatory function). Integers are used as seeds.
 * ``hartlap_correction: <dictionary with 'N_sims' entry>``: will apply the `Hartlap factor <https://arxiv.org/abs/astro-ph/0608064>`__ to the inverse covariance matrix.
+
+Some of the non-standard likelihood functional forms require or allow for additional entries. Check the existing implementations for reference.
 
 .. note::
 
