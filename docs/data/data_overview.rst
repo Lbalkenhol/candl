@@ -209,7 +209,7 @@ SPTpol BB
 
 .. tip::
 
-*Note*: This is an implementation of the original Fortran likelihood. Please see Balkenhol et al. 2025 [ARXIVTODO]. for details, especially when analysing :math:`\chi^2` values in detail. Note that the CMB-only version of data set is not suited for constraining primordial signals that do not match the CMB black body SED.
+*Note*: This is an implementation of the original Fortran likelihood. Please see Balkenhol et al. 2025 [ARXIVTODO] for details, especially when scrutinising :math:`\chi^2` values. Note that the CMB-only version of this data set is not suited for constraining primordial signals that do not match the CMB black body SED.
 
 
 ACT DR6 TT/TE/EE
