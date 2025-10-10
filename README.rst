@@ -63,7 +63,7 @@ Together these provide access to the following data:
        Quan et al. 2025 (in prep.)
 
    * - SPT-3G D1 BB
-     - `spt_candl_data <https://github.com/SouthPoleTelescope/spt_candl_data>`__
+     - | `spt_candl_data <https://github.com/SouthPoleTelescope/spt_candl_data>`__
 
        lite version: `candl_data <https://github.com/lbalkenhol/candl_data>`__
      - `Zebrowski et al. 2025 <https://arxiv.org/abs/2505.02827>`__
