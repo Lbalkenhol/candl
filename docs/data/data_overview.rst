@@ -151,14 +151,14 @@ Use ``candl_data.SPT3G_2018_Lens`` with ``variant = 'lens_only'`` or ``candl_dat
 SPT-3G D1 BB lite
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. |spt3gd1bblite| image:: ARXIVTODO
-   :target: ARXIVTODO
+.. |spt3gd1bblite| image:: https://img.shields.io/badge/arXiv-2510.07928-b31b1b.svg
+   :target: https://arxiv.org/abs/2510.07928
 
 :Paper(s):
    | J. A. Zebrowski, C. L. Reichardt et al. 2025 (SPT-3G Collaboration)
    | |spt3gd1bb|
    | L. Balkenhol, A. Coerver, C. L. Reichardt, and J. A. Zebrowski 2025
-   | [ARXIVTODO]
+   | |spt3gd1bblite|
 
 :Type:
    Primary power spectrum measurement (:math:`BB`)
@@ -187,7 +187,7 @@ SPTpol BB
    | J. T. Sayre, C. L. Reichardt, J. W. Henninget al. 2020 (SPTpol Collaboration)
    | |sptpolbb|
    | L. Balkenhol, A. Coerver, C. L. Reichardt, and J. A. Zebrowski 2025
-   | [ARXIVTODO]
+   | |spt3gd1bblite|
 
 :Type:
    Primary power spectrum measurement (:math:`BB`)
@@ -209,7 +209,7 @@ SPTpol BB
 
 .. tip::
 
-*Note*: This is an implementation of the original Fortran likelihood. Please see Balkenhol et al. 2025 [ARXIVTODO] for details, especially when scrutinising :math:`\chi^2` values. Note that the CMB-only version of this data set is not suited for constraining primordial signals that do not match the CMB black body SED.
+*Note*: This is an implementation of the original Fortran likelihood. Please see `Balkenhol et al. 2025 <https://arxiv.org/abs/2510.07928>`__ for details, especially when scrutinising :math:`\chi^2` values. Note that the CMB-only version of this data set is not suited for constraining primordial signals that do not match the CMB black body SED.
 
 
 ACT DR6 TT/TE/EE
