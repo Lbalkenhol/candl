@@ -60,7 +60,7 @@ Together these provide access to the following data:
      - `spt_candl_data <https://github.com/SouthPoleTelescope/spt_candl_data>`__
      - `Camphuis et al. 2025 <https://arxiv.org/abs/2506.20707>`__
 
-       Quan et al. 2025 (in prep.)
+        Quan et al. 2025 (in prep.)
 
    * - SPT-3G D1 BB
      - `spt_candl_data <https://github.com/SouthPoleTelescope/spt_candl_data>`__
@@ -85,13 +85,12 @@ Together these provide access to the following data:
    * - Planck 2018 likelihoods
      - `clipy <https://github.com/benabed/clipy>`__
      - `Planck 2018 V <https://arxiv.org/abs/1907.12875>`__
-     
+
    * - ACT DR6 TT/TE/EE
      - `candl_data <https://github.com/lbalkenhol/candl_data>`__
      - | `Naess et al. 2025 <https://arxiv.org/abs/2503.14451>`__
        
        `Louis et al. 2025 <https://arxiv.org/abs/2503.14452>`__
-       
        `Calabrese et al. 2025 <https://arxiv.org/abs/2503.14454>`__
 
    * - ACT DR6 :math:`\phi\phi`
