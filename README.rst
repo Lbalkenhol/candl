@@ -68,10 +68,6 @@ Together these provide access to the following data:
        lite version: `candl_data <https://github.com/lbalkenhol/candl_data>`__
      - `Zebrowski et al. 2025 <https://arxiv.org/abs/2505.02827>`__
 
-   * - Planck 2018 likelihoods
-     - `clipy <https://github.com/benabed/clipy>`__
-     - `Planck 2018 V <https://arxiv.org/abs/1907.12875>`__
-
    * - SPT-3G 2018 TT/TE/EE
      - `candl_data <https://github.com/lbalkenhol/candl_data>`__
      - | `Balkenhol et al. 2023 <https://arxiv.org/abs/2212.05642>`__
@@ -86,6 +82,10 @@ Together these provide access to the following data:
      - `candl_data <https://github.com/lbalkenhol/candl_data>`__
      - `Sayre et al. 2020 <https://arxiv.org/abs/1910.05748>`__
 
+   * - Planck 2018 likelihoods
+     - `clipy <https://github.com/benabed/clipy>`__
+     - `Planck 2018 V <https://arxiv.org/abs/1907.12875>`__
+     
    * - ACT DR6 TT/TE/EE
      - `candl_data <https://github.com/lbalkenhol/candl_data>`__
      - | `Naess et al. 2025 <https://arxiv.org/abs/2503.14451>`__
