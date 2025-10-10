@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.2.0 (2025-10-10)
+
+Support for offset lognormal likelihood.
+Release of SPT-3G D1 BB lite, SPTpol BB, SPTpol BB lite likelihoods via the `candl_data` repository (https://github.com/Lbalkenhol/candl_data).
+Added option to add logdet term to Gaussian likelihood (thanks Yuuki Omori).
+Fixed bug when JAX is not installed (thanks Chris Ringeval).
+Improved stability of Cobaya interface for wrapper likelihoods (thanks Fei Ge).
+
 ## v2.1.0 (2025-07-24)
 
 Support for Hamimeche-Lewis likelihood approximation. SPT BB release (Zebrowski et al. 2025 https://arxiv.org/abs/2505.02827).
