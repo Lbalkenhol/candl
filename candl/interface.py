@@ -1157,7 +1157,6 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
     wrapper: any = None
     additional_args: dict = {}
 
-
     def initialize(self):
         """
         Called from __init__ to initialise and complete the setup.
@@ -1222,7 +1221,9 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
         try:
             if self.lensing:
                 if not self.add_logdet:
-                    print("candl: for lensing likelihoods adding the logdet term leads to better stability when resuming Cobaya runs. Consider setting add_logdet=True")
+                    print(
+                        "candl: for lensing likelihoods adding the logdet term leads to better stability when resuming Cobaya runs. Consider setting add_logdet=True"
+                    )
                 self.candl_like = candl.LensLike(
                     self.data_set_file,
                     **init_args,

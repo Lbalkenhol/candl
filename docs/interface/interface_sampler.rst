@@ -59,7 +59,8 @@ In order to run Cobaya from the command line it sufficies to include the followi
 .. code-block:: yaml
 
     likelihood:
-        candl.interface.CandlCobayaLikelihood:
+        any_custom_name:
+            class: candl.interface.CandlCobayaLikelihood
             data_set_file: candl_data.SPT3G_2018_TTTEEE # Data set or path to .yaml file
             variant: None # Select a variant of the data set if pointing to an index file
             lensing: False # Switch on for lensing likelihoods
@@ -75,10 +76,6 @@ Only ``data_set_file`` is required, the other arguments are optional.
 Again, by default the candl internal priors are not applied, set ``clear_internal_priors: False`` if you want to use them.
 If you only want to clear some internal priors, you can supply a string or list of strings to ``clear_specific_priors``, e.g. ``"clear_internal_priors": "tau"``. Note that any priors that feature the specified parameters will be ignored, i.e. an entire multi-dimensional prior is ignored if any of its parameters are specified in ``clear_specific_priors``.
 If you are pointing to an index file with ``data_set_file``, use ``variant`` to select the desired variant.
-
-.. tip::
-
-    If you are encountering issues pointing to ``candl.interface.CandlCobayaLikelihood`` this way, try adding ``external: !!python/name:candl.interface.CandlCobayaLikelihood ''`` to the block and replacing ``candl.interface.CandlCobayaLikelihood`` by a name of your choice, e.g. ``candl_like``.
 
 .. tip::
 

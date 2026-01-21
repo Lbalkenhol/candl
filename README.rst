@@ -42,7 +42,8 @@ Data Sets
 
 candl data sets are kept separately from the code. There currently exist three online libraries with compatible data:
 
-* `spt_candl_data <https://github.com/SouthPoleTelescope/spt_candl_data>`__: official repository of the South Pole Telescope collaboration.
+* `spt_candl_data <https://github.com/SouthPoleTelescope/spt_candl_data>`__: official data repository of the South Pole Telescope collaboration.
+* `spt_candl_forecasts <hhttps://github.com/SouthPoleTelescope/spt_candl_forecasts>`__: official repository of forecast likelihoods of the South Pole Telescope collaboration.
 * `candl_data <https://github.com/lbalkenhol/candl_data>`__: repository of CMB data sets re-implemented in candl.
 * `clipy <https://github.com/benabed/clipy>`__: 2018 Planck likelihoods available through a wrapper with the python, JAX-friendly clipy implementation.
 
@@ -77,6 +78,10 @@ Together these provide access to the following data:
    * - SPT-3G 2018 :math:`\phi\phi`
      - `candl_data <https://github.com/lbalkenhol/candl_data>`__
      - `Pan et al. 2023 <https://arxiv.org/abs/2308.11608>`__
+  
+   * - SPT-3G Ext10k forecast
+     - `spt_candl_forecasts <https://github.com/SouthPoleTelescope/spt_candl_forecasts>`__
+     - `Vitrier et al. 2025 <https://arxiv.org/abs/2510.24669>`__
 
    * - SPTpol BB
      - `candl_data <https://github.com/lbalkenhol/candl_data>`__

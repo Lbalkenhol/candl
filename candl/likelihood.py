@@ -241,7 +241,7 @@ class Like:
             self.fiducial_bandpowers = candl.io.read_file_from_yaml(
                 self.data_set_dict, "fiducial_band_power_file"
             )
-        
+
         # Load in lognorm offset if present
         self.offset_lognorm_offset = None
         if "offset_lognorm_offset" in self.data_set_dict:
@@ -350,8 +350,12 @@ class Like:
             self.add_logdet = kwargs.get("add_logdet", False)
             if self.add_logdet:
                 self.N_data = int(self.N_bins_total)
-                self._logdet_cov = 2.0 * jnp.sum(jnp.log(jnp.diag(self.covariance_chol_dec)))
-                self._norm_const = 0.5 * (self._logdet_cov + self.N_data * jnp.log(2.0 * jnp.pi))
+                self._logdet_cov = 2.0 * jnp.sum(
+                    jnp.log(jnp.diag(self.covariance_chol_dec))
+                )
+                self._norm_const = 0.5 * (
+                    self._logdet_cov + self.N_data * jnp.log(2.0 * jnp.pi)
+                )
 
         # Define ell range and grab some helpers
         (
@@ -438,8 +442,10 @@ class Like:
 
         # Additional check for offset log-normal likelihood
         if self.data_set_dict["likelihood_form"] == "offset_lognorm":
-            assert self.offset_lognorm_mean is not None and self.offset_lognorm_offset is not None, \
-                "candl: offset_lognorm_mean and offset_lognorm_offset must be supplied for offset_lognorm likelihoods"
+            assert (
+                self.offset_lognorm_mean is not None
+                and self.offset_lognorm_offset is not None
+            ), "candl: offset_lognorm_mean and offset_lognorm_offset must be supplied for offset_lognorm likelihoods"
 
         # Expand any transformation blocks in the data model section of the .yaml file
         expanded_data_model_list = []
@@ -605,10 +611,10 @@ class Like:
             chol_fac.T, chol_fac
         )  # equivalent to the straightforward method, i.e. delta @ C^-1 @ delta
         logl = chisq / 2
-        
+
         if self.add_logdet:
             logl = logl + self._norm_const
-            
+
         return logl
 
     def gaussian_logl_beam_and_detcov(self, data_bandpowers, binned_theory_Dls):
@@ -710,8 +716,8 @@ class Like:
         )
         X_segment_unique = X_segment[jnp.triu_indices(len(self.HL_map_order))][
             self.HL_map_nonzero
-        ][self.HL_map_argsort]       
-        X = jax_optional_set_element(X,i + self.bins_start_ix,X_segment_unique)
+        ][self.HL_map_argsort]
+        X = jax_optional_set_element(X, i + self.bins_start_ix, X_segment_unique)
         return in_bdp_model_map, X
 
     def HL_logl(self, data_bandpowers, binned_theory_Dls):
@@ -784,7 +790,10 @@ class Like:
         """
 
         # Calculate difference between model and data (in log space)
-        delta_bdp = jnp.log(binned_theory_Dls - self.offset_lognorm_offset) - self.offset_lognorm_mean
+        delta_bdp = (
+            jnp.log(binned_theory_Dls - self.offset_lognorm_offset)
+            - self.offset_lognorm_mean
+        )
 
         # Calculate logl
         chol_fac = jnp.linalg.solve(self.covariance_chol_dec, delta_bdp)
@@ -794,9 +803,9 @@ class Like:
         logl = chisq / 2
 
         logl += jnp.sum(jnp.log(binned_theory_Dls - self.offset_lognorm_offset))
-            
+
         return logl
-    
+
     def chi_square(self, params):
         """
         Returns the chi squared for a given set of theory Dls and nuisance parameter values.
@@ -1176,6 +1185,16 @@ class Like:
             )
             self.beam_correlation = jnp.delete(
                 self.beam_correlation, jnp.invert(self.crop_mask), axis=1
+            )
+
+        if not self.noise_model_bandpowers is None:
+            self.noise_model_bandpowers = jnp.delete(
+                self.noise_model_bandpowers, jnp.invert(self.crop_mask)
+            )
+
+        if not self.fiducial_bandpowers is None:
+            self.fiducial_bandpowers = jnp.delete(
+                self.fiducial_bandpowers, jnp.invert(self.crop_mask)
             )
 
         # Update start and stop indices
@@ -1655,8 +1674,12 @@ class LensLike:
         self.add_logdet = kwargs.get("add_logdet", False)
         if self.add_logdet:
             self.N_data = int(self.N_bins_total)
-            self._logdet_cov = 2.0 * jnp.sum(jnp.log(jnp.diag(self.covariance_chol_dec)))
-            self._norm_const = 0.5 * (self._logdet_cov + self.N_data * jnp.log(2.0 * jnp.pi))
+            self._logdet_cov = 2.0 * jnp.sum(
+                jnp.log(jnp.diag(self.covariance_chol_dec))
+            )
+            self._norm_const = 0.5 * (
+                self._logdet_cov + self.N_data * jnp.log(2.0 * jnp.pi)
+            )
 
         # Define ell range and grab some helpers
         (
@@ -1836,7 +1859,7 @@ class LensLike:
 
         if self.add_logdet:
             logl = logl + self._norm_const
-            
+
         return logl
 
     def chi_square(self, params):

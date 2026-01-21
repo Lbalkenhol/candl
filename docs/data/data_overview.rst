@@ -82,6 +82,30 @@ SPT-3G D1 BB
 
     This likelihood uses the `Hamimeche-Lewis <https://arxiv.org/abs/0801.0554>`__ approximation. As such, not all subsets of the data set can be run. You may also consider the foreground-marginalised (CMB-only) version of this data set in :code:`candl_data`.
 
+``spt_candl_forecasts``
+-------------------------------------------------
+
+`Official repository <https://github.com/SouthPoleTelescope/spt_candl_forecasts>`__ of the South Pole Telescope collaboration featuring the forecast likelihoods used in `Vitrier et al. 2025 <https://arxiv.org/abs/2510.24669>`__.
+Simply clone the repo to get the data and run :code:`pip install .` inside the folder to install.
+You can use :code:`spt_candl_forecasts.print_all_shortcuts` to list all available shortcuts to data sets.
+More details can be found in the :code:`spt_candl_forecasts` `readme <https://github.com/SouthPoleTelescope/spt_candl_forecasts>`__.
+
+.. |spt3gtowardswide| image:: https://img.shields.io/badge/arXiv-2510.24669-b31b1b.svg
+   :target: https://arxiv.org/abs/2510.24669
+
+:Paper(s):
+   | A. Vitrier, K. Fichman, L. Balkenhol, E. Camphuis, F. Guidi, A. R. Khalife et al. 2025 (SPT-3G Collaboration)
+   | |spt3gtowardswide|
+
+:Type:
+   Primary and lensing power spectrum measurement (:math:`TT/TE/EE/\phi\phi`)
+
+:Short cut(s):
+   ````
+   | ``spt_candl_forecasts.<specific_likelihood>``
+
+:Latest version:
+   ``v0``
 
 ``candl_data``
 -------------------------------------------------
