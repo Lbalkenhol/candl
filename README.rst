@@ -79,7 +79,7 @@ Together these provide access to the following data:
      - `candl_data <https://github.com/lbalkenhol/candl_data>`__
      - `Pan et al. 2023 <https://arxiv.org/abs/2308.11608>`__
   
-   * - SPT-3G Ext10k forecast
+   * - SPT-3G Ext-10k forecast
      - `spt_candl_forecasts <https://github.com/SouthPoleTelescope/spt_candl_forecasts>`__
      - `Vitrier et al. 2025 <https://arxiv.org/abs/2510.24669>`__
 

@@ -90,6 +90,9 @@ Simply clone the repo to get the data and run :code:`pip install .` inside the f
 You can use :code:`spt_candl_forecasts.print_all_shortcuts` to list all available shortcuts to data sets.
 More details can be found in the :code:`spt_candl_forecasts` `readme <https://github.com/SouthPoleTelescope/spt_candl_forecasts>`__.
 
+SPT-3G Ext-10k
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. |spt3gtowardswide| image:: https://img.shields.io/badge/arXiv-2510.24669-b31b1b.svg
    :target: https://arxiv.org/abs/2510.24669
 
