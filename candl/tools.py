@@ -885,8 +885,7 @@ def test_statistic_conditional(spec_str, cond_dict, like, blinded=False):
 # DIFFERENCE SPECTRA
 # --------------------------------------#
 
-
-def make_difference_spectra(spec_str_1, spec_str_2, data_CMB_only, like, blinded=False):
+def make_difference_spectra(spec_str_1, spec_str_2, data_CMB_only, like, blinded=False, verbose = False):
     """
     Generate frequency conditional prediction.
     See Section 3.6.3 here https://arxiv.org/pdf/1907.12875.pdf for details.
@@ -910,9 +909,6 @@ def make_difference_spectra(spec_str_1, spec_str_2, data_CMB_only, like, blinded
         "diff spec" : Difference spectrum (array (float))
         "diff cov" : Difference covariance (array (float))
 
-    Warning
-    --------------
-    The code only works for equal length spectra at the moment.
     """
 
     # Check that valid difference was requested
@@ -929,10 +925,33 @@ def make_difference_spectra(spec_str_1, spec_str_2, data_CMB_only, like, blinded
     # Grab spectra
     spec_1_fg_sub = data_CMB_only[like.bins_start_ix[i] : like.bins_stop_ix[i]]
     spec_2_fg_sub = data_CMB_only[like.bins_start_ix[j] : like.bins_stop_ix[j]]
+    len_spec_1_fg_sub_in = len(spec_1_fg_sub)
+    len_spec_2_fg_sub_in = len(spec_2_fg_sub)
 
-    if len(spec_1_fg_sub) != len(spec_2_fg_sub):
-        print("Requested spectra of different length, no design matrix supplied!")
-        return
+    if len_spec_1_fg_sub_in != len_spec_2_fg_sub_in:
+        print("Requested spectra of different length, cropping spectra in the overlapping ell range!")
+
+        ell_spec_1 = like.effective_ells[like.bins_start_ix[i] : like.bins_stop_ix[i]]
+        ell_spec_2 = like.effective_ells[like.bins_start_ix[j] : like.bins_stop_ix[j]]
+
+        ell_min = max(min(ell_spec_1), min(ell_spec_2))
+        ell_max = min(max(ell_spec_1), max(ell_spec_2))
+
+        if verbose : print('ell_spec_1 = ', ell_spec_1)
+        if verbose : print('ell_spec_2 = ', ell_spec_2)
+        if verbose : print('ell_min, ell_max =', ell_min, ell_max)
+        common_start_ix_1 = np.where(np.abs(ell_spec_1 - ell_min) < 1)[0][0]
+        common_start_ix_2 = np.where(np.abs(ell_spec_2 - ell_min) < 1)[0][0]
+        if verbose : print('common start ix', common_start_ix_1, common_start_ix_2, ell_spec_1[common_start_ix_1], ell_spec_2[common_start_ix_2])
+        common_stop_ix_1 = np.where(np.abs(ell_spec_1 - ell_max) < 1)[0][0]
+        common_stop_ix_2 = np.where(np.abs(ell_spec_2 - ell_max) < 1)[0][0]
+        if verbose : print('common stop ix ', common_stop_ix_1, common_stop_ix_1, ell_spec_1[common_stop_ix_1], ell_spec_2[common_stop_ix_2])
+        
+        spec_1_fg_sub = spec_1_fg_sub[common_start_ix_1 : common_stop_ix_1]
+        spec_2_fg_sub = spec_2_fg_sub[common_start_ix_2 : common_stop_ix_2]
+        ell = ell_spec_1[common_start_ix_1 : common_stop_ix_1]
+    else:
+        ell = like.effective_ells[like.bins_start_ix[i] : like.bins_stop_ix[i]]
 
     diff = spec_1_fg_sub - spec_2_fg_sub
 
@@ -941,29 +960,52 @@ def make_difference_spectra(spec_str_1, spec_str_2, data_CMB_only, like, blinded
     if blinded:
         cov_to_use *= np.outer(like._blinding_function, like._blinding_function)
 
-    spec_1_cov = cov_to_use[
-        like.bins_start_ix[i] : like.bins_stop_ix[i],
-        like.bins_start_ix[i] : like.bins_stop_ix[i],
-    ]
-    spec_2_cov = cov_to_use[
-        like.bins_start_ix[j] : like.bins_stop_ix[j],
-        like.bins_start_ix[j] : like.bins_stop_ix[j],
-    ]
-    spec_12_cov = cov_to_use[
-        like.bins_start_ix[i] : like.bins_stop_ix[i],
-        like.bins_start_ix[j] : like.bins_stop_ix[j],
-    ]
-    spec_21_cov = cov_to_use[
-        like.bins_start_ix[j] : like.bins_stop_ix[j],
-        like.bins_start_ix[i] : like.bins_stop_ix[i],
-    ]
+    if len_spec_1_fg_sub_in == len_spec_2_fg_sub_in:
+        spec_1_cov = cov_to_use[
+            like.bins_start_ix[i] : like.bins_stop_ix[i],
+            like.bins_start_ix[i] : like.bins_stop_ix[i],
+        ]
+        spec_2_cov = cov_to_use[
+            like.bins_start_ix[j] : like.bins_stop_ix[j],
+            like.bins_start_ix[j] : like.bins_stop_ix[j],
+        ]
+        spec_12_cov = cov_to_use[
+            like.bins_start_ix[i] : like.bins_stop_ix[i],
+            like.bins_start_ix[j] : like.bins_stop_ix[j],
+        ]
+        spec_21_cov = cov_to_use[
+            like.bins_start_ix[j] : like.bins_stop_ix[j],
+            like.bins_start_ix[i] : like.bins_stop_ix[i],
+        ]
+    else:
+        print("Requested spectra of different length, cropping cov in the overlapping ell range!")
+        spec_1_cov = cov_to_use[
+            like.bins_start_ix[i] + common_start_ix_1 : like.bins_start_ix[i] + common_stop_ix_1,
+            like.bins_start_ix[i] + common_start_ix_1 : like.bins_start_ix[i] + common_stop_ix_1,
+        ]
+        spec_2_cov = cov_to_use[
+            like.bins_start_ix[j] + common_start_ix_2 : like.bins_start_ix[j] + common_stop_ix_2,
+            like.bins_start_ix[j] + common_start_ix_2 : like.bins_start_ix[j] + common_stop_ix_2,
+        ]
+        spec_12_cov = cov_to_use[
+            like.bins_start_ix[i] + common_start_ix_1 : like.bins_start_ix[i] + common_stop_ix_1,
+            like.bins_start_ix[j] + common_start_ix_2 : like.bins_start_ix[j] + common_stop_ix_2,
+        ]
+        spec_21_cov = cov_to_use[
+            like.bins_start_ix[j] + common_start_ix_2 : like.bins_start_ix[j] + common_stop_ix_2,
+            like.bins_start_ix[i] + common_start_ix_1 : like.bins_start_ix[i] + common_stop_ix_1,
+        ]
 
+        if verbose : print('spec_1_cov shape = ', np.shape(spec_1_cov))
+        if verbose : print('spec_2_cov shape = ', np.shape(spec_2_cov))
+        if verbose : print('spec_12_cov shape = ', np.shape(spec_12_cov))
+        if verbose : print('spec_21_cov shape = ', np.shape(spec_21_cov))
     # Assemble covariance of the difference
     cov_block = np.block([[spec_1_cov, spec_12_cov], [spec_21_cov, spec_2_cov]])
     A_mat = np.block([[np.eye(len(spec_2_fg_sub)), -np.eye(len(spec_2_fg_sub))]])
     diff_cov = np.matmul(A_mat, np.matmul(cov_block, A_mat.T))
 
-    return {"diff spec": diff, "diff cov": diff_cov}
+    return {"diff spec": diff, "diff cov": diff_cov, "ell": ell}
 
 
 def test_statistic_difference(diff_dict):
