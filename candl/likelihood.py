@@ -1246,7 +1246,12 @@ class Like:
             # Generate crop mask based on multiple string hints
             cumulative_crop_mask = np.zeros(self.N_bins_total)
             for this_string_hint in self.data_set_dict["data_selection"]:
-                cumulative_crop_mask += self.interpret_crop_hint(this_string_hint)
+                if '.txt' in this_string_hint:
+                    cumulative_crop_mask +=  candl.io.read_file_from_yaml(
+                    self.data_set_dict, this_string_hint
+                                )
+                else:
+                    cumulative_crop_mask += self.interpret_crop_hint(this_string_hint)
             crop_mask = np.array(
                 cumulative_crop_mask == np.amax(cumulative_crop_mask), dtype=bool
             )
