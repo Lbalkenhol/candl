@@ -184,8 +184,10 @@ def read_file_from_yaml(data_set_dict, file_kw):
     """
 
     # Hand off to file reader
-    arr = read_file_from_path(data_set_dict["data_set_path"] + data_set_dict[file_kw])
-
+    try:
+        arr = read_file_from_path(data_set_dict["data_set_path"] + data_set_dict[file_kw])
+    except:
+        arr = read_file_from_path(data_set_dict["data_set_path"] + file_kw) #file kw is the filename here
     return arr
 
 
