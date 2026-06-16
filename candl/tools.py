@@ -53,9 +53,8 @@ import candl.io
 # Optional tqdm import (progress bars)
 try:
     from tqdm.notebook import tqdm
-except:
+except ImportError:
     print("candl: tqdm not installed, do not request progress bars.")
-    pass
 
 # --------------------------------------#
 # FISHER MATRIX
@@ -128,7 +127,7 @@ def get_fisher_matrix(
                     fisher_mat[
                         par_order.index(p1), par_order.index(p2)
                     ] += prior_cov_inv[i, j]
-                except:
+                except ValueError:
                     pass
 
     # Invert and return

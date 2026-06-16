@@ -58,14 +58,14 @@ try:
         # Need JAX to run with 64bit for dynamic range in covmats
         try:
             jax_config.update("jax_enable_x64", True)
-        except:
+        except Exception:
             raise Exception(
                 "candl: could not configure JAX to run in 64 bit mode - this will likely lead to wrong results!"
             )
         JAX_IMPORT_SUCCEEDED = True
     else:
         raise ImportError()
-except:
+except ImportError:
     import numpy as jnp
     import scipy as jsp
 
@@ -99,26 +99,26 @@ except:
 try:
     import pycapse as pc
     import json
-except:
+except ImportError:
     pass
 
 # Optional CAMB import
 try:
     import camb
-except:
+except ImportError:
     pass
 
 # Optional CLASS import
 try:
     import classy
-except:
+except ImportError:
     pass
 
 # Optional Cobaya import
 try:
     from cobaya.theory import Theory as cobaya_theory_Theory
     from cobaya.likelihood import Likelihood as cobaya_likelihood_Likelihood
-except:
+except ImportError:
 
     # Empty class definitions in case Cobaya is not installed
     class cobaya_theory_Theory:
@@ -131,25 +131,25 @@ except:
 # Optional CosmoPower import
 try:
     import cosmopower as cp
-except:
+except ImportError:
     pass
 
 # Optional CosmoPower-JAX import
 try:
     from cosmopower_jax.cosmopower_jax import CosmoPowerJAX as CPJ
-except:
+except ImportError:
     pass
 
 # Optional clipy import
 try:
     import clipy
-except:
+except ImportError:
     pass
 
 # Optional candl_data import
 try:
     import candl_data
-except:
+except ImportError:
     print(
         "Failed to import `candl_data` (see instructions here for installation: https://github.com/Lbalkenhol/candl_data)."
     )

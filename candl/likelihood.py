@@ -964,13 +964,13 @@ class Like:
                     tr_module = importlib.import_module(
                         "candl.transformations." + module_name
                     )
-                except:
+                except ImportError:
                     tr_module = importlib.import_module(module_name)
 
                 # Check what arguments are required to initialise the Transformation
                 tr_signature = inspect.signature(tr_module.__dict__[tr_name]).parameters
                 tr_all_args = list(tr_signature)
-            except:
+            except (ImportError, ModuleNotFoundError, KeyError) as e:
                 raise Exception(f"Could not locate transformation: {full_tr_name}")
 
             # Compile all arguments required to initialise the transformation class
@@ -1032,12 +1032,12 @@ class Like:
                         tr_arg_dict[arg] = candl.io.read_file_from_path(
                             f"{candl_path}/{tr_arg_dict[arg.replace('template_arr', 'template_file')]}"
                         )
-                    except:
+                    except FileNotFoundError:
                         try:
                             tr_arg_dict[arg] = candl.io.read_file_from_path(
                                 f"{self.data_set_dict['data_set_path']}{tr_arg_dict[arg.replace('template_arr', 'template_file')]}"
                             )
-                        except:
+                        except FileNotFoundError:
                             tr_arg_dict[arg] = candl.io.read_file_from_path(
                                 f"{tr_arg_dict[arg.replace('template_arr', 'template_file')]}"
                             )
@@ -1054,7 +1054,7 @@ class Like:
                         req_module = importlib.import_module(
                             "candl.transformations." + req_module_name
                         )
-                    except:
+                    except ImportError:
                         req_module = importlib.import_module(req_module_name)
 
                     for transformation in data_model:
@@ -1333,15 +1333,16 @@ class Like:
 
         elif "ell" in data_hint:
             # ell cut
+            import operator as op
             ell_cut = float(data_hint.split("ell")[1][1:])
             compare_operation = data_hint.split("ell")[1][0]
-            base_msk[eval(f"self.effective_ells{compare_operation}ell_cut")] = True
+            op_map = {"<": op.lt, ">": op.gt}
+            base_msk[op_map[compare_operation](self.effective_ells, ell_cut)] = True
 
         else:
             raise Exception(
                 f"Did not recognise data hint: {data_hint}\n Using all bins."
             )
-            return np.ones(self.N_bins_total) == 1
 
         # Go through action hints and check whether we need to invert the selection
         if action_hint == "only":
@@ -1352,7 +1353,6 @@ class Like:
             raise Exception(
                 f"Did not recognise action: {action_hint}\n Using all bins."
             )
-            return np.ones(self.N_bins_total) == 1
 
         # Feedback
         if len(affected_specs) > 0:
@@ -2013,13 +2013,13 @@ class LensLike:
                     tr_module = importlib.import_module(
                         "candl.transformations." + module_name
                     )
-                except:
+                except ImportError:
                     tr_module = importlib.import_module(module_name)
 
                 # Check what arguments are required to initialise the Transformation
                 tr_signature = inspect.signature(tr_module.__dict__[tr_name]).parameters
                 tr_all_args = list(tr_signature)
-            except:
+            except (ImportError, ModuleNotFoundError, KeyError) as e:
                 raise Exception(f"Could not locate transformation: {full_tr_name}")
 
             # Compile all arguments required to initialise the transformation class
@@ -2035,12 +2035,12 @@ class LensLike:
                         tr_arg_dict[arg] = candl.io.read_file_from_path(
                             f"{candl_path}/{tr_arg_dict[arg.replace('template_arr', 'template_file')]}"
                         )
-                    except:
+                    except FileNotFoundError:
                         try:
                             tr_arg_dict[arg] = candl.io.read_file_from_path(
                                 f"{self.data_set_dict['data_set_path']}{tr_arg_dict[arg.replace('template_arr', 'template_file')]}"
                             )
-                        except:
+                        except FileNotFoundError:
                             tr_arg_dict[arg] = candl.io.read_file_from_path(
                                 f"{tr_arg_dict[arg.replace('template_arr', 'template_file')]}"
                             )
@@ -2296,15 +2296,16 @@ class LensLike:
 
         elif "ell" in data_hint:
             # ell cut
+            import operator as op
             ell_cut = float(data_hint.split("ell")[1][1:])
             compare_operation = data_hint.split("ell")[1][0]
-            base_msk[eval(f"self.effective_ells{compare_operation}ell_cut")] = True
+            op_map = {"<": op.lt, ">": op.gt}
+            base_msk[op_map[compare_operation](self.effective_ells, ell_cut)] = True
 
         else:
             raise Exception(
                 f"Did not recognise data hint: {data_hint}\n Using all bins."
             )
-            return np.ones(self.N_bins_total) == 1
 
         # Go through action hints and check whether we need to invert the selection
         if action_hint == "only":
@@ -2315,7 +2316,6 @@ class LensLike:
             raise Exception(
                 f"Did not recognise action: {action_hint}\n Using all bins."
             )
-            return np.ones(self.N_bins_total) == 1
 
         # Feedback
         if len(affected_specs) > 0:
@@ -2572,18 +2572,16 @@ def cholesky_decomposition(covariance, N_sims=None, N_bins=None):
     # Compute cholesky decomposition, make sure it works
     try:
         covariance_chol_dec = jnp.linalg.cholesky(covariance)
-    except:
+    except Exception:
         raise Exception(
             "Band power covariance matrix is not positive definite! Stopping."
         )
-        exit(1)
 
     # Check no nans are present from insufficient precision
     if np.isnan(covariance_chol_dec).any():
         raise Exception(
             "candl: cholesky decomposition contains 'nan'! Check file and try switching on double precision in JAX. Stopping."
         )
-        exit(1)
 
     # Apply Hartlap correction if requested
     if N_sims is not None and N_bins is not None:

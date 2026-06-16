@@ -1977,7 +1977,7 @@ class FGSpectraInterfaceFactorizedCrossSpectrum(
         fgf = importlib.import_module("fgspectra.frequency")
         fgp = importlib.import_module("fgspectra.power")
         self.fgspectra_instance = fgc.FactorizedCrossSpectrum(
-            eval(f"fgf.{fgspectra_sed}()"), eval(f"fgp.{fgspectra_cl}()")
+            getattr(fgf, fgspectra_sed)(), getattr(fgp, fgspectra_cl)()
         )
 
         self.fgspectra_sed_args = fgspectra_sed_args

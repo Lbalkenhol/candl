@@ -111,7 +111,7 @@ class CobayaTheoryCosmoPowerJAX(cobaya_theory_Theory):
                         probe="custom_pca",
                         filename=self.emulator_filenames[spec_type],
                     )
-                except:
+                except Exception:
                     self.cp_emulators[spec_type] = CPJ(
                         probe="custom_pca",
                         filepath=self.emulator_filenames[spec_type],
@@ -122,7 +122,7 @@ class CobayaTheoryCosmoPowerJAX(cobaya_theory_Theory):
                         probe="custom_log",
                         filename=self.emulator_filenames[spec_type],
                     )
-                except:
+                except Exception:
                     self.cp_emulators[spec_type] = CPJ(
                         probe="custom_log",
                         filepath=self.emulator_filenames[spec_type],
@@ -1063,7 +1063,7 @@ class CobayaTheoryCosmoPowerLensing(cobaya_theory_Theory):
 
         # Get CMB Cls and Dls
         state["Cl"] = {
-            "pp": self.cp_emulators["pp"].get_predicion(pars_for_cp).ravel(),
+            "pp": self.cp_emulators["pp"].get_prediction(pars_for_cp).ravel(),
             "L": self.cp_emulators["pp"].modes,
         }
         state["Dl"] = {
@@ -1149,13 +1149,13 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
     data_set_file: str = "./"
     variant: str = None
     clear_internal_priors: bool = True
-    clear_specific_priors: list = []
+    clear_specific_priors: list = None
     lensing: bool = False
     add_logdet: bool = False
     feedback: bool = True
     data_selection: any = ...
     wrapper: any = None
-    additional_args: dict = {}
+    additional_args: dict = None
 
     def initialize(self):
         """
@@ -1169,10 +1169,14 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
             module_name, data_set_name = self.data_set_file.split(".")
             data_module = importlib.import_module(module_name)
             self.data_set_file = getattr(data_module, data_set_name)
-        except:
+        except (ValueError, ModuleNotFoundError, AttributeError):
             pass
 
         # Collect arguments
+        if self.additional_args is None:
+            self.additional_args = {}
+        if self.clear_specific_priors is None:
+            self.clear_specific_priors = []
         init_args = {
             "variant": self.variant,
             "feedback": self.feedback,
@@ -1206,7 +1210,7 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
                                 self.candl_like.required_prior_parameters.append(pp)
                         elif type(self.candl_like._prior[p]) == str:
                             self.candl_like.required_prior_parameters.append(p)
-            except:
+            except (ImportError, ModuleNotFoundError, Exception) as e:
                 raise Exception(
                     f"candl: wrapper likelihood {self.wrapper} could not be initialised!"
                 )
@@ -1233,7 +1237,7 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
                     self.data_set_file,
                     **init_args,
                 )
-        except:
+        except Exception:
             raise Exception("candl: likelihood could not be initialised!")
 
         # by default clear internal priors and assume these are taken care off by Cobaya
@@ -1278,7 +1282,7 @@ class CandlCobayaLikelihood(cobaya_likelihood_Likelihood):
                         "kk"
                     ]  # Cobaya works with pp for lensing by default rather than kk
                     del required_pars["Cl"]["kk"]
-        except:
+        except AttributeError:
             # Cls
             required_pars = {"Cl": {}}
             for spec in self.candl_like.unique_spec_types:
@@ -1341,10 +1345,10 @@ def get_cobaya_info_dict_for_like(
     name="candl_like",
     data_selection=...,
     clear_internal_priors=True,
-    clear_specific_priors=[],
+    clear_specific_priors=None,
     feedback=True,
     wrapper=None,
-    additional_args={},
+    additional_args=None,
 ):
     """
     Thin wrapper for CandlCobayaLikelihood that returns the class with the requested data set in the format expected by Cobaya.
@@ -1383,6 +1387,12 @@ def get_cobaya_info_dict_for_like(
     print(
         "Warning: Cobaya will re-instantiate the likelihood object and earlier modifications (such as manually overwriting attributes, the data model, or the priors) you may have done to your instance will likely not apply unless you have specified them here again."
     )
+
+    # Ensure defaults for mutable arguments
+    if clear_specific_priors is None:
+        clear_specific_priors = []
+    if additional_args is None:
+        additional_args = {}
 
     # Construct Cobaya dictionary
     cobaya_info = {
@@ -1425,7 +1435,7 @@ def get_cobaya_info_dict_for_like(
         # For wrapper likelihoods
         try:
             options = like.init_options
-        except:
+        except AttributeError:
             options = {}
         cobaya_info[name]["additional_args"] = (
             options | cobaya_info[name]["additional_args"]
@@ -1555,7 +1565,7 @@ def get_CosmoPowerJAX_pars_to_theory_specs_func(emulator_filenames):
                 cp_emulators[spec_type] = CPJ(
                     probe="custom_pca", filename=emulator_filenames[spec_type]
                 )
-            except:
+            except Exception:
                 cp_emulators[spec_type] = CPJ(
                     probe="custom_pca", filepath=emulator_filenames[spec_type]
                 )
@@ -1564,7 +1574,7 @@ def get_CosmoPowerJAX_pars_to_theory_specs_func(emulator_filenames):
                 cp_emulators[spec_type] = CPJ(
                     probe="custom_log", filename=emulator_filenames[spec_type]
                 )
-            except:
+            except Exception:
                 cp_emulators[spec_type] = CPJ(
                     probe="custom_log", filepath=emulator_filenames[spec_type]
                 )

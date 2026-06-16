@@ -226,7 +226,7 @@ def read_file_from_path(full_path):
         arr = np.load(full_path)
         try:
             arr = jnp.array(arr)
-        except:
+        except (ValueError, TypeError):
             pass
     elif file_ending == "fits":
         with fits.open(full_path) as hdul:
@@ -344,7 +344,6 @@ def read_window_functions_from_yaml(data_set_dict, spec_order, N_bins):
 
     else:
         raise Exception("Did not recognise window function format.")
-        return None
 
     return [jnp.array(w) for w in window_functions]
 

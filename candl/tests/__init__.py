@@ -44,13 +44,13 @@ def run_test(test_file):
             module_name, data_set_name = data_set_str.split(".")
             data_module = importlib.import_module(module_name)
             data_set_str = getattr(data_module, data_set_name)
-        except:
+        except (ValueError, ModuleNotFoundError, AttributeError):
             pass
         if test_dict["lensing"]:
             candl_like = candl.LensLike(data_set_str, feedback=False)
         else:
             candl_like = candl.Like(data_set_str, feedback=False)
-    except:
+    except Exception:
         print(
             f"!!! -> Failed to initialise likelihood for {test_file} pointing to {data_set_str}"
         )
@@ -62,9 +62,9 @@ def run_test(test_file):
             test_spec = np.loadtxt(
                 "/".join(test_file.split("/")[:-1]) + f"/{test_dict['test_spectrum']}"
             )
-        except:
+        except FileNotFoundError:
             test_spec = np.loadtxt(test_dict["test_spectrum"])
-    except:
+    except Exception:
         print(
             f"!!! -> Failed to load test spectrum for {test_file} pointing to {test_dict['test_spectrum']}"
         )
